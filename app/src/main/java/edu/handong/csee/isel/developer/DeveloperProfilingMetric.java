@@ -219,6 +219,9 @@ System.out.println(metadataPath);
 				developerInfoMap.put(developer,developerInfo);
 			}
 
+			File temp = new File("/data/devCluster/Developer_Profiling.csv");
+			boolean isFile = temp.isFile();
+			
 			FileWriter out;
 			if(doOverwrite) {
 //				out = new FileWriter("/data/devCluster/Developer_Profiling.csv", true);
@@ -226,9 +229,6 @@ System.out.println(metadataPath);
 			}else {
 				out = new FileWriter(outputPath + File.separator + "Developer_" + metadataPath.substring(metadataPath.lastIndexOf(File.separator)+1));
 			}
-			
-			File temp = new File("/data/devCluster/Developer_Profiling.csv");
-			boolean isFile = temp.isFile();
 			
 			CSVPrinter printer;
 			
@@ -285,6 +285,8 @@ System.out.println(metadataPath);
 					}
 				});
 				printer.flush();
+				printer.close();
+				out.close();
 			}
 
 			if (help) {

@@ -16,6 +16,9 @@ repositories {
     jcenter()
 }
 
+apply plugin: 'application'
+mainClassName = "edu.handong.csee.isel.DPDPMain"
+
 dependencies {
     // Use JUnit test framework.
     testImplementation 'junit:junit:4.13'
@@ -31,9 +34,4 @@ dependencies {
 
     // https://mvnrepository.com/artifact/org.apache.commons/commons-csv
     compile group: 'org.apache.commons', name: 'commons-csv', version: '1.7'
-}
-
-application {
-    // Define the main class for the application.
-    mainClass = 'edu.handong.csee.isel.App'
 }

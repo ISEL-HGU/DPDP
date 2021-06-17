@@ -10,6 +10,7 @@ public class ProjectInformation {
 	String projectName;
 	String referenceFolderPath;
 	String developerProfilingInstanceCSVPath;
+	boolean doClustering;
 	
 	ProjectInformation(){
 		this.defectInstancePath = null;
@@ -17,6 +18,7 @@ public class ProjectInformation {
 		this.projectName = null;
 		this.referenceFolderPath = null;
 		this.developerProfilingInstanceCSVPath = null;
+		this.doClustering = false;
 	}
 
 	public String getDefectInstancePath() {
@@ -85,6 +87,12 @@ public class ProjectInformation {
 	public void setDeveloperProfilingInstanceCSVPath(String developerProfilingInstanceCSVPath) {
 		this.developerProfilingInstanceCSVPath = developerProfilingInstanceCSVPath;
 	}
-	
-	
+
+	public boolean isDoClustering() {
+		return doClustering;
+	}
+
+	public void setDoClustering(boolean doClustering) {
+		this.doClustering = doClustering;
+	}
 }

@@ -1,9 +1,5 @@
 package edu.handong.csee.isel;
 
-import java.io.File;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -39,7 +35,12 @@ public class DPDPMain {
 			
 			//make deverloper proriling instances
 			DeveloperInstanceMaker developerFeatureMaker = new DeveloperInstanceMaker(projectInformation);
-			developerFeatureMaker.makeDeveloperInstanceCSV();
+			
+			if(!projectInformation.isDoClustering()) {
+				developerFeatureMaker.makeDeveloperInstanceCSV();	
+			}else {
+				developerFeatureMaker.applyClusteringAlgorithm();
+			}
 			
 			if(verbose) {
 				System.out.println("Your program is terminated. (This message is shown because you turned on -v option!");
@@ -55,7 +56,7 @@ public class DPDPMain {
 			CommandLine cmd = parser.parse(options, args);
 			projectInformation.setDefectInstancePath(cmd.getOptionValue("i"));
 			projectInformation.setOutputPath(cmd.getOptionValue("o"));
-			
+			projectInformation.setDoClustering(cmd.hasOption("c"));
 			help = cmd.hasOption("h");
 
 		} catch (Exception e) {
@@ -84,6 +85,11 @@ public class DPDPMain {
 				.required()
 				.build());
 
+		options.addOption(Option.builder("c").longOpt("clustering")
+				.desc("")
+				.argName("")
+				.build());
+		
 		return options;
 	}
 
