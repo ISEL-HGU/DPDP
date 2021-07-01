@@ -7,7 +7,8 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
-import edu.handong.csee.isel.developer.DeveloperInstanceMaker;
+import edu.handong.csee.isel.data.DataFileMaker;
+import edu.handong.csee.isel.model.ModelMaker;
 
 public class DPDPMain {
 	ProjectInformation projectInformation;
@@ -36,14 +37,18 @@ public class DPDPMain {
 			System.out.println("This project is "+ projectInformation.projectName);
 			
 			//make deverloper proriling instances
-			DeveloperInstanceMaker developerInstanceMaker = new DeveloperInstanceMaker(projectInformation);
+			DataFileMaker dataFileMaker = new DataFileMaker(projectInformation);
+			ModelMaker modelMaker = new ModelMaker(projectInformation);
 			
-			if(!clusterM) {
-				developerInstanceMaker.makeDeveloperProfilingInstanceCSV();	
-				developerInstanceMaker.makeDeveloperDefectInstanceArff(noBow);
-			}else {
-				developerInstanceMaker.makeDeveloperProfilingClusterModel();
+			if(!clusterM && !defectM) {
+				dataFileMaker.makeDeveloperProfilingInstanceCSV();	
+				dataFileMaker.makeDeveloperDefectInstanceArff(noBow);
 			}
+			
+			if(clusterM) {
+				modelMaker.makeDeveloperProfilingClusterModel();
+			}
+			
 			
 			if(defectM) {
 				
@@ -63,19 +68,12 @@ public class DPDPMain {
 			CommandLine cmd = parser.parse(options, args);
 			projectInformation.setDefectInstancePath(cmd.getOptionValue("i"));
 			projectInformation.setOutputPath(cmd.getOptionValue("o"));
-			if(cmd.hasOption("clusterM")) {
-				clusterM = true;
-			}else {
-				clusterM = false;
-			}
 			
-			if(cmd.hasOption("bow")) {
-				noBow = true;
-			}else{
-				noBow = false;
-			}
-			
+			noBow = cmd.hasOption("bow");
+			clusterM = cmd.hasOption("clusterM");
 			defectM = cmd.hasOption("defectM");
+//			
+//			defectM = cmd.hasOption("defectM");
 			help = cmd.hasOption("h");
 
 		} catch (Exception e) {

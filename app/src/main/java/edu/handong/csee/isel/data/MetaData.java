@@ -1,4 +1,4 @@
-package edu.handong.csee.isel.developer;
+package edu.handong.csee.isel.data;
 
 import java.util.ArrayList;
 import java.util.HashMap;

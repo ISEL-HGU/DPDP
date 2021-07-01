@@ -10,8 +10,8 @@ import java.util.HashMap;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 
-import edu.handong.csee.isel.developer.DeveloperInfo;
-import edu.handong.csee.isel.developer.MetaData;
+import edu.handong.csee.isel.data.DeveloperInfo;
+import edu.handong.csee.isel.data.MetaData;
 
 public class Utils {
 	public static MetaData readMetadataCSV(String metadataPath) throws IOException {
