@@ -19,9 +19,7 @@ import java.util.*;
 public class DeveloperProfilingMetric {
 	String metadataPath;
 	String outputPath;
-	String outpuCSV;
 	String projectName;
-	boolean doOverwrite;
 	boolean verbose;
 	boolean help;
 	
@@ -34,8 +32,9 @@ public class DeveloperProfilingMetric {
 		Options options = createOptions();
 
 		if (parseOptions(options, args)) {
-System.out.println(metadataPath);
+
 			MetaData metaData = Utils.readMetadataCSV(metadataPath); //testPrint(metaData);
+			//Users/yangsujin/Documents/eclipse/derby-reference/derby_Label.csv
 
 			HashMap<String,DeveloperInfo> developerInfoMap = new HashMap<String,DeveloperInfo>();
 			Set<String> developerNameSet = getDeveloperNameSet(metaData); // System.out.println(developerSet);
@@ -219,16 +218,11 @@ System.out.println(metadataPath);
 				developerInfoMap.put(developer,developerInfo);
 			}
 
-			File temp = new File("/data/devCluster/Developer_Profiling.csv");
+			File temp = new File(outputPath);
+///Users/yangsujin/Documents/eclipse/PDP_result/totalDevInstances/Developer_Profiling.csv
 			boolean isFile = temp.isFile();
 			
-			FileWriter out;
-			if(doOverwrite) {
-//				out = new FileWriter("/data/devCluster/Developer_Profiling.csv", true);
-				out = new FileWriter("/data/devCluster/Developer_Profiling.csv", true);
-			}else {
-				out = new FileWriter(outputPath + File.separator + "Developer_" + metadataPath.substring(metadataPath.lastIndexOf(File.separator)+1));
-			}
+			FileWriter out = new FileWriter(outputPath, true); 
 			
 			CSVPrinter printer;
 			
@@ -236,18 +230,18 @@ System.out.println(metadataPath);
 				printer = new CSVPrinter(out, CSVFormat.DEFAULT);
 			}else {
 				printer = new CSVPrinter(out, CSVFormat.DEFAULT.withHeader(DeveloperInfo.CSVHeader));
-			}
-			
-			outpuCSV = outputPath + File.separator + "Developer_" + metadataPath.substring(metadataPath.lastIndexOf(File.separator)+1);
-			
+			}			
 			
 			try (printer) {
 				developerInfoMap.forEach((developerName, developerInfo) -> {
 					try {
-//						CSVHeader = {"ID","totalCommit","totalCommitPath", "meanEditedLineInCommit", "meanEditedLineInCommitPath", "varianceOfCommit", "varianceOfCommitPath", "meanOfEditedLineOfCommit" ,"meanOfAddedLineOfCommit","meanOfAddedLineOfCommitPath","meanOfDeletedLineOfCommit","meanOfDeletedLineOfCommitPath","meanOfDistributionModifiedLineOfCommit","meanOfDistributionModifiedLineOfCommitPath","meanOfNumOfSubsystem","meanOfNumOfDirectories","meanOfNumOfFiles","Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat","0h","1h","2h","3h","4h","5h","6h","7h","8h","9h","10h","11h","12h","13h","14h","15h","16h","17h","18h","19h","20h","21h","22h","23h"};
 
 						List<String> metricList = new ArrayList<>();
-
+						
+						if(developerName.startsWith(" ")) {
+							developerName = developerName.substring(1,developerName.length());
+						}
+						
 						metricList.add(projectName+"-"+developerName);
 						metricList.add(String.valueOf(developerInfo.totalCommit));
 						metricList.add(String.valueOf(developerInfo.totalCommitPath));
@@ -409,15 +403,18 @@ System.out.println(metadataPath);
 
 		try {
 			CommandLine cmd = parser.parse(options, args);
+			
 			outputPath = cmd.getOptionValue("o");
 			if(outputPath.endsWith(File.separator)) {
 				outputPath = outputPath.substring(0, outputPath.lastIndexOf(File.separator));
 			}
 			metadataPath = cmd.getOptionValue("m");
-			doOverwrite = cmd.hasOption("w");
 			projectName = cmd.getOptionValue("p");
 			help = cmd.hasOption("h");
 			
+//		System.out.println(metadataPath);
+//		System.out.println(outputPath);
+		
 		} catch (Exception e) {
 			printHelp(options);
 			return false;
@@ -444,11 +441,6 @@ System.out.println(metadataPath);
 				.required()
 				.build());
 		
-		options.addOption(Option.builder("w").longOpt("do overwrite?")
-				.desc("overwrite in output csv file")
-				.argName("path")
-				.build());
-		
 		options.addOption(Option.builder("p").longOpt("projectName")
 				.desc("")
 				.hasArg()
@@ -468,10 +460,6 @@ System.out.println(metadataPath);
 		String header = "Collecting developer Meta-data program";
 		String footer = "\nPlease report issues at https://github.com/HGUISEL/DAISE/issues";
 		formatter.printHelp("DAISE", header, options, footer, true);
-	}
-
-	public String getOutpuCSV() {
-		return outpuCSV;
 	}
 
 }

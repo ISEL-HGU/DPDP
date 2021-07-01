@@ -9,6 +9,7 @@ public class ProjectInformation {
 	String outputPath;
 	String projectName;
 	String referenceFolderPath;
+//	String totalDeveloperProfilingInstanceForderPath;
 	String developerProfilingInstanceCSVPath;
 	boolean doClustering;
 	
@@ -18,6 +19,7 @@ public class ProjectInformation {
 		this.projectName = null;
 		this.referenceFolderPath = null;
 		this.developerProfilingInstanceCSVPath = null;
+//		this.totalDeveloperProfilingInstanceForderPath = null;
 		this.doClustering = false;
 	}
 
@@ -88,11 +90,13 @@ public class ProjectInformation {
 		this.developerProfilingInstanceCSVPath = developerProfilingInstanceCSVPath;
 	}
 
-	public boolean isDoClustering() {
-		return doClustering;
-	}
-
-	public void setDoClustering(boolean doClustering) {
-		this.doClustering = doClustering;
-	}
+//	public String getTotalDeveloperProfilingInstanceForderPath() {
+//		return totalDeveloperProfilingInstanceForderPath;
+//	}
+//
+//	public void setTotalDeveloperProfilingInstanceForderPath(String totalDeveloperProfilingInstanceForderPath) {
+//		this.totalDeveloperProfilingInstanceForderPath = totalDeveloperProfilingInstanceForderPath;
+//	}
+	
+	
 }

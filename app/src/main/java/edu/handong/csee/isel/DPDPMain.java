@@ -11,7 +11,9 @@ import edu.handong.csee.isel.developer.DeveloperInstanceMaker;
 
 public class DPDPMain {
 	ProjectInformation projectInformation;
-	
+	boolean clusterM;
+	boolean noBow;
+	boolean defectM;
 	boolean verbose;
 	boolean help;
 	
@@ -34,12 +36,17 @@ public class DPDPMain {
 			System.out.println("This project is "+ projectInformation.projectName);
 			
 			//make deverloper proriling instances
-			DeveloperInstanceMaker developerFeatureMaker = new DeveloperInstanceMaker(projectInformation);
+			DeveloperInstanceMaker developerInstanceMaker = new DeveloperInstanceMaker(projectInformation);
 			
-			if(!projectInformation.isDoClustering()) {
-				developerFeatureMaker.makeDeveloperInstanceCSV();	
+			if(!clusterM) {
+				developerInstanceMaker.makeDeveloperProfilingInstanceCSV();	
+				developerInstanceMaker.makeDeveloperDefectInstanceArff(noBow);
 			}else {
-				developerFeatureMaker.applyClusteringAlgorithm();
+				developerInstanceMaker.makeDeveloperProfilingClusterModel();
+			}
+			
+			if(defectM) {
+				
 			}
 			
 			if(verbose) {
@@ -56,14 +63,25 @@ public class DPDPMain {
 			CommandLine cmd = parser.parse(options, args);
 			projectInformation.setDefectInstancePath(cmd.getOptionValue("i"));
 			projectInformation.setOutputPath(cmd.getOptionValue("o"));
-			projectInformation.setDoClustering(cmd.hasOption("c"));
+			if(cmd.hasOption("clusterM")) {
+				clusterM = true;
+			}else {
+				clusterM = false;
+			}
+			
+			if(cmd.hasOption("bow")) {
+				noBow = true;
+			}else{
+				noBow = false;
+			}
+			
+			defectM = cmd.hasOption("defectM");
 			help = cmd.hasOption("h");
 
 		} catch (Exception e) {
 			printHelp(options);
 			return false;
 		}
-
 		return true;
 	}
 
@@ -75,17 +93,26 @@ public class DPDPMain {
 				.desc("Address of meta data arff file. Don't use double quotation marks")
 				.hasArg()
 				.argName("URI")
-				.required()
-				.build());// 필수
+				.required()// 필수
+				.build());
 
 		options.addOption(Option.builder("o").longOpt("output")
 				.desc("output path. Don't use double quotation marks")
 				.hasArg()
 				.argName("path")
-				.required()
+				.build());
+		
+		options.addOption(Option.builder("bow").longOpt("NoBagOfWords")
+				.desc("Remove the metric of Bag Of Words")
+				.argName("NoBagOfWords")
 				.build());
 
-		options.addOption(Option.builder("c").longOpt("clustering")
+		options.addOption(Option.builder("clusterM").longOpt("developerClusteringModel")
+				.desc("")
+				.argName("")
+				.build());
+		
+		options.addOption(Option.builder("defectM").longOpt("clusterDefectModel")
 				.desc("")
 				.argName("")
 				.build());
