@@ -51,7 +51,7 @@ public class DPDPMain {
 			
 			
 			if(defectM) {
-				
+				modelMaker.makeClusterDefectModel();
 			}
 			
 			if(verbose) {
