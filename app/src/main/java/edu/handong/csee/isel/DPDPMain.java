@@ -1,5 +1,7 @@
 package edu.handong.csee.isel;
 
+import java.util.ArrayList;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -49,9 +51,9 @@ public class DPDPMain {
 				modelMaker.makeDeveloperProfilingClusterModel();
 			}
 			
-			
 			if(defectM) {
-				modelMaker.makeClusterDefectModel();
+				ArrayList<String> clusterArffPaths = dataFileMaker.makeClusterArff();
+				modelMaker.makeClusterDefectModel(clusterArffPaths);
 			}
 			
 			if(verbose) {
