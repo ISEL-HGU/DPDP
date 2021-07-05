@@ -33,6 +33,7 @@ import weka.clusterers.EM;
 import weka.core.AttributeStats;
 import weka.core.Instances;
 import weka.core.SelectedTag;
+import weka.core.SerializationHelper;
 import weka.core.converters.CSVLoader;
 import weka.core.converters.ConverterUtils.DataSource;
 import weka.core.setupgenerator.AbstractParameter;
@@ -233,7 +234,7 @@ public class ModelMaker {
 			
 			EM em = new  EM();
 			em.buildClusterer(newData);
-			weka.core.SerializationHelper.write(projectInformation.getOutputPath()+File.separator+"EM.model", em);
+			SerializationHelper.write(projectInformation.getOutputPath()+File.separator+"EM.model", em);
 			
 			ClusterEvaluation eval = new ClusterEvaluation();
 			eval.setClusterer(em);

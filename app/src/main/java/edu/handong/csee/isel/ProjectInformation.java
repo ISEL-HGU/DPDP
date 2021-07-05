@@ -9,7 +9,10 @@ public class ProjectInformation {
 	String outputPath;
 	String projectName;
 	String referenceFolderPath;
-	String developerProfilingInstanceCSVPath;
+	String developerDataCSVPath;
+	String testDeveloperProfilingInstanceCSV;
+	String testDeveloperDefectInstanceArff;
+	String locationOfModels;
 	boolean bow;
 	boolean imb;
 	
@@ -18,7 +21,10 @@ public class ProjectInformation {
 		this.outputPath = null;
 		this.projectName = null;
 		this.referenceFolderPath = null;
-		this.developerProfilingInstanceCSVPath = null;
+		this.developerDataCSVPath = null;
+		this.testDeveloperProfilingInstanceCSV = null;
+		this.testDeveloperDefectInstanceArff = null;
+		this.locationOfModels = null;
 		this.bow = false;
 		this.imb = false;
 		
@@ -32,7 +38,7 @@ public class ProjectInformation {
 		this.defectInstancePath = defectInstancePath;
 		
 
-		//set Projectname and referenceFolderPath
+		//set Project name and referenceFolderPath
 		String developerProfilingInstanceCSVPath = null;
 		String referenceFolderPath = null;
 		String projectName = null;
@@ -56,7 +62,7 @@ public class ProjectInformation {
 		
 		setProjectName(projectName);
 		setReferenceFolderPath(referenceFolderPath);
-		setDeveloperProfilingInstanceCSVPath(developerProfilingInstanceCSVPath);
+		setDeveloperDataCSVPath(developerProfilingInstanceCSVPath);
 	}
 
 	public String getOutputPath() {
@@ -83,12 +89,28 @@ public class ProjectInformation {
 		this.referenceFolderPath = referenceFolderPath;
 	}
 
-	public String getDeveloperProfilingInstanceCSVPath() {
-		return developerProfilingInstanceCSVPath;
+	public String getDeveloperDataCSVPath() {
+		return developerDataCSVPath;
 	}
 
-	public void setDeveloperProfilingInstanceCSVPath(String developerProfilingInstanceCSVPath) {
-		this.developerProfilingInstanceCSVPath = developerProfilingInstanceCSVPath;
+	public void setDeveloperDataCSVPath(String developerProfilingInstanceCSVPath) {
+		this.developerDataCSVPath = developerProfilingInstanceCSVPath;
+	}
+
+	public String getTestDeveloperProfilingInstanceCSV() {
+		return testDeveloperProfilingInstanceCSV;
+	}
+
+	public void setTestDeveloperProfilingInstanceCSV(String testDeveloperProfilingInstanceCSV) {
+		this.testDeveloperProfilingInstanceCSV = testDeveloperProfilingInstanceCSV;
+	}
+
+	public String getTestDeveloperDefectInstanceArff() {
+		return testDeveloperDefectInstanceArff;
+	}
+
+	public void setTestDeveloperDefectInstanceArff(String testDeveloperDefectInstanceArff) {
+		this.testDeveloperDefectInstanceArff = testDeveloperDefectInstanceArff;
 	}
 
 	public boolean isBow() {
@@ -105,6 +127,14 @@ public class ProjectInformation {
 
 	public void setImb(boolean imb) {
 		this.imb = imb;
+	}
+
+	public String getLocationOfModels() {
+		return locationOfModels;
+	}
+
+	public void setLocationOfModels(String locationOfModels) {
+		this.locationOfModels = locationOfModels;
 	}
 	
 }

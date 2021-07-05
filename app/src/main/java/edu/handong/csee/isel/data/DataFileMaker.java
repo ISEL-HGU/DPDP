@@ -37,21 +37,27 @@ public class DataFileMaker {
 		this.projectInformation = projectInformation;
 	}
 
-	public void makeDeveloperProfilingInstanceCSV() throws Exception {
+	public void makeDeveloperProfilingInstanceCSV(String mode) throws Exception {
 		//read CSV
 		String[] developerProfilingMetrics = new String[6];
 		
 		//make totalDevInstances directory
-		File dir = new File(projectInformation.getOutputPath());
-		if(!dir.isDirectory()) {
-			dir.mkdir();
+		File dir = null;
+		String totalDeveloperInstanceCSV = null;
+		if(mode.equals("train")) {
+			dir = new File(projectInformation.getOutputPath());
+			if(!dir.isDirectory()) {
+				dir.mkdir();
+			}
+			//total developer Instance CSV path
+			totalDeveloperInstanceCSV = dir.getAbsolutePath() + File.separator+"Developer_Profiling.csv";
+		}else if(mode.equals("test")) {
+			totalDeveloperInstanceCSV = projectInformation.getOutputPath() +File.separator+projectInformation.getProjectName()+File.separator+"ProilingInstances.csv";
+			projectInformation.setTestDeveloperProfilingInstanceCSV(totalDeveloperInstanceCSV);
 		}
 		
-		//total developer Instance CSV path
-		String totalDeveloperInstanceCSV = dir.getAbsolutePath() + File.separator+"Developer_Profiling.csv";
-		
 		developerProfilingMetrics[0] = "-m";
-		developerProfilingMetrics[1] = projectInformation.getDeveloperProfilingInstanceCSVPath();
+		developerProfilingMetrics[1] = projectInformation.getDeveloperDataCSVPath();
 		developerProfilingMetrics[2] = "-o";
 		developerProfilingMetrics[3] = totalDeveloperInstanceCSV;
 		developerProfilingMetrics[4] = "-p";
@@ -61,11 +67,19 @@ public class DataFileMaker {
 		developerProfilingMetric.run(developerProfilingMetrics);
 	}
 	
-	public void makeDeveloperDefectInstanceArff() throws Exception {
-		//make totalDevInstances directory
-		File dir = new File(projectInformation.getOutputPath() +File.separator+"totalDevDefectInstances");
-		if(!dir.isDirectory()) {
+	public void makeDeveloperDefectInstanceArff(String mode) throws Exception {
+		
+		File dir = null;
+		if(mode.equals("train")) {
+			//make totalDevInstances directory
+			dir = new File(projectInformation.getOutputPath() +File.separator+"totalDevDefectInstances");
+			if(!dir.isDirectory()) {
+				dir.mkdir();
+			}
+		}else if(mode.equals("test")) {
+			dir = new File(projectInformation.getOutputPath() +File.separator+projectInformation.getProjectName()+File.separator+"DefectInstances");
 			dir.mkdir();
+			projectInformation.setTestDeveloperDefectInstanceArff(dir.getAbsolutePath());
 		}
 		
 		//total developer Instance path

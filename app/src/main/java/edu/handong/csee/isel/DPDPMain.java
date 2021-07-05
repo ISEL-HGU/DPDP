@@ -1,6 +1,8 @@
 package edu.handong.csee.isel;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -11,9 +13,11 @@ import org.apache.commons.cli.Options;
 
 import edu.handong.csee.isel.data.DataFileMaker;
 import edu.handong.csee.isel.model.ModelMaker;
+import edu.handong.csee.isel.test.Testing;
 
 public class DPDPMain {
 	ProjectInformation projectInformation;
+	boolean test;
 	boolean clusterM;
 	boolean defectM;
 	boolean verbose;
@@ -41,9 +45,9 @@ public class DPDPMain {
 			DataFileMaker dataFileMaker = new DataFileMaker(projectInformation);
 			ModelMaker modelMaker = new ModelMaker(projectInformation);
 			
-			if(!clusterM && !defectM) {
-				dataFileMaker.makeDeveloperProfilingInstanceCSV();	
-				dataFileMaker.makeDeveloperDefectInstanceArff();
+			if(!clusterM && !defectM && !test) {
+				dataFileMaker.makeDeveloperProfilingInstanceCSV("train");	
+				dataFileMaker.makeDeveloperDefectInstanceArff("train");
 			}
 			
 			if(clusterM) {
@@ -55,9 +59,48 @@ public class DPDPMain {
 				modelMaker.makeClusterDefectModel(clusterArffPaths);
 			}
 			
+			if(test) {
+				System.out.println("Test");
+				Testing testing = new Testing(projectInformation);
+				
+				//mk result directory
+				File testDir = new File(projectInformation.getOutputPath() +File.separator+projectInformation.getProjectName());
+				String directoryPath = testDir.getAbsolutePath();
+				if(testDir.isDirectory()) {
+					deleteFile(directoryPath);
+				}
+				testDir.mkdir();
+				
+				dataFileMaker.makeDeveloperProfilingInstanceCSV("test");	
+				dataFileMaker.makeDeveloperDefectInstanceArff("test");
+				
+				System.out.println(projectInformation.getTestDeveloperDefectInstanceArff());
+				System.out.println(projectInformation.getTestDeveloperProfilingInstanceCSV());
+				
+				HashMap<Integer,ArrayList<String>> cluster_developer = testing.findDeveloperCluster();
+			}
+			
 			if(verbose) {
 				System.out.println("Your program is terminated. (This message is shown because you turned on -v option!");
 			}
+		}
+	}
+	
+	private void deleteFile(String path) {
+		File deleteFolder = new File(path);
+
+		if(deleteFolder.exists()){
+			File[] deleteFolderList = deleteFolder.listFiles();
+			
+			for (int i = 0; i < deleteFolderList.length; i++) {
+				if(deleteFolderList[i].isFile()) {
+					deleteFolderList[i].delete();
+				}else {
+					deleteFile(deleteFolderList[i].getPath());
+				}
+				deleteFolderList[i].delete(); 
+			}
+			deleteFolder.delete();
 		}
 	}
 	
@@ -72,10 +115,17 @@ public class DPDPMain {
 			
 			clusterM = cmd.hasOption("clusterM");
 			defectM = cmd.hasOption("defectM");
+			test = cmd.hasOption("test");
+			
+			if((clusterM&&defectM&&test)||(clusterM&&defectM)||(defectM&&test)||(clusterM&&test)) {
+				System.out.println("Wrong input!");
+				System.exit(0);
+			}
 			
 			projectInformation.setBow(cmd.hasOption("bow"));
 			projectInformation.setImb(cmd.hasOption("imb"));
-//			
+			projectInformation.setLocationOfModels(cmd.getOptionValue("m"));
+
 //			defectM = cmd.hasOption("defectM");
 			help = cmd.hasOption("h");
 
@@ -118,9 +168,20 @@ public class DPDPMain {
 				.argName("")
 				.build());
 		
+		options.addOption(Option.builder("test").longOpt("testMode")
+				.desc("")
+				.argName("")
+				.build());
+		
 		options.addOption(Option.builder("imb").longOpt("applySMOTE")
 				.desc("Sove imbalanced data problem using SMOTE")
 				.argName("")
+				.build());
+		
+		options.addOption(Option.builder("m").longOpt("locationOfModels")
+				.desc("location of saved model")
+				.argName("")
+				.hasArg()
 				.build());
 		
 		return options;
