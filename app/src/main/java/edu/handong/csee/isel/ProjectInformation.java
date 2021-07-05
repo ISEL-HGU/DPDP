@@ -9,9 +9,9 @@ public class ProjectInformation {
 	String outputPath;
 	String projectName;
 	String referenceFolderPath;
-//	String totalDeveloperProfilingInstanceForderPath;
 	String developerProfilingInstanceCSVPath;
-	boolean doClustering;
+	boolean bow;
+	boolean imb;
 	
 	ProjectInformation(){
 		this.defectInstancePath = null;
@@ -19,8 +19,9 @@ public class ProjectInformation {
 		this.projectName = null;
 		this.referenceFolderPath = null;
 		this.developerProfilingInstanceCSVPath = null;
-//		this.totalDeveloperProfilingInstanceForderPath = null;
-		this.doClustering = false;
+		this.bow = false;
+		this.imb = false;
+		
 	}
 
 	public String getDefectInstancePath() {
@@ -90,13 +91,20 @@ public class ProjectInformation {
 		this.developerProfilingInstanceCSVPath = developerProfilingInstanceCSVPath;
 	}
 
-//	public String getTotalDeveloperProfilingInstanceForderPath() {
-//		return totalDeveloperProfilingInstanceForderPath;
-//	}
-//
-//	public void setTotalDeveloperProfilingInstanceForderPath(String totalDeveloperProfilingInstanceForderPath) {
-//		this.totalDeveloperProfilingInstanceForderPath = totalDeveloperProfilingInstanceForderPath;
-//	}
-	
+	public boolean isBow() {
+		return bow;
+	}
+
+	public void setBow(boolean bow) {
+		this.bow = bow;
+	}
+
+	public boolean isImb() {
+		return imb;
+	}
+
+	public void setImb(boolean imb) {
+		this.imb = imb;
+	}
 	
 }

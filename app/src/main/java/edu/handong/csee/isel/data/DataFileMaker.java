@@ -61,7 +61,7 @@ public class DataFileMaker {
 		developerProfilingMetric.run(developerProfilingMetrics);
 	}
 	
-	public void makeDeveloperDefectInstanceArff(boolean noBow) throws Exception {
+	public void makeDeveloperDefectInstanceArff() throws Exception {
 		//make totalDevInstances directory
 		File dir = new File(projectInformation.getOutputPath() +File.separator+"totalDevDefectInstances");
 		if(!dir.isDirectory()) {
@@ -73,8 +73,8 @@ public class DataFileMaker {
 		System.out.println(totalDevDefectInstancesForder);
 		
 		String defectDataArffPath;
-		if(noBow) {
-			ExtractData.main(extractDataPargs(projectInformation.getDefectInstancePath(),projectInformation.getReferenceFolderPath(),noBow));
+		if(projectInformation.isBow()) {
+			ExtractData.main(extractDataPargs(projectInformation.getDefectInstancePath(),projectInformation.getReferenceFolderPath(),projectInformation.isBow()));
 			defectDataArffPath = ExtractData.getResultPath();
 		}else {
 			defectDataArffPath = projectInformation.getDefectInstancePath();
@@ -158,6 +158,7 @@ public class DataFileMaker {
 
 	public ArrayList<String> makeClusterArff() throws Exception {
 		ArrayList<String> clusterArffPaths = new ArrayList<>();
+		
 		String instancesStr = "([0-9]+)\\s([^,^}]+)"; 
 		Pattern instancesPattern = Pattern.compile(instancesStr);
 		

@@ -15,7 +15,6 @@ import edu.handong.csee.isel.model.ModelMaker;
 public class DPDPMain {
 	ProjectInformation projectInformation;
 	boolean clusterM;
-	boolean noBow;
 	boolean defectM;
 	boolean verbose;
 	boolean help;
@@ -44,7 +43,7 @@ public class DPDPMain {
 			
 			if(!clusterM && !defectM) {
 				dataFileMaker.makeDeveloperProfilingInstanceCSV();	
-				dataFileMaker.makeDeveloperDefectInstanceArff(noBow);
+				dataFileMaker.makeDeveloperDefectInstanceArff();
 			}
 			
 			if(clusterM) {
@@ -71,9 +70,11 @@ public class DPDPMain {
 			projectInformation.setDefectInstancePath(cmd.getOptionValue("i"));
 			projectInformation.setOutputPath(cmd.getOptionValue("o"));
 			
-			noBow = cmd.hasOption("bow");
 			clusterM = cmd.hasOption("clusterM");
 			defectM = cmd.hasOption("defectM");
+			
+			projectInformation.setBow(cmd.hasOption("bow"));
+			projectInformation.setImb(cmd.hasOption("imb"));
 //			
 //			defectM = cmd.hasOption("defectM");
 			help = cmd.hasOption("h");
@@ -114,6 +115,11 @@ public class DPDPMain {
 		
 		options.addOption(Option.builder("defectM").longOpt("clusterDefectModel")
 				.desc("")
+				.argName("")
+				.build());
+		
+		options.addOption(Option.builder("imb").longOpt("applySMOTE")
+				.desc("Sove imbalanced data problem using SMOTE")
 				.argName("")
 				.build());
 		

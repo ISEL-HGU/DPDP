@@ -2,8 +2,12 @@ package edu.handong.csee.isel.model;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.math.BigInteger;
+import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -12,11 +16,29 @@ import org.apache.commons.csv.CSVPrinter;
 
 import edu.handong.csee.isel.ProjectInformation;
 import edu.handong.csee.isel.data.DeveloperInfo;
+import weka.classifiers.Classifier;
+import weka.classifiers.bayes.BayesNet;
+import weka.classifiers.bayes.NaiveBayes;
+import weka.classifiers.functions.Logistic;
+import weka.classifiers.lazy.IBk;
+import weka.classifiers.meta.MultiSearch;
+import weka.classifiers.meta.multisearch.DefaultEvaluationMetrics;
+import weka.classifiers.meta.multisearch.DefaultSearch;
+import weka.classifiers.trees.ADTree;
+import weka.classifiers.trees.J48;
+import weka.classifiers.trees.LMT;
+import weka.classifiers.trees.RandomForest;
 import weka.clusterers.ClusterEvaluation;
 import weka.clusterers.EM;
+import weka.core.AttributeStats;
 import weka.core.Instances;
+import weka.core.SelectedTag;
 import weka.core.converters.CSVLoader;
+import weka.core.converters.ConverterUtils.DataSource;
+import weka.core.setupgenerator.AbstractParameter;
+import weka.core.setupgenerator.MathParameter;
 import weka.filters.Filter;
+import weka.filters.supervised.instance.SMOTE;
 import weka.filters.unsupervised.attribute.Remove;
 
 public class ModelMaker {
@@ -26,9 +48,164 @@ public class ModelMaker {
 		this.projectInformation = projectInformation;
 	}
 	
-	public void makeClusterDefectModel(ArrayList<String> clusterArffPaths) {
-
+	public void makeClusterDefectModel(ArrayList<String> clusterArffPaths) throws Exception {		
+		//location of model
+		File clusterModelFolder = new File(projectInformation.getDefectInstancePath() +File.separator+"ClusterModel");
+		String clusterModelFolderPath = clusterModelFolder.getAbsolutePath();
+		clusterModelFolder.mkdir();
 		
+		//location of model information
+		String modelInformationPath = projectInformation.getDefectInstancePath() +File.separator+"Model_Information.csv";
+		File temp = new File(modelInformationPath);
+		boolean isFile = temp.isFile();
+		FileWriter out = new FileWriter(modelInformationPath, true); 
+		CSVPrinter printer = null;
+		
+		if(isFile) {
+			printer = new CSVPrinter(out, CSVFormat.DEFAULT);
+		}else {
+			printer = new CSVPrinter(out, CSVFormat.DEFAULT.withHeader(ClusterModelInfo.CSVHeader));
+		}	
+		
+		for(String clusterArffPath : clusterArffPaths) {
+			String clusterName = clusterArffPath.substring(clusterArffPath.lastIndexOf("/")+1,clusterArffPath.lastIndexOf("."));
+			ClusterModelInfo clusterModelInfo = new ClusterModelInfo();
+			
+			DataSource source = new DataSource(clusterArffPath);
+			Instances data = source.getDataSet();
+			data.setClassIndex(0);
+			AttributeStats attStats = data.attributeStats(0);
+
+			int buggyIndex = data.attribute(0).indexOfValue("buggy");
+			int cleanIndex = data.attribute(0).indexOfValue("clean");
+			
+			clusterModelInfo.setNumOfBuggy(attStats.nominalCounts[buggyIndex]);
+			clusterModelInfo.setNumOfClean(attStats.nominalCounts[cleanIndex]);
+			
+			//Apply class imbalance algorithm
+			if(projectInformation.isImb()) {
+				System.out.println("Apply SMOTE");
+				SMOTE smote = new SMOTE();
+				int nearestNeighbor = 5;
+				int percentage = 200;
+				
+				if((attStats.nominalCounts[buggyIndex] * 3) > attStats.nominalCounts[cleanIndex]) {
+					percentage = (int)((((double)attStats.nominalCounts[cleanIndex])/(double)(attStats.nominalCounts[buggyIndex])-1) * 100);
+				}
+				
+				smote.setInputFormat(data);
+				smote.setNearestNeighbors(nearestNeighbor);
+				smote.setPercentage(percentage);
+				data= new Instances(Filter.useFilter(data, smote));
+				
+				clusterModelInfo.setClassImbalanceAlgo("SMOTE");
+				clusterModelInfo.setNumOfBuggy_solveImb(attStats.nominalCounts[buggyIndex]);
+				clusterModelInfo.setNumOfBuggy_solveImb(attStats.nominalCounts[cleanIndex]);
+			}else {
+				clusterModelInfo.setClassImbalanceAlgo("None");
+				clusterModelInfo.setNumOfBuggy_solveImb(0);
+				clusterModelInfo.setNumOfBuggy_solveImb(0);
+			}
+			
+			//Apply classification algorithm
+			ArrayList<String> algorithms = new ArrayList<String>(Arrays.asList("ibk"));
+			
+			for(String algorithm : algorithms) {
+				Classifier classifyModel = null;
+				AlgorithmInfo algorithmInfo = null;
+				
+				if(algorithm.compareTo("random") == 0) {
+					classifyModel = new RandomForest();
+				}else if(algorithm.compareTo("naive") == 0){
+					classifyModel = new NaiveBayes();
+				}else if(algorithm.compareTo("j48") == 0){
+					classifyModel = new J48();
+				}else if(algorithm.compareTo("bayesNet") == 0){
+					classifyModel = new BayesNet();
+				}else if(algorithm.compareTo("lmt") == 0){
+					classifyModel = new LMT();
+				}else if (algorithm.compareTo("ibk") == 0) {
+					classifyModel = new IBk();
+					algorithmInfo = new AlgorithmInfo(2,10,1,"KNN");
+				}else if (algorithm.compareTo("logi") == 0) {
+					classifyModel = new Logistic();
+				}else if (algorithm.compareTo("adt") == 0) {
+					classifyModel = new ADTree();
+					algorithmInfo = new AlgorithmInfo(0,100,10,"numOfBoostingIterations");
+				}
+				
+				//set multi_search (parpmeter tuning)
+				ArrayList<String> multisearchEvaluationNames = new ArrayList<String>(Arrays.asList("Fmeasure"));
+				MultiSearch multi_search = new MultiSearch();
+				
+				MathParameter param = new MathParameter();
+				param.setProperty(algorithmInfo.getProperty()); //change according to algorithm
+				param.setMin(algorithmInfo.getMin());
+				param.setMax(algorithmInfo.getMax());
+				param.setStep(algorithmInfo.getStep());
+				param.setExpression("I");
+				
+				for(String multisearchEvaluationName : multisearchEvaluationNames) {
+					
+					SelectedTag tag = null;
+					if(multisearchEvaluationName.equals("AUC")) {
+						tag = new SelectedTag(DefaultEvaluationMetrics.EVALUATION_AUC, new DefaultEvaluationMetrics().getTags());
+					}
+					else if(multisearchEvaluationName.equals("Fmeasure")) {//!
+						tag = new SelectedTag(DefaultEvaluationMetrics.EVALUATION_FMEASURE, new DefaultEvaluationMetrics().getTags());
+					}
+					else if(multisearchEvaluationName.equals("MCC")) {//!
+						tag = new SelectedTag(DefaultEvaluationMetrics.EVALUATION_MATTHEWS_CC, new DefaultEvaluationMetrics().getTags());
+					}
+					else if(multisearchEvaluationName.equals("Precision")) {
+						tag = new SelectedTag(DefaultEvaluationMetrics.EVALUATION_PRECISION, new DefaultEvaluationMetrics().getTags());
+					}
+					else if(multisearchEvaluationName.equals("Recall")) {
+						tag = new SelectedTag(DefaultEvaluationMetrics.EVALUATION_RECALL, new DefaultEvaluationMetrics().getTags());
+					}
+					
+					multi_search.setSearchParameters(new AbstractParameter[]{param});
+					multi_search.setEvaluation(tag);
+					multi_search.setAlgorithm(new DefaultSearch());
+					multi_search.setClassifier(classifyModel);
+					multi_search.buildClassifier(data);
+					
+					//make the hashkey of model
+					String input = clusterName+algorithm+algorithmInfo.getProperty()+"_"+algorithmInfo.getMin()+"_"+algorithmInfo.getMax()+"_"+algorithmInfo.getStep()+
+									multisearchEvaluationName+clusterModelInfo.getNumOfBuggy()+clusterModelInfo.getNumOfClean();
+					MessageDigest digest = MessageDigest.getInstance("SHA-1");
+					digest.reset();
+					digest.update(input.getBytes("utf8"));
+					String hashKey = String.format("%64x", new BigInteger(1, digest.digest()));
+					hashKey = hashKey.trim();
+					
+					//save model information
+					List<String> informationList = new ArrayList<>();
+					informationList.add(hashKey);
+					informationList.add(clusterName);
+					informationList.add(algorithm);
+					informationList.add(Double.toString(clusterModelInfo.getNumOfBuggy()+clusterModelInfo.getNumOfClean()));
+					informationList.add(Double.toString(clusterModelInfo.getNumOfBuggy()));
+					informationList.add(Double.toString(clusterModelInfo.getNumOfClean()));
+					informationList.add(multisearchEvaluationName);
+					informationList.add(clusterModelInfo.getClassImbalanceAlgo());
+					informationList.add(Double.toString(clusterModelInfo.getNumOfBuggy_solveImb()+clusterModelInfo.getNumOfClean_solveImb()));
+					informationList.add(Double.toString(clusterModelInfo.getNumOfBuggy_solveImb()));
+					informationList.add(Double.toString(clusterModelInfo.getNumOfClean_solveImb()));
+					informationList.add(algorithmInfo.getProperty());
+					informationList.add(Integer.toString(algorithmInfo.getMin()));
+					informationList.add(Integer.toString(algorithmInfo.getMax()));
+					informationList.add(Integer.toString(algorithmInfo.getStep()));
+					printer.printRecord(informationList);
+					
+					//save the model
+					weka.core.SerializationHelper.write(clusterModelFolderPath+File.separator+clusterName+"_"+algorithm+"_"+hashKey+".model", multi_search);
+					System.out.println("Success to save "+clusterName+"_"+algorithm);
+				}
+			}
+		}
+		printer.close();
+		out.close();
 	}
 
 	public void makeDeveloperProfilingClusterModel() {
@@ -164,4 +341,45 @@ System.out.println("number Of Cluster : " + numOfCluster);
 			deleteFolder.delete();
 		}
 	}
+}
+
+class AlgorithmInfo{
+	int min;
+	int max;
+	int step;
+	String property;
+	
+	AlgorithmInfo(int min, int max, int step, String property) {
+		this.min = min;
+		this.max = max;
+		this.step = step;
+		this.property = property;
+	}
+	
+	protected int getMin() {
+		return min;
+	}
+	protected void setMin(int min) {
+		this.min = min;
+	}
+	protected int getMax() {
+		return max;
+	}
+	protected void setMax(int max) {
+		this.max = max;
+	}
+	protected int getStep() {
+		return step;
+	}
+	protected void setStep(int step) {
+		this.step = step;
+	}
+	protected String getProperty() {
+		return property;
+	}
+	protected void setProperty(String property) {
+		this.property = property;
+	}
+	
+	
 }

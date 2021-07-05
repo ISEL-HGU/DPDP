@@ -38,4 +38,13 @@ dependencies {
 
     // https://mvnrepository.com/artifact/org.apache.commons/commons-csv
     compile group: 'org.apache.commons', name: 'commons-csv', version: '1.7'
+    
+    	// https://mvnrepository.com/artifact/com.github.fracpete/multisearch-weka-package
+	compile group: 'com.github.fracpete', name: 'multisearch-weka-package', version: '2021.2.17'
+
+	// https://mvnrepository.com/artifact/nz.ac.waikato.cms.weka/SMOTE
+	compile group: 'nz.ac.waikato.cms.weka', name: 'SMOTE', version: '1.0.3'
+	
+	// https://mvnrepository.com/artifact/nz.ac.waikato.cms.weka/alternatingDecisionTrees
+	implementation group: 'nz.ac.waikato.cms.weka', name: 'alternatingDecisionTrees', version: '1.0.5'
 }
