@@ -109,7 +109,7 @@ public class ModelMaker {
 			}
 			
 			//Apply classification algorithm
-			ArrayList<String> algorithms = new ArrayList<String>(Arrays.asList("ibk"));
+			ArrayList<String> algorithms = new ArrayList<String>(Arrays.asList("lmt","random","ibk","adt"));
 			
 			for(String algorithm : algorithms) {
 				Classifier classifyModel = null;
@@ -117,6 +117,7 @@ public class ModelMaker {
 				
 				if(algorithm.compareTo("random") == 0) {
 					classifyModel = new RandomForest();
+					algorithmInfo = new AlgorithmInfo(10,50,10,"maxDepth");
 				}else if(algorithm.compareTo("naive") == 0){
 					classifyModel = new NaiveBayes();
 				}else if(algorithm.compareTo("j48") == 0){
@@ -125,6 +126,7 @@ public class ModelMaker {
 					classifyModel = new BayesNet();
 				}else if(algorithm.compareTo("lmt") == 0){
 					classifyModel = new LMT();
+					algorithmInfo = new AlgorithmInfo(20,80,20,"numBoostingIterations");
 				}else if (algorithm.compareTo("ibk") == 0) {
 					classifyModel = new IBk();
 					algorithmInfo = new AlgorithmInfo(2,10,1,"KNN");
@@ -132,7 +134,7 @@ public class ModelMaker {
 					classifyModel = new Logistic();
 				}else if (algorithm.compareTo("adt") == 0) {
 					classifyModel = new ADTree();
-					algorithmInfo = new AlgorithmInfo(0,100,10,"numOfBoostingIterations");
+					algorithmInfo = new AlgorithmInfo(0,50,10,"numOfBoostingIterations");
 				}
 				
 				//set multi_search (parpmeter tuning)
@@ -279,6 +281,7 @@ System.out.println("number Of Cluster : " + numOfCluster);
 //				}
 //			}
 			
+			//save each cluster instances
 			File clusterDir = new File(projectInformation.getOutputPath() +File.separator+"ClusterCSV");
 			String directoryPath = clusterDir.getAbsolutePath();
 			if(clusterDir.isDirectory()) {

@@ -46,6 +46,11 @@ public class DPDPMain {
 			ModelMaker modelMaker = new ModelMaker(projectInformation);
 			
 			if(!clusterM && !defectM && !test) {
+				File isExist = new File(projectInformation.getDefectInstancePath());
+				if(!isExist.exists()) {
+					System.out.println("The data file is not exist");
+					System.exit(0);
+				}
 				dataFileMaker.makeDeveloperProfilingInstanceCSV("train");	
 				dataFileMaker.makeDeveloperDefectInstanceArff("train");
 			}

@@ -48,9 +48,35 @@ public class Testing {
 		
 		ClusterEvaluation eval = new ClusterEvaluation();
 		eval.setClusterer(em);
-		
-//		System.out.println("------------------------------NUM cluster-----------------------  "+eval.getNumClusters());
+		eval.evaluateClusterer(newData);
+		System.out.println("------------------------------NUM cluster-----------------------  "+eval.getNumClusters());
 
+		double[] assignments = eval.getClusterAssignments();
+		
+		for(int i = 0; i < assignments.length; i++) {
+			int cluster = (int)assignments[i];
+			String developerID = parsingDeveloperName(data.get(i).stringValue(0));
+			
+			ArrayList<String> developerList;
+			
+			if(cluster_developer.containsKey(cluster)) {
+				developerList = cluster_developer.get(cluster);
+				developerList.add(developerID);
+			}else {
+				developerList = new ArrayList<>();
+				developerList.add(developerID);
+				cluster_developer.put(cluster, developerList);
+			}
+		}
+		
 		return null;
+	}
+	
+	private String parsingDeveloperName(String stringValue) {
+		String developerName = stringValue;
+		if(stringValue.startsWith(" ")) {
+			developerName = stringValue.substring(1, stringValue.length());
+		}
+		return developerName;
 	}
 }
