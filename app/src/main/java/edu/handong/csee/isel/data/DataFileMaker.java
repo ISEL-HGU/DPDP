@@ -93,40 +93,43 @@ public class DataFileMaker {
 		}else {
 			defectDataArffPath = projectInformation.getDefectInstancePath();
 		}
-//		String defectDataArffPath = "/Users/yangsujin/Documents/eclipse/derby-reference/derby-data-bow.arff";
 		System.out.println(defectDataArffPath);
 		
-		DataSource source = new DataSource(defectDataArffPath);
-
-		Instances data = source.getDataSet();
-		
-		//delete key column
-		int[] toSelect = new int[data.numAttributes()-1];
-
-		for (int i = 0, j = 0; i < data.numAttributes()-1; i++,j++) {
-			toSelect[i] = j;
-		}
-		
-		Remove removeFilter = new Remove();
-		removeFilter.setAttributeIndicesArray(toSelect);
-		removeFilter.setInvertSelection(true);
-		removeFilter.setInputFormat(data);
-		Instances newData = Filter.useFilter(data, removeFilter);
-		
-		//split arff file according to each developer
-		Attribute authorID = newData.attribute("meta_data-AuthorID");
-		int index = authorID.index();
-		
-		for(int i = 0; i < authorID.numValues(); i++) {
-			String developerID = parsingDeveloperName(authorID.value(i));
-			String nominalToFilter = authorID.value(i);
+		try {
+			DataSource source = new DataSource(defectDataArffPath);
+			Instances data = source.getDataSet();
 			
-			Instances filteredInstances = new Instances(newData, 0); // Empty Instances with same header
-			newData.parallelStream()
-			        .filter(instance -> instance.stringValue(index).equals(nominalToFilter))
-			        .forEachOrdered(filteredInstances::add);
+			//delete key column
+			int[] toSelect = new int[data.numAttributes()-1];
+	
+			for (int i = 0, j = 0; i < data.numAttributes()-1; i++,j++) {
+				toSelect[i] = j;
+			}
 			
-			DataSink.write(totalDevDefectInstancesForder+File.separator+projectInformation.getProjectName()+"-"+developerID+".arff", filteredInstances);
+			Remove removeFilter = new Remove();
+			removeFilter.setAttributeIndicesArray(toSelect);
+			removeFilter.setInvertSelection(true);
+			removeFilter.setInputFormat(data);
+			Instances newData = Filter.useFilter(data, removeFilter);
+			
+			//split arff file according to each developer
+			Attribute authorID = newData.attribute("meta_data-AuthorID");
+			int index = authorID.index();
+			
+			for(int i = 0; i < authorID.numValues(); i++) {
+				String developerID = parsingDeveloperName(authorID.value(i));
+				String nominalToFilter = authorID.value(i);
+				
+				Instances filteredInstances = new Instances(newData, 0); // Empty Instances with same header
+				newData.parallelStream()
+				        .filter(instance -> instance.stringValue(index).equals(nominalToFilter))
+				        .forEachOrdered(filteredInstances::add);
+				
+				DataSink.write(totalDevDefectInstancesForder+File.separator+projectInformation.getProjectName()+"-"+developerID+".arff", filteredInstances);
+			}
+		}catch(Exception e) {
+			System.out.println("The data file is wrong");
+			System.exit(0);
 		}
 	}
 	
@@ -219,10 +222,10 @@ public class DataFileMaker {
 			int attributeIndex = 0;
 			int attriAuthorIdIndex = 0;
 			
-//System.out.println(clusterName);
+System.out.println(clusterName);
 
 			for(String developerArff : developerArffList) {
-//System.out.println(developerArff);
+System.out.println(developerArff);
 
 				DataSource source = new DataSource(developerArff);
 				Instances data = source.getDataSet();

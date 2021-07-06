@@ -14,6 +14,8 @@ import org.apache.commons.cli.Options;
 import edu.handong.csee.isel.data.DataFileMaker;
 import edu.handong.csee.isel.model.ModelMaker;
 import edu.handong.csee.isel.test.Testing;
+import weka.core.Instances;
+import weka.core.converters.ConverterUtils.DataSource;
 
 public class DPDPMain {
 	ProjectInformation projectInformation;
@@ -51,8 +53,9 @@ public class DPDPMain {
 					System.out.println("The data file is not exist");
 					System.exit(0);
 				}
-				dataFileMaker.makeDeveloperProfilingInstanceCSV("train");	
+				
 				dataFileMaker.makeDeveloperDefectInstanceArff("train");
+				dataFileMaker.makeDeveloperProfilingInstanceCSV("train");	
 			}
 			
 			if(clusterM) {
