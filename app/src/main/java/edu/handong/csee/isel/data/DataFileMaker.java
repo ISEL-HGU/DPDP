@@ -13,6 +13,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.FileUtils;
 
+import edu.handong.csee.isel.DPDPMain;
 import edu.handong.csee.isel.ProjectInformation;
 import weka.core.Attribute;
 import weka.core.Instances;
@@ -125,6 +126,12 @@ public class DataFileMaker {
 				        .filter(instance -> instance.stringValue(index).equals(nominalToFilter))
 				        .forEachOrdered(filteredInstances::add);
 				
+				if(filteredInstances.size() == 0) {
+					System.out.println(developerID);
+					DPDPMain.excludedDeveloper.add(developerID);
+					DPDPMain.excludedDeveloper.add(nominalToFilter);
+					continue;
+				}
 				DataSink.write(totalDevDefectInstancesForder+File.separator+projectInformation.getProjectName()+"-"+developerID+".arff", filteredInstances);
 			}
 		}catch(Exception e) {
