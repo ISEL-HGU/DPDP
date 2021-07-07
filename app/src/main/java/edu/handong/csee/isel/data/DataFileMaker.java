@@ -233,7 +233,7 @@ public class DataFileMaker {
 		}
 		clusterModelFolder.mkdir();
 		
-		//read csv file and save cluster_developerArff
+		//read cluster.csv file and save cluster_developerArff
 		HashMap<String,ArrayList<String>> cluster_developerArff = new HashMap<>();
 		File []fileList = clusterCSVfolder.listFiles();
 //System.out.println(clusterCSVfolder);
@@ -259,37 +259,68 @@ public class DataFileMaker {
 			HashMap<String, Integer> attributeName_index = new HashMap<>(); //for change the attribute index of developers arff
 			ArrayList<String> arffAttribute = new ArrayList<>();//for print cluster arff file
 			ArrayList<String> authorId = new ArrayList<>();//for meta_data-AuthorID
-			ArrayList<String> instances = new ArrayList<>();
 			int attributeIndex = 0;
 			int attriAuthorIdIndex = 0;
 			
-//System.out.println(clusterName);
+System.out.println(clusterName);
+			
+			//make cluster arff file
+			File newArff = new File(clusterModelFolderPath +File.separator+ clusterName +".arff");
+			clusterArffPaths.add(newArff.getAbsolutePath());
+			StringBuffer newContentBuf = new StringBuffer();
 
+			//1) make attribute of cluster.arff
 			for(String developerArff : developerArffList) {
-System.out.println(developerArff);
-
 				DataSource source = new DataSource(developerArff);
 				Instances data = source.getDataSet();
-				HashMap<Integer,Integer> oriAttrIdx_mergedAttrIdx = new HashMap<>();
-				
-				//save authorId
 				String thisAuthorId = data.get(0).stringValue(data.attribute("meta_data-AuthorID"));
 				authorId.add(thisAuthorId);
-
+				
 				//attribute
 				if(attributeIndex == 0 ) {
 					//init about attribte variables
 					attriAuthorIdIndex = data.attribute("meta_data-AuthorID").index();
-					attributeIndex = initAttributeVariables(attributeIndex, data, attributeName_index, arffAttribute, oriAttrIdx_mergedAttrIdx);
+					attributeIndex = initAttributeVariables(attributeIndex, data, attributeName_index, arffAttribute);
 				}else {
 					//check duplicate attribute (if new attribute, add it)
-					attributeIndex = addNonDuplicatedAttribute(data, attributeIndex, attributeName_index, arffAttribute, oriAttrIdx_mergedAttrIdx);
+					attributeIndex = addNonDuplicatedAttribute(data, attributeIndex, attributeName_index, arffAttribute);
 				}
+			}
+			
+			//make new meta_data-AuthorID
+			makeNewAuthorIdInAttribute(arffAttribute, authorId, attriAuthorIdIndex);
+
+			//write attribute to cluster.arff
+			newContentBuf.append("@relation weka.filters.unsupervised.instance.NonSparseToSparse-weka.filters.unsupervised.attribute.Remove-V-R1-220\n\n");
+
+			for (String line : arffAttribute) {
+				if(line.startsWith("@attribute meta_data-commitTime")) continue;
+				if(line.startsWith("@attribute Key {")) continue;
+				newContentBuf.append(line + "\n");
+			}
+			
+			newContentBuf.append("\n@data\n");
+			
+			FileUtils.write(newArff, newContentBuf.toString(), "UTF-8", true);
+			newContentBuf.delete(0, newContentBuf.length());
+			
+			//2) make instances of cluster.arff
+			int numOfDeveloper = 0;
+			ArrayList<String> instances = new ArrayList<>();
+			
+			for(String developerArff : developerArffList) {
+				DataSource source = new DataSource(developerArff);
+				Instances data = source.getDataSet();
+				HashMap<Integer,Integer> oriAttrIdx_mergedAttrIdx = new HashMap<>();
+				
+				//make oriAttrIdx_mergedAttrIdx
+				matchingOriginalAtrrIdxWithMergedAtrrIdx(oriAttrIdx_mergedAttrIdx, attributeName_index, data);
+//				for(int ori : oriAttrIdx_mergedAttrIdx.keySet()) {
+//					System.out.println("ori : "+ori + "	mer : "+oriAttrIdx_mergedAttrIdx.get(ori));
+//				}
 				
 				//Instances
 				for(int i = 0; i < data.numInstances(); i++) {
-//System.out.println("original : ");
-//System.out.println(data.get(i).toString());
 					TreeMap<Integer,String> attributeIndex_value = new TreeMap<>();
 					Matcher matcher = instancesPattern.matcher(data.get(i).toString());
 					while(matcher.find()) {
@@ -301,38 +332,33 @@ System.out.println(developerArff);
 					//make new instances
 					instances.add(makeChangedIndexInstance(attributeIndex_value));
 				}
+				
+				//print instances each 10 developers
+				if((numOfDeveloper%10 == 0)|| (numOfDeveloper == developerArffList.size()-1)) {
+					for(String instance : instances) {
+						newContentBuf.append(instance + "\n");
+					}
+					FileUtils.write(newArff, newContentBuf.toString(), "UTF-8", true);
+					newContentBuf.delete(0, newContentBuf.length());
+					instances.clear();
+				}
+				numOfDeveloper++;
 			}
-			
-			//make new meta_data-AuthorID
-			makeNewAuthorIdInAttribute(arffAttribute, authorId, attriAuthorIdIndex);
-			
-			//make cluster arff file
-			File newArff = new File(clusterModelFolderPath +File.separator+ clusterName +".arff");
-			clusterArffPaths.add(newArff.getAbsolutePath());
-			StringBuffer newContentBuf = new StringBuffer();
-
-			newContentBuf.append("@relation weka.filters.unsupervised.instance.NonSparseToSparse-weka.filters.unsupervised.attribute.Remove-V-R1-220\n\n");
-			//write attribute
-			for (String line : arffAttribute) {
-				if(line.startsWith("@attribute meta_data-commitTime")) continue;
-				if(line.startsWith("@attribute Key {")) continue;
-				newContentBuf.append(line + "\n");
-			}
-			
-			newContentBuf.append("\n@data\n");
-
-			for(String data : instances) {
-				newContentBuf.append(data + "\n");
-			}
-
-			FileUtils.write(newArff, newContentBuf.toString(), "UTF-8");
-			
 		}
 		System.out.println("Done Make Arff File");
 		
 		return clusterArffPaths;
 	}
 	
+	private void matchingOriginalAtrrIdxWithMergedAtrrIdx(HashMap<Integer, Integer> oriAttrIdx_mergedAttrIdx, HashMap<String, Integer> attributeName_index, Instances data) {
+		
+		for(int j = 0; j < data.numAttributes(); j++) {
+			Attribute attribute = data.attribute(j);
+			oriAttrIdx_mergedAttrIdx.put(j, attributeName_index.get(attribute.name()));
+		}
+		
+	}
+
 	private void makeNewAuthorIdInAttribute(ArrayList<String> arffAttribute, ArrayList<String> authorIds, int attriAuthorIdIndex) {
 		String authorIDAttribute = "@attribute meta_data-AuthorID {";
 		for(String authorId : authorIds) {
@@ -355,7 +381,7 @@ System.out.println(developerArff);
 	}
 
 	private int addNonDuplicatedAttribute(Instances data, int attributeIndex,
-			HashMap<String, Integer> attributeName_index, ArrayList<String> arffAttribute, HashMap<Integer, Integer> originalAttriIndex_mergedAttriIndex) {
+			HashMap<String, Integer> attributeName_index, ArrayList<String> arffAttribute) {
 		
 		for(int j = 0; j < data.numAttributes(); j++) {
 			Attribute attribute = data.attribute(j);
@@ -364,20 +390,18 @@ System.out.println(developerArff);
 				attributeName_index.put(attribute.name(),attributeIndex);
 				attributeIndex++;
 			}
-			originalAttriIndex_mergedAttriIndex.put(j, attributeName_index.get(attribute.name()));
 		}
 		
 		return attributeIndex;
 	}
 
 	private int initAttributeVariables(int attributeIndex, Instances data,
-			HashMap<String, Integer> attributeName_index, ArrayList<String> arffAttribute, HashMap<Integer, Integer> originalAttriIndex_mergedAttriIndex) {
+			HashMap<String, Integer> attributeName_index, ArrayList<String> arffAttribute) {
 		//save string of attribute
 		for(attributeIndex = 0; attributeIndex < data.numAttributes(); attributeIndex++) {
 			Attribute attribute = data.attribute(attributeIndex);
 			arffAttribute.add(attributeIndex,attribute.toString());
 			attributeName_index.put(attribute.name(), attributeIndex);
-			originalAttriIndex_mergedAttriIndex.put(attributeIndex,attributeIndex);
 		}
 		return attributeIndex;
 	}
