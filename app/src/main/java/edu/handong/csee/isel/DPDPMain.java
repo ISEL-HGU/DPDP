@@ -64,7 +64,16 @@ public class DPDPMain {
 			}
 			
 			if(defectM) {
-				ArrayList<String> clusterArffPaths = dataFileMaker.makeClusterArff();
+//				ArrayList<String> clusterArffPaths = dataFileMaker.makeClusterArff();
+				ArrayList<String> clusterArffPaths = new ArrayList<>();
+				clusterArffPaths.add("/Users/yangsujin/Desktop/testDPDP/ClusterArff/cluster_0.arff");
+				clusterArffPaths.add("/Users/yangsujin/Desktop/testDPDP/ClusterArff/cluster_1.arff");
+				clusterArffPaths.add("/Users/yangsujin/Desktop/testDPDP/ClusterArff/cluster_2.arff");
+				clusterArffPaths.add("/Users/yangsujin/Desktop/testDPDP/ClusterArff/cluster_3.arff");
+				clusterArffPaths.add("/Users/yangsujin/Desktop/testDPDP/ClusterArff/cluster_4.arff");
+				clusterArffPaths.add("/Users/yangsujin/Desktop/testDPDP/ClusterArff/cluster_5.arff");
+				clusterArffPaths.add("/Users/yangsujin/Desktop/testDPDP/ClusterArff/cluster_6.arff");
+				
 				modelMaker.makeClusterDefectModel(clusterArffPaths);
 			}
 			

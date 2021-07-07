@@ -71,7 +71,7 @@ public class ModelMaker {
 		for(String clusterArffPath : clusterArffPaths) {
 			String clusterName = clusterArffPath.substring(clusterArffPath.lastIndexOf("/")+1,clusterArffPath.lastIndexOf("."));
 			ClusterModelInfo clusterModelInfo = new ClusterModelInfo();
-			
+System.out.println(clusterName);
 			DataSource source = new DataSource(clusterArffPath);
 			Instances data = source.getDataSet();
 			data.setClassIndex(0);

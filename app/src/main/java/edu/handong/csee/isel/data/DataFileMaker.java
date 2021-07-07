@@ -16,6 +16,7 @@ import org.apache.commons.io.FileUtils;
 import edu.handong.csee.isel.DPDPMain;
 import edu.handong.csee.isel.ProjectInformation;
 import weka.core.Attribute;
+import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.converters.ConverterUtils.DataSink;
 import weka.core.converters.ConverterUtils.DataSource;
@@ -111,28 +112,46 @@ public class DataFileMaker {
 			removeFilter.setAttributeIndicesArray(toSelect);
 			removeFilter.setInvertSelection(true);
 			removeFilter.setInputFormat(data);
+			
 			Instances newData = Filter.useFilter(data, removeFilter);
+			Instances filteredInstances = new Instances(newData, 0);
 			
 			//split arff file according to each developer
+			ArrayList<String> developerDatas = new ArrayList<String>();
+			String[] developerAttribute = filteredInstances.toString().split("\n");
 			Attribute authorID = newData.attribute("meta_data-AuthorID");
 			int index = authorID.index();
-			
+
 			for(int i = 0; i < authorID.numValues(); i++) {
 				String developerID = parsingDeveloperName(authorID.value(i));
 				String nominalToFilter = authorID.value(i);
+				developerAttribute[index+2] = newAuthorIdAttribute(nominalToFilter,projectInformation.getProjectName());
 				
-				Instances filteredInstances = new Instances(newData, 0); // Empty Instances with same header
-				newData.parallelStream()
-				        .filter(instance -> instance.stringValue(index).equals(nominalToFilter))
-				        .forEachOrdered(filteredInstances::add);
+				for(Instance instance : newData) {
+					if(instance.stringValue(index).equals(nominalToFilter)) {
+						String developerData = newDeveloperData(instance.toString(),index);
+						developerDatas.add(developerData);
+					}
+				}
 				
-				if(filteredInstances.size() == 0) {
-					System.out.println(developerID);
+				if(developerDatas.size() == 0) {
 					DPDPMain.excludedDeveloper.add(developerID);
 					DPDPMain.excludedDeveloper.add(nominalToFilter);
 					continue;
 				}
-				DataSink.write(totalDevDefectInstancesForder+File.separator+projectInformation.getProjectName()+"-"+developerID+".arff", filteredInstances);
+
+				File newArff = new File(totalDevDefectInstancesForder+File.separator+projectInformation.getProjectName()+"-"+developerID+".arff");
+				StringBuffer newContentBuf = new StringBuffer();
+				
+				for(String s : developerAttribute) {
+					newContentBuf.append(s + "\n");
+				}
+				
+				for(String datas : developerDatas) {
+					newContentBuf.append(datas + "\n");
+				}
+				
+				FileUtils.write(newArff, newContentBuf.toString(), "UTF-8");
 			}
 		}catch(Exception e) {
 			System.out.println("The data file is wrong");
@@ -140,6 +159,21 @@ public class DataFileMaker {
 		}
 	}
 	
+	private String newDeveloperData(String line, int index) {
+		if((line.contains(","+index+" "))) { //index previous,index commitTime, index key} 
+			String front = line.substring(0,line.lastIndexOf(","+index));
+			String rear = line.substring(line.lastIndexOf(","+index)+1,line.length());
+			rear = rear.substring(rear.indexOf(","),rear.length());
+			line = front + rear;
+		}
+		return line;
+	}
+
+	private String newAuthorIdAttribute(String nominalToFilter, String projectName) {
+		String authorAttribute = "@attribute meta_data-AuthorID {"+projectName+"-"+nominalToFilter+"}";
+		return authorAttribute;
+	}
+
 	private String parsingDeveloperName(String stringValue) {
 		String developerName = stringValue;
 		if(stringValue.startsWith(" ")) {
@@ -229,7 +263,7 @@ public class DataFileMaker {
 			int attributeIndex = 0;
 			int attriAuthorIdIndex = 0;
 			
-System.out.println(clusterName);
+//System.out.println(clusterName);
 
 			for(String developerArff : developerArffList) {
 System.out.println(developerArff);
