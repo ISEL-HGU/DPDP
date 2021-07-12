@@ -109,15 +109,16 @@ System.out.println(clusterName);
 			}
 			
 			//Apply classification algorithm
-			ArrayList<String> algorithms = new ArrayList<String>(Arrays.asList("lmt","random","ibk","adt"));
+			ArrayList<String> algorithms = new ArrayList<String>(Arrays.asList("random","ibk","adt","lmt"));
 			
 			for(String algorithm : algorithms) {
 				Classifier classifyModel = null;
 				AlgorithmInfo algorithmInfo = null;
+				System.out.println("Now Algorithm : "+algorithm);
 				
 				if(algorithm.compareTo("random") == 0) {
 					classifyModel = new RandomForest();
-					algorithmInfo = new AlgorithmInfo(10,50,10,"maxDepth");
+					algorithmInfo = new AlgorithmInfo(50,200,50,"numIterations");
 				}else if(algorithm.compareTo("naive") == 0){
 					classifyModel = new NaiveBayes();
 				}else if(algorithm.compareTo("j48") == 0){
@@ -201,8 +202,9 @@ System.out.println(clusterName);
 					informationList.add(Integer.toString(algorithmInfo.getStep()));
 					printer.printRecord(informationList);
 					
+
 					//save the model
-					weka.core.SerializationHelper.write(clusterModelFolderPath+File.separator+clusterName+"_"+algorithm+"_"+hashKey+".model", multi_search);
+					SerializationHelper.write(clusterModelFolderPath+File.separator+clusterName+"_"+algorithm+"_"+hashKey+".model", multi_search);
 					System.out.println("Success to save "+clusterName+"_"+algorithm);
 				}
 			}
