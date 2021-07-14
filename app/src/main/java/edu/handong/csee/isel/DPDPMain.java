@@ -21,6 +21,7 @@ public class DPDPMain {
 	ProjectInformation projectInformation;
 	static public ArrayList<String> excludedDeveloper = new ArrayList<>();
 	String weka;
+	String aWeka;
 	boolean test;
 	boolean clusterM;
 	boolean defectM;
@@ -65,12 +66,17 @@ public class DPDPMain {
 			}
 			
 			if(defectM) {
-				if(weka == null) {
-					ArrayList<String> clusterArffPaths = dataFileMaker.makeClusterArff();
+				ArrayList<String> clusterArffPaths = null;
+				if(weka != null){
+					clusterArffPaths = readFileList(weka);
 					modelMaker.makeClusterDefectModel(clusterArffPaths);
-				}else {
-					ArrayList<String> clusterArffPaths = readFileList(weka);
-					clusterArffPaths.forEach(path -> System.out.println(path));
+				}else if (aWeka != null){
+					System.out.println(aWeka);
+					clusterArffPaths = new ArrayList<>();
+					clusterArffPaths.add(aWeka);
+					modelMaker.makeClusterDefectModel(clusterArffPaths);
+				}else if((weka == null) && (aWeka == null)){
+					clusterArffPaths = dataFileMaker.makeClusterArff();
 					modelMaker.makeClusterDefectModel(clusterArffPaths);
 				}
 			}
@@ -117,6 +123,7 @@ public class DPDPMain {
 		File []fileList = dir.listFiles();
 		
 		for(File file : fileList) {
+			
 			clusterArffPaths.add(file.getAbsolutePath());
 		}
 		
@@ -163,6 +170,7 @@ public class DPDPMain {
 			projectInformation.setImb(cmd.hasOption("imb"));
 			projectInformation.setLocationOfModels(cmd.getOptionValue("m"));
 			weka = cmd.getOptionValue("weka");
+			aWeka = cmd.getOptionValue("aweka");
 
 //			defectM = cmd.hasOption("defectM");
 			help = cmd.hasOption("h");
@@ -226,6 +234,12 @@ public class DPDPMain {
 				.desc("make Classification Model using weka (arff file folder path)")
 				.argName("")
 				.hasArg()
+				.build());
+		
+		options.addOption(Option.builder("aweka").longOpt("one arff file")
+				.desc("make Classification Model using weka (one arff file path)")
+				.hasArg()
+				.argName("")
 				.build());
 		
 		return options;

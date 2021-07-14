@@ -109,7 +109,7 @@ System.out.println(clusterName);
 			}
 			
 			//Apply classification algorithm
-			ArrayList<String> algorithms = new ArrayList<String>(Arrays.asList("ibk"));
+			ArrayList<String> algorithms = new ArrayList<String>(Arrays.asList("ibk","random","adt","lmt"));
 			
 			for(String algorithm : algorithms) {
 				Classifier classifyModel = null;
