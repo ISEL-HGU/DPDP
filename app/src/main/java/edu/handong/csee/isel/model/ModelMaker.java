@@ -135,7 +135,7 @@ System.out.println(clusterName);
 					classifyModel = new Logistic();
 				}else if (algorithm.compareTo("adt") == 0) {
 					classifyModel = new ADTree();
-					algorithmInfo = new AlgorithmInfo(0,50,10,"numOfBoostingIterations");
+					algorithmInfo = new AlgorithmInfo(0,60,20,"numOfBoostingIterations");
 				}
 				
 				//set multi_search (parpmeter tuning)
