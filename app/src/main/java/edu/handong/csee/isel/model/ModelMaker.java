@@ -204,7 +204,19 @@ System.out.println(clusterName);
 					
 
 					//save the model
-					SerializationHelper.write(clusterModelFolderPath+File.separator+clusterName+"_"+algorithm+"_"+hashKey+".model", multi_search);
+					String modelPath = clusterModelFolderPath+File.separator+
+							clusterName+"_"+
+							algorithm+"_"+
+							hashKey+"_"+
+							multisearchEvaluationName+"_"+
+							clusterModelInfo.getClassImbalanceAlgo()+"_"+
+							algorithmInfo.getProperty()+"_"+
+							algorithmInfo.getMin()+"_"+
+							algorithmInfo.getMax()+"_"+
+							algorithmInfo.getStep()+
+							".model";
+					
+					SerializationHelper.write(modelPath, multi_search);
 					System.out.println("Success to save "+clusterName+"_"+algorithm);
 				}
 			}

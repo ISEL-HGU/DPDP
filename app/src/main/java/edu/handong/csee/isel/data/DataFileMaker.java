@@ -69,9 +69,10 @@ public class DataFileMaker {
 		developerProfilingMetric.run(developerProfilingMetrics);
 	}
 	
-	public void makeDeveloperDefectInstanceArff(String mode) throws Exception {
-		
+	public HashMap<String, String> makeDeveloperDefectInstanceArff(String mode) throws Exception {
+		HashMap<String,String> developerDefectInstancePath = new HashMap<>();
 		File dir = null;
+		
 		if(mode.equals("train")) {
 			//make totalDevInstances directory
 			dir = new File(projectInformation.getOutputPath() +File.separator+"totalDevDefectInstances");
@@ -152,12 +153,18 @@ public class DataFileMaker {
 				}
 				
 				FileUtils.write(newArff, newContentBuf.toString(), "UTF-8");
+				developerDefectInstancePath.put(projectInformation.getProjectName()+"-"+developerID, newArff.getAbsolutePath());
 				developerDatas.clear();
 			}
 		}catch(Exception e) {
 			System.out.println("The data file is wrong");
 			System.exit(0);
 		}
+		
+		if(mode.equals("test")) {
+			return developerDefectInstancePath;
+		}
+		return null;
 	}
 	
 	private String newDeveloperData(String line, int index) {

@@ -94,20 +94,21 @@ public class DPDPMain {
 				testDir.mkdir();
 				projectInformation.setTestFolderPath(testDir.getAbsolutePath());
 						
-				dataFileMaker.makeDeveloperDefectInstanceArff("test");
+				HashMap<String,String> developerDefectInstancePath = dataFileMaker.makeDeveloperDefectInstanceArff("test");
 				dataFileMaker.makeDeveloperProfilingInstanceCSV("test");	
 				
-				System.out.println(projectInformation.getTestDeveloperDefectInstanceArff());
-				System.out.println(projectInformation.getTestDeveloperProfilingInstanceCSV());
+				System.out.println("1 : "+projectInformation.getTestDeveloperDefectInstanceArff());
+				System.out.println("2 : "+projectInformation.getTestDeveloperProfilingInstanceCSV());
 				
 				HashMap<Integer,ArrayList<String>> cluster_developer = testing.findDeveloperCluster();
-				for(int cluster : cluster_developer.keySet()) {
-					System.out.println("Cluster : "+cluster);
-					cluster_developer.get(cluster).forEach(
-							developer -> System.out.println(developer));
-				}
+
+				//				for(int cluster : cluster_developer.keySet()) {
+//					System.out.println("Cluster : "+cluster);
+//					cluster_developer.get(cluster).forEach(
+//							developer -> System.out.println(developer));
+//				}
 				
-				testing.evaluateTestDeveloper(cluster_developer);
+				testing.evaluateTestDeveloper(cluster_developer, developerDefectInstancePath);
 			}
 			
 			if(verbose) {
@@ -168,7 +169,8 @@ public class DPDPMain {
 			
 			projectInformation.setBow(cmd.hasOption("bow"));
 			projectInformation.setImb(cmd.hasOption("imb"));
-			projectInformation.setLocationOfModels(cmd.getOptionValue("m"));
+			projectInformation.setLocationOfClusterModels(cmd.getOptionValue("cm"));
+			projectInformation.setLocationOfDefectModels(cmd.getOptionValue("dm"));
 			weka = cmd.getOptionValue("weka");
 			aWeka = cmd.getOptionValue("aweka");
 
@@ -224,8 +226,14 @@ public class DPDPMain {
 				.argName("")
 				.build());
 		
-		options.addOption(Option.builder("m").longOpt("locationOfModels")
-				.desc("location of saved model")
+		options.addOption(Option.builder("cm").longOpt("locationOfClusterModels")
+				.desc("location of saved cluster model")
+				.argName("")
+				.hasArg()
+				.build());
+		
+		options.addOption(Option.builder("dm").longOpt("locationOfDefectModels")
+				.desc("location of saved defect prediction model")
 				.argName("")
 				.hasArg()
 				.build());

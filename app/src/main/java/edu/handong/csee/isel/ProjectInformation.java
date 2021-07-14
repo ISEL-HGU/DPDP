@@ -12,7 +12,8 @@ public class ProjectInformation {
 	String developerDataCSVPath;
 	String testDeveloperProfilingInstanceCSV;
 	String testDeveloperDefectInstanceArff;
-	String locationOfModels;
+	String locationOfClusterModels;
+	String locationOfDefectModels;
 	String testFolderPath;
 	boolean bow;
 	boolean imb;
@@ -25,7 +26,8 @@ public class ProjectInformation {
 		this.developerDataCSVPath = null;
 		this.testDeveloperProfilingInstanceCSV = null;
 		this.testDeveloperDefectInstanceArff = null;
-		this.locationOfModels = null;
+		this.locationOfClusterModels = null;
+		this.locationOfDefectModels = null;
 		this.testFolderPath = null;
 		this.bow = false;
 		this.imb = false;
@@ -130,14 +132,6 @@ public class ProjectInformation {
 		this.imb = imb;
 	}
 
-	public String getLocationOfModels() {
-		return locationOfModels;
-	}
-
-	public void setLocationOfModels(String locationOfModels) {
-		this.locationOfModels = locationOfModels;
-	}
-
 	public String getTestFolderPath() {
 		return testFolderPath;
 	}
@@ -145,5 +139,22 @@ public class ProjectInformation {
 	public void setTestFolderPath(String testFolderPath) {
 		this.testFolderPath = testFolderPath;
 	}
+
+	public String getLocationOfClusterModels() {
+		return locationOfClusterModels;
+	}
+
+	public void setLocationOfClusterModels(String locationOfClusterModels) {
+		this.locationOfClusterModels = locationOfClusterModels;
+	}
+
+	public String getLocationOfDefectModels() {
+		return locationOfDefectModels;
+	}
+
+	public void setLocationOfDefectModels(String locationOfDefectModels) {
+		this.locationOfDefectModels = locationOfDefectModels;
+	}
+	
 	
 }
