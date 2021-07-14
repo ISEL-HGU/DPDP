@@ -54,7 +54,7 @@ public class DataFileMaker {
 			//total developer Instance CSV path
 			totalDeveloperInstanceCSV = dir.getAbsolutePath() + File.separator+"Developer_Profiling.csv";
 		}else if(mode.equals("test")) {
-			totalDeveloperInstanceCSV = projectInformation.getOutputPath() +File.separator+projectInformation.getProjectName()+File.separator+"ProilingInstances.csv";
+			totalDeveloperInstanceCSV = projectInformation.getTestFolderPath()+File.separator+"ProilingInstances.csv";
 			projectInformation.setTestDeveloperProfilingInstanceCSV(totalDeveloperInstanceCSV);
 		}
 		
@@ -79,7 +79,7 @@ public class DataFileMaker {
 				dir.mkdir();
 			}
 		}else if(mode.equals("test")) {
-			dir = new File(projectInformation.getOutputPath() +File.separator+projectInformation.getProjectName()+File.separator+"DefectInstances");
+			dir = new File(projectInformation.getTestFolderPath()+File.separator+"DefectInstances");
 			dir.mkdir();
 			projectInformation.setTestDeveloperDefectInstanceArff(dir.getAbsolutePath());
 		}

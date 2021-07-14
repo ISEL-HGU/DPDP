@@ -13,6 +13,7 @@ public class ProjectInformation {
 	String testDeveloperProfilingInstanceCSV;
 	String testDeveloperDefectInstanceArff;
 	String locationOfModels;
+	String testFolderPath;
 	boolean bow;
 	boolean imb;
 	
@@ -25,9 +26,9 @@ public class ProjectInformation {
 		this.testDeveloperProfilingInstanceCSV = null;
 		this.testDeveloperDefectInstanceArff = null;
 		this.locationOfModels = null;
+		this.testFolderPath = null;
 		this.bow = false;
 		this.imb = false;
-		
 	}
 
 	public String getDefectInstancePath() {
@@ -135,6 +136,14 @@ public class ProjectInformation {
 
 	public void setLocationOfModels(String locationOfModels) {
 		this.locationOfModels = locationOfModels;
+	}
+
+	public String getTestFolderPath() {
+		return testFolderPath;
+	}
+
+	public void setTestFolderPath(String testFolderPath) {
+		this.testFolderPath = testFolderPath;
 	}
 	
 }

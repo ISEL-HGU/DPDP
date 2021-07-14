@@ -70,6 +70,7 @@ public class DPDPMain {
 					modelMaker.makeClusterDefectModel(clusterArffPaths);
 				}else {
 					ArrayList<String> clusterArffPaths = readFileList(weka);
+					clusterArffPaths.forEach(path -> System.out.println(path));
 					modelMaker.makeClusterDefectModel(clusterArffPaths);
 				}
 			}
@@ -79,20 +80,28 @@ public class DPDPMain {
 				Testing testing = new Testing(projectInformation);
 				
 				//mk result directory
-				File testDir = new File(projectInformation.getOutputPath() +File.separator+projectInformation.getProjectName());
+				File testDir = new File(projectInformation.getOutputPath() +File.separator+projectInformation.getProjectName()+"_test");
 				String directoryPath = testDir.getAbsolutePath();
 				if(testDir.isDirectory()) {
 					deleteFile(directoryPath);
 				}
 				testDir.mkdir();
-				
-				dataFileMaker.makeDeveloperProfilingInstanceCSV("test");	
+				projectInformation.setTestFolderPath(testDir.getAbsolutePath());
+						
 				dataFileMaker.makeDeveloperDefectInstanceArff("test");
+				dataFileMaker.makeDeveloperProfilingInstanceCSV("test");	
 				
 				System.out.println(projectInformation.getTestDeveloperDefectInstanceArff());
 				System.out.println(projectInformation.getTestDeveloperProfilingInstanceCSV());
 				
 				HashMap<Integer,ArrayList<String>> cluster_developer = testing.findDeveloperCluster();
+				for(int cluster : cluster_developer.keySet()) {
+					System.out.println("Cluster : "+cluster);
+					cluster_developer.get(cluster).forEach(
+							developer -> System.out.println(developer));
+				}
+				
+				testing.evaluateTestDeveloper(cluster_developer);
 			}
 			
 			if(verbose) {

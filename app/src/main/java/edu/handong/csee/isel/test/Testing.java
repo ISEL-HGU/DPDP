@@ -69,7 +69,7 @@ public class Testing {
 			}
 		}
 		
-		return null;
+		return cluster_developer;
 	}
 	
 	private String parsingDeveloperName(String stringValue) {
@@ -78,5 +78,9 @@ public class Testing {
 			developerName = stringValue.substring(1, stringValue.length());
 		}
 		return developerName;
+	}
+
+	public void evaluateTestDeveloper(HashMap<Integer, ArrayList<String>> cluster_developer) {
+		
 	}
 }
