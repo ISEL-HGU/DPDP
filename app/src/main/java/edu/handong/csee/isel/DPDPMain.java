@@ -93,7 +93,7 @@ public class DPDPMain {
 				}
 				testDir.mkdir();
 				projectInformation.setTestFolderPath(testDir.getAbsolutePath());
-						
+
 				HashMap<String,String> developerDefectInstancePath = dataFileMaker.makeDeveloperDefectInstanceArff("test");
 				dataFileMaker.makeDeveloperProfilingInstanceCSV("test");	
 				
@@ -107,7 +107,6 @@ public class DPDPMain {
 //					cluster_developer.get(cluster).forEach(
 //							developer -> System.out.println(developer));
 //				}
-				
 				testing.evaluateTestDeveloper(cluster_developer, developerDefectInstancePath);
 			}
 			

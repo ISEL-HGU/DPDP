@@ -18,7 +18,7 @@ import edu.handong.csee.isel.ProjectInformation;
 import weka.core.Attribute;
 import weka.core.Instance;
 import weka.core.Instances;
-import weka.core.converters.ConverterUtils.DataSink;
+import weka.core.converters.ArffSaver;
 import weka.core.converters.ConverterUtils.DataSource;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.Remove;
@@ -98,13 +98,13 @@ public class DataFileMaker {
 		}
 		System.out.println(defectDataArffPath);
 		
-		try {
+//		try {
 			DataSource source = new DataSource(defectDataArffPath);
 			Instances data = source.getDataSet();
 			
 			//delete key column
 			int[] toSelect = new int[data.numAttributes()-1];
-	
+
 			for (int i = 0, j = 0; i < data.numAttributes()-1; i++,j++) {
 				toSelect[i] = j;
 			}
@@ -115,9 +115,50 @@ public class DataFileMaker {
 			removeFilter.setInputFormat(data);
 			
 			Instances newData = Filter.useFilter(data, removeFilter);
-			Instances filteredInstances = new Instances(newData, 0);
+
+			//re arrange Attribute (make new BOW file)
+			File newAttributeArff = new File(defectDataArffPath);
+			ArrayList<String> arffAttribute = DefectAttribute.attribute;
+			StringBuffer newAttributeContentBuf = new StringBuffer();
+			arffAttribute.add(newData.attribute("meta_data-AuthorID").toString());
+			
+			for (String line : arffAttribute) {
+				newAttributeContentBuf.append(line + "\n");
+			}
+			newAttributeContentBuf.append("\n@data\n");
+			
+			FileUtils.write(newAttributeArff, newAttributeContentBuf.toString(), "UTF-8");
+			newAttributeContentBuf.delete(0, newAttributeContentBuf.length());
+
+			Pattern instancesPattern = Pattern.compile("([0-9]+)\\s([^,^}]+)");
+			ArrayList<String> attributeName_index = DefectAttribute.attribute_index;
+			HashMap<Integer,Integer> oriAttrIdx_mergedAttrIdx = matchingOriginalAtrrIdxWithMergedAtrrIdx(attributeName_index, newData);
+			ArrayList<String> instances = new ArrayList<>();
+			
+			for(int i = 0; i < newData.numInstances(); i++) {
+				TreeMap<Integer,String> attributeIndex_value = new TreeMap<>();
+				Matcher matcher = instancesPattern.matcher(newData.get(i).toString());
+				while(matcher.find()) {
+					int index = Integer.parseInt(matcher.group(1));
+					String value = matcher.group(2);
+					index = oriAttrIdx_mergedAttrIdx.get(index);
+					attributeIndex_value.put(index, value);
+				}
+				//make new instances
+				instances.add(makeChangedIndexInstance_BOW(attributeIndex_value));
+			}
+			
+			for(String instance : instances) {
+				newAttributeContentBuf.append(instance + "\n");
+			}
+			FileUtils.write(newAttributeArff, newAttributeContentBuf.toString(), "UTF-8", true);
 			
 			//split arff file according to each developer
+			source = new DataSource(defectDataArffPath);
+			newData = source.getDataSet();
+			
+			Instances filteredInstances = new Instances(newData, 0);
+			
 			ArrayList<String> developerDatas = new ArrayList<String>();
 			String[] developerAttribute = filteredInstances.toString().split("\n");
 			Attribute authorID = newData.attribute("meta_data-AuthorID");
@@ -156,23 +197,25 @@ public class DataFileMaker {
 				developerDefectInstancePath.put(projectInformation.getProjectName()+"-"+developerID, newArff.getAbsolutePath());
 				developerDatas.clear();
 			}
-		}catch(Exception e) {
-			System.out.println("The data file is wrong");
-			System.exit(0);
-		}
+//		}
+//		catch(Exception e) {
+//			System.out.println("The data file is wrong");
+//			System.exit(0);
+//		}
 		
 		if(mode.equals("test")) {
 			return developerDefectInstancePath;
 		}
 		return null;
 	}
-	
+
 	private String newDeveloperData(String line, int index) {
 		if((line.contains(","+index+" "))) { //index previous,index commitTime, index key} 
 			String front = line.substring(0,line.lastIndexOf(","+index));
-			String rear = line.substring(line.lastIndexOf(","+index)+1,line.length());
-			rear = rear.substring(rear.indexOf(","),rear.length());
-			line = front + rear;
+//			String rear = line.substring(line.lastIndexOf(","+index)+1,line.length());
+//			rear = rear.substring(rear.indexOf(","),rear.length());
+//			line = front + rear;
+			line = front + "}";
 		}
 		return line;
 	}
@@ -225,8 +268,7 @@ public class DataFileMaker {
 	public ArrayList<String> makeClusterArff() throws Exception {
 		ArrayList<String> clusterArffPaths = new ArrayList<>();
 		
-		String instancesStr = "([0-9]+)\\s([^,^}]+)"; 
-		Pattern instancesPattern = Pattern.compile(instancesStr);
+		Pattern instancesPattern = Pattern.compile("([0-9]+)\\s([^,^}]+)");
 		
 		//cluster csv folder
 		File clusterCSVfolder = new File(projectInformation.getDefectInstancePath()+File.separator+"ClusterCSV");
@@ -368,6 +410,16 @@ System.out.println(clusterName);
 		arffAttribute.add(authorIDAttribute);
 		
 		return arffAttribute;
+	}
+	
+	private String makeChangedIndexInstance_BOW(TreeMap<Integer, String> attributeIndex_value) {
+		String instance = "{";
+		for(int index : attributeIndex_value.keySet()) {
+			String value = attributeIndex_value.get(index);
+			instance = instance+index+" "+value+",";
+		}
+		instance = instance.substring(0,instance.lastIndexOf(","))+"}";
+		return instance;
 	}
 
 	private String makeChangedIndexInstance(TreeMap<Integer, String> attributeIndex_value, String thisAuthorId, int numOfAttribute) {
