@@ -171,9 +171,10 @@ public class Testing {
 
 				int buggyIndex = data.attribute(0).indexOfValue("buggy");
 				int cleanIndex = data.attribute(0).indexOfValue("clean");
-				
+
 				//if there is no buggy data, skip this developer
 				if(attStats.nominalCounts[buggyIndex] == 0) continue;
+				if(attStats.nominalCounts[buggyIndex]+attStats.nominalCounts[cleanIndex] < 10) continue;
 				
 				evaluationInformation.setNum_of_buggy(attStats.nominalCounts[buggyIndex]);
 				evaluationInformation.setNum_of_clean(attStats.nominalCounts[cleanIndex]);
