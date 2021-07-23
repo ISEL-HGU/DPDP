@@ -172,6 +172,12 @@ public class DPDPMain {
 			projectInformation.setLocationOfDefectModels(cmd.getOptionValue("dm"));
 			weka = cmd.getOptionValue("weka");
 			aWeka = cmd.getOptionValue("aweka");
+			
+			if(cmd.getOptionValue("m") != null) {
+				projectInformation.setNumOfCluster(Integer.parseInt(cmd.getOptionValue("m")));
+			}else {
+				projectInformation.setNumOfCluster(0);
+			}
 
 //			defectM = cmd.hasOption("defectM");
 			help = cmd.hasOption("h");
@@ -227,6 +233,12 @@ public class DPDPMain {
 		
 		options.addOption(Option.builder("cm").longOpt("locationOfClusterModels")
 				.desc("location of saved cluster model")
+				.argName("")
+				.hasArg()
+				.build());
+		
+		options.addOption(Option.builder("m").longOpt("numberOfCluster")
+				.desc("Number of profiling cluster")
 				.argName("")
 				.hasArg()
 				.build());

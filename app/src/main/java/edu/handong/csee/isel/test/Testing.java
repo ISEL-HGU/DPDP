@@ -156,7 +156,7 @@ public class Testing {
 			
 			for(String developer : developers) {
 				EvaluationInformation evaluationInformation = new EvaluationInformation();
-System.out.println("Developer : "+developer);
+				System.out.println("Developer : "+developer);
 				String arffPath = developerDefectInstancePath.get(developer);
 				
 				evaluationInformation.setDeveloper(developer);

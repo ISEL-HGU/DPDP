@@ -249,7 +249,14 @@ System.out.println(clusterName);
 			Instances newData = Filter.useFilter(data, removeFilter);
 			
 			EM em = new  EM();
-			em.buildClusterer(newData);
+			
+			if(projectInformation.getNumOfCluster() == 0) {
+				em.buildClusterer(newData);
+			}else {
+				em.setNumClusters(projectInformation.getNumOfCluster());
+				em.buildClusterer(newData);
+			}
+			
 			SerializationHelper.write(projectInformation.getOutputPath()+File.separator+"EM.model", em);
 			
 			ClusterEvaluation eval = new ClusterEvaluation();

@@ -15,6 +15,7 @@ public class ProjectInformation {
 	String locationOfClusterModels;
 	String locationOfDefectModels;
 	String testFolderPath;
+	int numOfCluster;
 	boolean bow;
 	boolean imb;
 	
@@ -31,6 +32,7 @@ public class ProjectInformation {
 		this.testFolderPath = null;
 		this.bow = false;
 		this.imb = false;
+		this.numOfCluster = 0;
 	}
 
 	public String getDefectInstancePath() {
@@ -155,6 +157,12 @@ public class ProjectInformation {
 	public void setLocationOfDefectModels(String locationOfDefectModels) {
 		this.locationOfDefectModels = locationOfDefectModels;
 	}
-	
-	
+
+	public int getNumOfCluster() {
+		return numOfCluster;
+	}
+
+	public void setNumOfCluster(int numOfCluster) {
+		this.numOfCluster = numOfCluster;
+	}
 }
