@@ -107,7 +107,7 @@ public class Testing {
 	}
 
 	public void evaluateTestDeveloper(HashMap<Integer, ArrayList<String>> cluster_developer, HashMap<String, String> developerDefectInstancePath) throws Exception {
-		String modelInformationPath = projectInformation.getOutputPath() +File.separator+"Test_Evaluation.csv";
+		String modelInformationPath = projectInformation.getOutputPath() +File.separator+projectInformation.getProjectName()+"_Test_Evaluation.csv";
 		File temp = new File(modelInformationPath);
 		boolean isFile = temp.isFile();
 		FileWriter out = new FileWriter(modelInformationPath, true); 
@@ -156,7 +156,7 @@ public class Testing {
 			
 			for(String developer : developers) {
 				EvaluationInformation evaluationInformation = new EvaluationInformation();
-
+System.out.println("Developer : "+developer);
 				String arffPath = developerDefectInstancePath.get(developer);
 				
 				evaluationInformation.setDeveloper(developer);

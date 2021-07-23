@@ -101,11 +101,11 @@ System.out.println(clusterName);
 				
 				clusterModelInfo.setClassImbalanceAlgo("SMOTE");
 				clusterModelInfo.setNumOfBuggy_solveImb(attStats.nominalCounts[buggyIndex]);
-				clusterModelInfo.setNumOfBuggy_solveImb(attStats.nominalCounts[cleanIndex]);
+				clusterModelInfo.setNumOfClean_solveImb(attStats.nominalCounts[cleanIndex]);
 			}else {
 				clusterModelInfo.setClassImbalanceAlgo("None");
 				clusterModelInfo.setNumOfBuggy_solveImb(0);
-				clusterModelInfo.setNumOfBuggy_solveImb(0);
+				clusterModelInfo.setNumOfClean_solveImb(0);
 			}
 			
 			//Apply classification algorithm
