@@ -109,7 +109,7 @@ System.out.println(clusterName);
 			}
 			
 			//Apply classification algorithm
-			ArrayList<String> algorithms = new ArrayList<String>(Arrays.asList("ibk","random","adt","lmt"));
+			ArrayList<String> algorithms = new ArrayList<String>(Arrays.asList("adt","random","lmt","ibk"));
 			
 			for(String algorithm : algorithms) {
 				Classifier classifyModel = null;
@@ -118,7 +118,7 @@ System.out.println(clusterName);
 				
 				if(algorithm.compareTo("random") == 0) {
 					classifyModel = new RandomForest();
-					algorithmInfo = new AlgorithmInfo(50,200,50,"numIterations");
+					algorithmInfo = new AlgorithmInfo(10,90,20,"numIterations");
 				}else if(algorithm.compareTo("naive") == 0){
 					classifyModel = new NaiveBayes();
 				}else if(algorithm.compareTo("j48") == 0){
@@ -141,6 +141,7 @@ System.out.println(clusterName);
 				//set multi_search (parpmeter tuning)
 				ArrayList<String> multisearchEvaluationNames = new ArrayList<String>(Arrays.asList("Fmeasure"));
 				MultiSearch multi_search = new MultiSearch();
+				
 				
 				MathParameter param = new MathParameter();
 				param.setProperty(algorithmInfo.getProperty()); //change according to algorithm

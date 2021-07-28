@@ -45,7 +45,7 @@ public class DPDPMain {
 			}
 			
 			System.out.println("This project is "+ projectInformation.projectName);
-			
+			System.out.println();
 			//make deverloper proriling instances
 			DataFileMaker dataFileMaker = new DataFileMaker(projectInformation);
 			ModelMaker modelMaker = new ModelMaker(projectInformation);
@@ -114,6 +114,9 @@ public class DPDPMain {
 				System.out.println("Your program is terminated. (This message is shown because you turned on -v option!");
 			}
 		}
+		
+		System.out.println();
+		System.out.println();
 	}
 	
 	private ArrayList<String> readFileList(String weka2) {
