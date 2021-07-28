@@ -44,7 +44,7 @@ public class DPDPMain {
 				return;
 			}
 			
-			System.out.println("This project is "+ projectInformation.projectName);
+			System.out.println("####################This project is "+ projectInformation.projectName+"####################");
 			System.out.println();
 			//make deverloper proriling instances
 			DataFileMaker dataFileMaker = new DataFileMaker(projectInformation);
@@ -54,6 +54,8 @@ public class DPDPMain {
 				File isExist = new File(projectInformation.getDefectInstancePath());
 				if(!isExist.exists()) {
 					System.out.println("The data file is not exist");
+					System.out.println();
+					System.out.println();
 					System.exit(0);
 				}
 				
@@ -171,6 +173,7 @@ public class DPDPMain {
 			
 			projectInformation.setBow(cmd.hasOption("bow"));
 			projectInformation.setImb(cmd.hasOption("imb"));
+			projectInformation.setLessThan10(cmd.hasOption("s"));
 			projectInformation.setLocationOfClusterModels(cmd.getOptionValue("cm"));
 			projectInformation.setLocationOfDefectModels(cmd.getOptionValue("dm"));
 			weka = cmd.getOptionValue("weka");
@@ -212,6 +215,11 @@ public class DPDPMain {
 		options.addOption(Option.builder("bow").longOpt("NoBagOfWords")
 				.desc("Remove the metric of Bag Of Words")
 				.argName("NoBagOfWords")
+				.build());
+		
+		options.addOption(Option.builder("s").longOpt("except10CommitDeveloper")
+				.desc("except10CommitDeveloper")
+				.argName("")
 				.build());
 
 		options.addOption(Option.builder("clusterM").longOpt("developerClusteringModel")

@@ -98,7 +98,7 @@ public class DataFileMaker {
 		}
 		System.out.println(defectDataArffPath);
 		
-//		try {
+		try {
 			DataSource source = new DataSource(defectDataArffPath);
 			Instances data = source.getDataSet();
 			
@@ -148,6 +148,11 @@ public class DataFileMaker {
 				instances.add(makeChangedIndexInstance_BOW(attributeIndex_value));
 			}
 			
+			int minimumCommit = 0;
+			if(projectInformation.isLessThan10() == true) {
+				minimumCommit = 10;
+			}
+			
 			for(String instance : instances) {
 				newAttributeContentBuf.append(instance + "\n");
 			}
@@ -176,7 +181,7 @@ public class DataFileMaker {
 					}
 				}
 				
-				if(developerDatas.size() == 0) {
+				if(developerDatas.size() < minimumCommit) {
 					DPDPMain.excludedDeveloper.add(developerID);
 					DPDPMain.excludedDeveloper.add(nominalToFilter);
 					continue;
@@ -197,11 +202,11 @@ public class DataFileMaker {
 				developerDefectInstancePath.put(projectInformation.getProjectName()+"-"+developerID, newArff.getAbsolutePath());
 				developerDatas.clear();
 			}
-//		}
-//		catch(Exception e) {
-//			System.out.println("The data file is wrong");
-//			System.exit(0);
-//		}
+		}
+		catch(Exception e) {
+			System.out.println("The data file is wrong");
+			System.exit(0);
+		}
 		
 		if(mode.equals("test")) {
 			return developerDefectInstancePath;
