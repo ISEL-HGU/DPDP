@@ -3,9 +3,7 @@ package edu.handong.csee.isel.test;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
@@ -15,9 +13,9 @@ import org.apache.commons.csv.CSVPrinter;
 
 import edu.handong.csee.isel.ProjectInformation;
 import weka.classifiers.Classifier;
-import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.BayesNet;
 import weka.classifiers.bayes.NaiveBayes;
+import weka.classifiers.evaluation.Evaluation;
 import weka.classifiers.functions.Logistic;
 import weka.classifiers.lazy.IBk;
 import weka.classifiers.meta.MultiSearch;
@@ -181,7 +179,6 @@ public class Testing {
 				
 				//evaluate DPDP
 				Evaluation evaluation = new Evaluation(data);
-				
 				evaluation.evaluateModel(DPDPclassifyModel, data);
 				
 				//set evaluation value

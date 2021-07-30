@@ -47,4 +47,5 @@ dependencies {
 	
 	// https://mvnrepository.com/artifact/nz.ac.waikato.cms.weka/alternatingDecisionTrees
 	implementation group: 'nz.ac.waikato.cms.weka', name: 'alternatingDecisionTrees', version: '1.0.5'
+	
 }
