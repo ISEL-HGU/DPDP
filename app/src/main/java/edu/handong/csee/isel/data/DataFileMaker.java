@@ -18,6 +18,7 @@ import edu.handong.csee.isel.ProjectInformation;
 import weka.core.Attribute;
 import weka.core.Instance;
 import weka.core.Instances;
+import weka.core.converters.ArffSaver;
 import weka.core.converters.ConverterUtils.DataSource;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.Remove;
@@ -87,6 +88,9 @@ public class DataFileMaker {
 			defectDataArffPath = projectInformation.getDefectInstancePath();
 		}
 		System.out.println(defectDataArffPath);
+		
+		//BIC 값 하나씩 낮추기 ㅠㅜㅠ (0이상 값만) 임시!! DPMiner에수정하기 
+		reduceBICValue(defectDataArffPath);
 		
 		try {
 			DataSource source = new DataSource(defectDataArffPath);
@@ -209,6 +213,26 @@ public class DataFileMaker {
 			return developerDefectInstancePath;
 		}
 		return null;
+	}
+
+	private void reduceBICValue(String defectDataArffPath) throws Exception {
+		DataSource source = new DataSource(defectDataArffPath);
+		Instances data = source.getDataSet();
+		data.setClassIndex(0);
+		
+		Attribute numOfBIC = data.attribute("meta_data-numOfBIC");
+		
+		for(Instance instance : data) {
+			if(instance.value(numOfBIC) > 0) {
+				instance.setValue(numOfBIC, instance.value(numOfBIC)-1);
+			}
+		}
+		
+		ArffSaver saver = new ArffSaver();
+		saver.setInstances(data);
+		saver.setFile(new File(defectDataArffPath));
+		saver.writeBatch();
+		
 	}
 
 	private String newDeveloperData(String line, int index) {
