@@ -597,48 +597,76 @@ public class Testing {
 		return data;
 	}
 	
-private EvaluationInformation calculateWinTieLoss(EvaluationInformation evaluationInformation) {
+	private EvaluationInformation calculateWinTieLoss(EvaluationInformation evaluationInformation) {
+		double PDP_precision = evaluationInformation.getPDP_precision();
+		PDP_precision = changeNoneToZero(PDP_precision);
+		double PDP_recall = evaluationInformation.getPDP_recall();
+		PDP_recall = changeNoneToZero(PDP_recall);
+		double PDP_fmeasure = evaluationInformation.getPDP_fmeasure();
+		PDP_fmeasure = changeNoneToZero(PDP_fmeasure);
+		double PDP_auc = evaluationInformation.getPDP_auc();
+		PDP_auc = changeNoneToZero(PDP_auc);
+		double PDP_mcc = evaluationInformation.getPDP_mcc();
+		PDP_mcc = changeNoneToZero(PDP_mcc);
 		
-		if(evaluationInformation.getDPDP_precision() > evaluationInformation.getPDP_precision()) {
+		double DPDP_precision = evaluationInformation.getDPDP_precision();
+		DPDP_precision = changeNoneToZero(DPDP_precision);
+		double DPDP_recall = evaluationInformation.getDPDP_recall();
+		DPDP_recall = changeNoneToZero(DPDP_recall);
+		double DPDP_fmeasure = evaluationInformation.getDPDP_fmeasure();
+		DPDP_fmeasure = changeNoneToZero(DPDP_fmeasure);
+		double DPDP_auc = evaluationInformation.getDPDP_auc();
+		DPDP_auc = changeNoneToZero(DPDP_auc);
+		double DPDP_mcc = evaluationInformation.getDPDP_mcc();
+		DPDP_mcc = changeNoneToZero(DPDP_mcc);
+		
+		if(DPDP_precision > PDP_precision) {
 			evaluationInformation.setDPDP_Precision_WTL("win");
-		}else if(evaluationInformation.getDPDP_precision() == evaluationInformation.getPDP_precision()) {
+		}else if(DPDP_precision == PDP_precision) {
 			evaluationInformation.setDPDP_Precision_WTL("tie");
 		}else {
 			evaluationInformation.setDPDP_Precision_WTL("loss");
 		}
 		
-		if(evaluationInformation.getDPDP_recall() > evaluationInformation.getPDP_recall()) {
+		if(DPDP_recall > PDP_recall) {
 			evaluationInformation.setDPDP_Recall_WTL("win");
-		}else if(evaluationInformation.getDPDP_recall() == evaluationInformation.getPDP_recall()) {
+		}else if(DPDP_recall == PDP_recall) {
 			evaluationInformation.setDPDP_Recall_WTL("tie");
 		}else {
 			evaluationInformation.setDPDP_Recall_WTL("loss");
 		}
 		
-		if(evaluationInformation.getDPDP_fmeasure() > evaluationInformation.getPDP_fmeasure()) {
+		if(DPDP_fmeasure > PDP_fmeasure) {
 			evaluationInformation.setDPDP_FMeasure_WTL("win");
-		}else if(evaluationInformation.getDPDP_fmeasure() == evaluationInformation.getPDP_fmeasure()) {
+		}else if(DPDP_fmeasure == PDP_fmeasure) {
 			evaluationInformation.setDPDP_FMeasure_WTL("tie");
 		}else {
 			evaluationInformation.setDPDP_FMeasure_WTL("loss");
 		}
 		
-		if(evaluationInformation.getDPDP_mcc() > evaluationInformation.getPDP_mcc()) {
+		if(DPDP_mcc > PDP_mcc) {
 			evaluationInformation.setDPDP_mcc_WTL("win");
-		}else if(evaluationInformation.getDPDP_mcc() == evaluationInformation.getPDP_mcc()) {
+		}else if(DPDP_mcc == PDP_mcc) {
 			evaluationInformation.setDPDP_mcc_WTL("tie");
 		}else {
 			evaluationInformation.setDPDP_mcc_WTL("loss");
 		}
 		
-		if(evaluationInformation.getDPDP_auc() > evaluationInformation.getPDP_auc()) {
+		if(DPDP_auc > PDP_auc) {
 			evaluationInformation.setDPDP_auc_WTL("win");
-		}else if(evaluationInformation.getDPDP_auc() == evaluationInformation.getPDP_auc()) {
+		}else if(DPDP_auc == PDP_auc) {
 			evaluationInformation.setDPDP_auc_WTL("tie");
 		}else {
 			evaluationInformation.setDPDP_auc_WTL("loss");
 		}
 		
 		return evaluationInformation;
+	}
+
+	private double changeNoneToZero(double value) {
+		if(Double.isNaN(value)) {
+			value = 0;
+		}
+		return value;
 	}
 }
