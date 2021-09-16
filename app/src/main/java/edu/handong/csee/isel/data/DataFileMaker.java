@@ -13,7 +13,6 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.FileUtils;
 
-import edu.handong.csee.isel.DPDPMain;
 import edu.handong.csee.isel.ProjectInformation;
 import weka.core.Attribute;
 import weka.core.Instance;
@@ -182,11 +181,11 @@ public class DataFileMaker {
 					}
 				}
 				
-				if(developerDatas.size() < minimumCommit) {
-					DPDPMain.excludedDeveloper.add(developerID);
-					DPDPMain.excludedDeveloper.add(nominalToFilter);
-					continue;
-				}
+//				if(developerDatas.size() < minimumCommit) {
+//					DPDPMain.excludedDeveloper.add(developerID);
+//					DPDPMain.excludedDeveloper.add(nominalToFilter);
+//					continue;
+//				}
 
 				File newArff = new File(totalDevDefectInstancesForder+File.separator+projectInformation.getProjectName()+"-"+developerID+".arff");
 				StringBuffer newContentBuf = new StringBuffer();

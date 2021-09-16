@@ -19,7 +19,7 @@ import weka.core.converters.ConverterUtils.DataSource;
 
 public class DPDPMain {
 	ProjectInformation projectInformation;
-	static public ArrayList<String> excludedDeveloper = new ArrayList<>();
+//	static public ArrayList<String> excludedDeveloper = new ArrayList<>();
 	String weka;
 	String aWeka;
 	boolean test;

@@ -21,9 +21,9 @@ public class Utils {
         Iterable<CSVRecord> records = CSVFormat.RFC4180.withHeader().parse(in);
 
         for (CSVRecord record : records) {
-        	if(DPDPMain.excludedDeveloper.contains(record.get("AuthorID"))) {
-        		continue;
-        	}
+//        	if(DPDPMain.excludedDeveloper.contains(record.get("AuthorID"))) {
+//        		continue;
+//        	}
 
             HashMap<String, String> metricToValueMap = new HashMap<>();
 
