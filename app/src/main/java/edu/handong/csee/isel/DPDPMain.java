@@ -13,6 +13,8 @@ import org.apache.commons.cli.Options;
 
 import edu.handong.csee.isel.data.DataFileMaker;
 import edu.handong.csee.isel.model.ModelMaker;
+import edu.handong.csee.isel.test.ClusterFinder;
+import edu.handong.csee.isel.test.ProfileEvaluation;
 import edu.handong.csee.isel.test.Testing;
 import weka.core.Instances;
 import weka.core.converters.ConverterUtils.DataSource;
@@ -25,6 +27,9 @@ public class DPDPMain {
 	boolean test;
 	boolean clusterM;
 	boolean defectM;
+	boolean testMode_fileMaker;
+	boolean testMode_clusterFinder;
+	boolean testMode_evaluation;
 	boolean verbose;
 	boolean help;
 	
@@ -51,7 +56,7 @@ public class DPDPMain {
 			ModelMaker modelMaker = new ModelMaker(projectInformation);
 			
 			if(!clusterM && !defectM && !test) {
-				File isExist = new File(projectInformation.getDefectInstancePath());
+				File isExist = new File(projectInformation.getInputInstancePath());
 				if(!isExist.exists()) {
 					System.out.println("The data file is not exist");
 					System.out.println();
@@ -59,8 +64,8 @@ public class DPDPMain {
 					System.exit(0);
 				}
 				
-				dataFileMaker.makeDeveloperDefectInstanceArff("train");
-				dataFileMaker.makeDeveloperProfilingInstanceCSV("train");	
+				dataFileMaker.makeDeveloperArff("train");
+				dataFileMaker.makeDeveloperProfilingCSV("train");	
 			}
 			
 			if(clusterM) {
@@ -78,38 +83,48 @@ public class DPDPMain {
 					clusterArffPaths.add(aWeka);
 					modelMaker.makeClusterDefectModel(clusterArffPaths);
 				}else if((weka == null) && (aWeka == null)){
-					clusterArffPaths = dataFileMaker.makeClusterArff();
+					clusterArffPaths = dataFileMaker.makeClusterArffForTraining();
 					modelMaker.makeClusterDefectModel(clusterArffPaths);
 				}
 			}
 			
 			if(test) {
 				System.out.println("Test");
-				Testing testing = new Testing(projectInformation);
+				String clusterFinerResultPath = null;
 				
-				//mk result directory
-				File testDir = new File(projectInformation.getOutputPath() +File.separator+projectInformation.getProjectName()+"_test");
-				String directoryPath = testDir.getAbsolutePath();
-				if(testDir.isDirectory()) {
-					deleteFile(directoryPath);
+				if(testMode_fileMaker) {
+					System.out.println("Test mode : fileMaker");
+					
+					//mk test data directory
+					File testDir = new File(projectInformation.getOutputPath() +File.separator+projectInformation.getProjectName()+"_test");
+					String directoryPath = testDir.getAbsolutePath();
+					if(testDir.isDirectory()) {
+						deleteFile(directoryPath);
+					}
+					testDir.mkdir();
+					projectInformation.setTestFolderPath(testDir.getAbsolutePath());
+					
+					dataFileMaker.makeDeveloperArff("test");
+					dataFileMaker.makeDeveloperProfilingCSV("test");
+					
+//					System.out.println("1 : "+projectInformation.getTestDeveloperDefectInstanceArff());
+//					System.out.println("2 : "+projectInformation.getTestDeveloperProfilingInstanceCSV());
+
+				}else if(testMode_clusterFinder) {
+					ClusterFinder clusteringFinder = new ClusterFinder(projectInformation);
+					
+					clusterFinerResultPath = clusteringFinder.findDeveloperCluster();
+					
+				}else if(testMode_evaluation) {
+					if(clusterFinerResultPath == null) {
+						clusterFinerResultPath = projectInformation.getLocationOfClusterModels();
+					}
+					ProfileEvaluation eval = new ProfileEvaluation(projectInformation);
+					HashMap<String, ArrayList<String>> cluster_developer = eval.readCsvFile(clusterFinerResultPath);
+					eval.evaluateTestDeveloper(cluster_developer);
 				}
-				testDir.mkdir();
-				projectInformation.setTestFolderPath(testDir.getAbsolutePath());
 
-				HashMap<String,String> developerDefectInstancePath = dataFileMaker.makeDeveloperDefectInstanceArff("test");
-				dataFileMaker.makeDeveloperProfilingInstanceCSV("test");	
-				
-				System.out.println("1 : "+projectInformation.getTestDeveloperDefectInstanceArff());
-				System.out.println("2 : "+projectInformation.getTestDeveloperProfilingInstanceCSV());
-				
-				HashMap<Integer,ArrayList<String>> cluster_developer = testing.findDeveloperCluster();
-
-				//				for(int cluster : cluster_developer.keySet()) {
-//					System.out.println("Cluster : "+cluster);
-//					cluster_developer.get(cluster).forEach(
-//							developer -> System.out.println(developer));
-//				}
-				testing.evaluateTestDeveloper(cluster_developer, developerDefectInstancePath);
+				System.exit(0);
 			}
 			
 			if(verbose) {
@@ -120,7 +135,7 @@ public class DPDPMain {
 		System.out.println();
 		System.out.println();
 	}
-	
+
 	private ArrayList<String> readFileList(String weka2) {
 		ArrayList<String> clusterArffPaths = new ArrayList<>();
 		
@@ -159,7 +174,7 @@ public class DPDPMain {
 
 		try {
 			CommandLine cmd = parser.parse(options, args);
-			projectInformation.setDefectInstancePath(cmd.getOptionValue("i"));
+			projectInformation.setInputInstancePath(cmd.getOptionValue("i"));
 			projectInformation.setOutputPath(cmd.getOptionValue("o"));
 			
 			clusterM = cmd.hasOption("clusterM");
@@ -169,6 +184,16 @@ public class DPDPMain {
 			if((clusterM&&defectM&&test)||(clusterM&&defectM)||(defectM&&test)||(clusterM&&test)) {
 				System.out.println("Wrong input!");
 				System.exit(0);
+			}
+			
+			if(test == true) {
+				if((testMode_fileMaker&&testMode_clusterFinder&&testMode_evaluation)||(testMode_fileMaker&&testMode_clusterFinder)||(testMode_clusterFinder&&testMode_evaluation)||(testMode_fileMaker&&testMode_evaluation)) {
+					System.out.println("Wrong input!");
+					System.exit(0);
+				}
+				testMode_fileMaker = cmd.hasOption("file");
+				testMode_clusterFinder = cmd.hasOption("cluster");
+				testMode_evaluation = cmd.hasOption("eval");
 			}
 			
 			projectInformation.setBow(cmd.hasOption("bow"));
@@ -237,6 +262,21 @@ public class DPDPMain {
 				.argName("")
 				.build());
 		
+		options.addOption(Option.builder("file").longOpt("testDataFileMaker")
+				.desc("")
+				.argName("")
+				.build());
+		
+		options.addOption(Option.builder("cluster").longOpt("testClusterFinder")
+				.desc("")
+				.argName("")
+				.build());
+		
+		options.addOption(Option.builder("eval").longOpt("testEvaluation")
+				.desc("")
+				.argName("")
+				.build());
+		
 		options.addOption(Option.builder("imb").longOpt("applySMOTE")
 				.desc("Sove imbalanced data problem using SMOTE")
 				.argName("")
@@ -282,7 +322,5 @@ public class DPDPMain {
 		String footer = "\nPlease report issues at https://github.com/HGUISEL/DAISE/issues";
 		formatter.printHelp("DAISE", header, options, footer, true);
 	}
-	
-	
 
 }

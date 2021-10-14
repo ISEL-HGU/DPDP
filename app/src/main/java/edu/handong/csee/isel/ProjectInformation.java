@@ -5,7 +5,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ProjectInformation {
-	String defectInstancePath;
+	String inputPath;
 	String outputPath;
 	String projectName;
 	String referenceFolderPath;
@@ -21,7 +21,7 @@ public class ProjectInformation {
 	boolean imb;
 	
 	ProjectInformation(){
-		this.defectInstancePath = null;
+		this.inputPath = null;
 		this.outputPath = null;
 		this.projectName = null;
 		this.referenceFolderPath = null;
@@ -37,12 +37,12 @@ public class ProjectInformation {
 		this.lessThan10 = false;
 	}
 
-	public String getDefectInstancePath() {
-		return defectInstancePath;
+	public String getInputInstancePath() {
+		return inputPath;
 	}
 
-	protected void setDefectInstancePath(String defectInstancePath) {
-		this.defectInstancePath = defectInstancePath;
+	protected void setInputInstancePath(String defectInstancePath) {
+		this.inputPath = defectInstancePath;
 		
 
 		//set Project name and referenceFolderPath

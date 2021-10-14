@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
+import java.util.TreeSet;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -25,19 +26,16 @@ import weka.classifiers.trees.ADTree;
 import weka.classifiers.trees.J48;
 import weka.classifiers.trees.LMT;
 import weka.classifiers.trees.RandomForest;
-import weka.clusterers.ClusterEvaluation;
-import weka.clusterers.EM;
 import weka.core.AttributeStats;
+import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.SelectedTag;
 import weka.core.SerializationHelper;
-import weka.core.converters.CSVLoader;
 import weka.core.converters.ConverterUtils.DataSource;
 import weka.core.setupgenerator.AbstractParameter;
 import weka.core.setupgenerator.MathParameter;
 import weka.filters.Filter;
 import weka.filters.supervised.instance.SMOTE;
-import weka.filters.unsupervised.attribute.Remove;
 
 public class Testing {
 	ProjectInformation projectInformation;
@@ -46,65 +44,21 @@ public class Testing {
 		this.projectInformation = projectInformation;
 	}
 
-	public HashMap<Integer,ArrayList<String>> findDeveloperCluster() throws Exception {
-		HashMap<Integer,ArrayList<String>> cluster_developer = new HashMap<>();
-		String locationOfProfilingModel = projectInformation.getLocationOfClusterModels()+File.separator+"EM.model";
-		
-		CSVLoader loader = new CSVLoader();
-		loader.setSource(new File(projectInformation.getTestDeveloperProfilingInstanceCSV()));
+	public static void showFilesInDIr(String dirPath, TreeSet<String> array) {
+	    File dir = new File(dirPath);
+	    File files[] = dir.listFiles();
 
-		Instances data = loader.getDataSet();
-		
-		//delete developer ID column of CSV file
-		int[] toSelect = new int[data.numAttributes()-1];
-
-		for (int i = 0, j = 1; i < data.numAttributes()-1; i++,j++) {
-			toSelect[i] = j;
-		}
-		
-		Remove removeFilter = new Remove();
-		removeFilter.setAttributeIndicesArray(toSelect);
-		removeFilter.setInvertSelection(true);
-		removeFilter.setInputFormat(data);
-		Instances newData = Filter.useFilter(data, removeFilter);
-		
-		EM em = (EM)SerializationHelper.read(new FileInputStream(locationOfProfilingModel));
-		
-		ClusterEvaluation eval = new ClusterEvaluation();
-		eval.setClusterer(em);
-		eval.evaluateClusterer(newData);
-		System.out.println("------------------------------NUM cluster-----------------------  "+eval.getNumClusters());
-
-		double[] assignments = eval.getClusterAssignments();
-		
-		for(int i = 0; i < assignments.length; i++) {
-			int cluster = (int)assignments[i];
-			String developerID = parsingDeveloperName(data.get(i).stringValue(0));
-			
-			ArrayList<String> developerList;
-			
-			if(cluster_developer.containsKey(cluster)) {
-				developerList = cluster_developer.get(cluster);
-				developerList.add(developerID);
-			}else {
-				developerList = new ArrayList<>();
-				developerList.add(developerID);
-				cluster_developer.put(cluster, developerList);
-			}
-		}
-		
-		return cluster_developer;
-	}
-	
-	private String parsingDeveloperName(String stringValue) {
-		String developerName = stringValue;
-		if(stringValue.startsWith(" ")) {
-			developerName = stringValue.substring(1, stringValue.length());
-		}
-		return developerName;
+	    for (int i = 0; i < files.length; i++) {
+	        File file = files[i];
+	        if (file.isDirectory()) {
+	            showFilesInDIr(file.getPath(),array);
+	        } else {
+	        	array.add(file.toString());
+	        }
+	    }
 	}
 
-	public void evaluateTestDeveloper(HashMap<Integer, ArrayList<String>> cluster_developer, HashMap<String, String> developerDefectInstancePath) throws Exception {
+	public void evaluateTestDeveloper(HashMap<String, ArrayList<String>> cluster_developer, HashMap<String, String> developerDefectInstancePath) throws Exception {
 		String modelInformationPath = projectInformation.getOutputPath() +File.separator+projectInformation.getProjectName()+"_Test_Evaluation.csv";
 		File temp = new File(modelInformationPath);
 		boolean isFile = temp.isFile();
@@ -119,13 +73,32 @@ public class Testing {
 		
 		HashMap<String, ArrayList<EvaluationGlobalValue>> globalEvaluateResult = new HashMap<>();
 		File locationOfModel = new File(projectInformation.getLocationOfDefectModels());
-		File []models = locationOfModel.listFiles();
 		
-		for(File modelPath : models) {
+		TreeSet<String> array = new TreeSet<>();
+		
+		File dir = new File(projectInformation.getLocationOfDefectModels());
+		File files[] = dir.listFiles();
+	
+	    for (int i = 0; i < files.length; i++) {
+	        File file = files[i];
+	        if (file.isDirectory()) {
+	        	showFilesInDIr(file.getPath(),array);
+	        } else {
+	        	array.add(file.toString());
+	        }
+	    }
+		
+//		File []models = locationOfModel.listFiles();
+	    
+		for(String modelPath : array) {
+			
+	    	String devCluster = modelPath.replace(projectInformation.getLocationOfDefectModels()+File.separator,"");
+	    	devCluster = devCluster.substring(0,devCluster.indexOf("_adt"));
+
 			Classifier DPDPclassifyModel = (Classifier) SerializationHelper.read(new FileInputStream(modelPath));
 			EvaluationGlobalValue evaluationClusterValue = new EvaluationGlobalValue();
 			
-			String modelPathStr = modelPath.getAbsolutePath();
+			String modelPathStr = modelPath;
 			modelPathStr = modelPathStr.substring(modelPathStr.lastIndexOf("/")+1, modelPathStr.lastIndexOf("."));
 			String[] modelInformation = modelPathStr.split("_");
 			
@@ -148,12 +121,13 @@ public class Testing {
 			System.out.println("max :			"+ max);
 			System.out.println("step :			"+ step);
 			
-			ArrayList<String> developers = cluster_developer.get(modelNumber);
-			
+			ArrayList<String> developers = cluster_developer.get(devCluster);
+			System.out.println(developers);
+		
 			if(developers == null) continue;
 			
 			for(String developer : developers) {
-				EvaluationInformation evaluationInformation = new EvaluationInformation();
+				ConfusionMarixInformation evaluationInformation = new ConfusionMarixInformation();
 				System.out.println("Developer : "+developer);
 				String arffPath = developerDefectInstancePath.get(developer);
 				
@@ -480,7 +454,7 @@ public class Testing {
 	}
 
 	private EvaluationGlobalValue calculateEvaluationClusterValue(EvaluationGlobalValue evaluationClusterValue,
-			EvaluationInformation evaluationInformation) {
+			ConfusionMarixInformation evaluationInformation) {
 		evaluationClusterValue.setClusterNumber(evaluationInformation.getClusterNumber());
 		evaluationClusterValue.setAlgorithm(evaluationInformation.getAlgorithm());
 		
@@ -507,7 +481,7 @@ public class Testing {
 	}
 
 
-	private EvaluationInformation evaluatePDP(EvaluationInformation evaluationInformation, Instances data, String modelAlgirhtm, String multisearchEvaluationName,
+	private ConfusionMarixInformation evaluatePDP(ConfusionMarixInformation evaluationInformation, Instances data, String modelAlgirhtm, String multisearchEvaluationName,
 			String property, int min, int max, int step, int buggyIndex) throws Exception {
 		Classifier classifyModel = null;
 		
@@ -579,7 +553,7 @@ public class Testing {
 		return evaluationInformation;
 	}
 
-	private Instances ApplyClassImbalanceAlgo(Instances data, String classImbalanceAlgo, EvaluationInformation evaluationInformation) throws Exception {
+	private Instances ApplyClassImbalanceAlgo(Instances data, String classImbalanceAlgo, ConfusionMarixInformation evaluationInformation) throws Exception {
 		System.out.println("Apply SMOTE in PDP");
 		SMOTE smote = new SMOTE();
 		int nearestNeighbor = 5;
@@ -597,7 +571,7 @@ public class Testing {
 		return data;
 	}
 	
-	private EvaluationInformation calculateWinTieLoss(EvaluationInformation evaluationInformation) {
+	private ConfusionMarixInformation calculateWinTieLoss(ConfusionMarixInformation evaluationInformation) {
 		double PDP_precision = evaluationInformation.getPDP_precision();
 		PDP_precision = changeNoneToZero(PDP_precision);
 		double PDP_recall = evaluationInformation.getPDP_recall();

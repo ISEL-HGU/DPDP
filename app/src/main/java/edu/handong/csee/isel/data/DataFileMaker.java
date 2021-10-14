@@ -29,7 +29,7 @@ public class DataFileMaker {
 		this.projectInformation = projectInformation;
 	}
 
-	public void makeDeveloperProfilingInstanceCSV(String mode) throws Exception {
+	public void makeDeveloperProfilingCSV(String mode) throws Exception {
 		//read CSV
 		String[] developerProfilingMetrics = new String[6];
 		
@@ -59,7 +59,7 @@ public class DataFileMaker {
 		developerProfilingMetric.run(developerProfilingMetrics);
 	}
 	
-	public HashMap<String, String> makeDeveloperDefectInstanceArff(String mode) throws Exception {
+	public void makeDeveloperArff(String mode) throws Exception {
 		HashMap<String,String> developerDefectInstancePath = new HashMap<>();
 		File dir = null;
 		
@@ -80,11 +80,11 @@ public class DataFileMaker {
 		System.out.println(totalDevDefectInstancesForder);
 		
 		String defectDataArffPath;
-		if(projectInformation.isBow()) {
-			ExtractData.main(extractDataPargs(projectInformation.getDefectInstancePath(),projectInformation.getReferenceFolderPath(),projectInformation.isBow()));
+		if(projectInformation.isBow()) { //유지보수  
+			ExtractData.main(extractDataArgs(projectInformation.getInputInstancePath(),projectInformation.getReferenceFolderPath(),projectInformation.isBow()));
 			defectDataArffPath = ExtractData.getResultPath();
 		}else {
-			defectDataArffPath = projectInformation.getDefectInstancePath();
+			defectDataArffPath = projectInformation.getInputInstancePath();
 		}
 		System.out.println(defectDataArffPath);
 		
@@ -207,11 +207,6 @@ public class DataFileMaker {
 			System.out.println("The data file is wrong");
 			System.exit(0);
 		}
-		
-		if(mode.equals("test")) {
-			return developerDefectInstancePath;
-		}
-		return null;
 	}
 
 	private void reduceBICValue(String defectDataArffPath) throws Exception {
@@ -233,7 +228,7 @@ public class DataFileMaker {
 		saver.writeBatch();
 		
 	}
-
+///rename
 	private String newDeveloperData(String line, int index) {
 		if((line.contains(","+index+" "))) { //index previous,index commitTime, index key} 
 			String front = line.substring(0,line.lastIndexOf(","+index));
@@ -241,12 +236,12 @@ public class DataFileMaker {
 		}
 		return line;
 	}
-
+//remove
 	private String newAuthorIdAttribute(String nominalToFilter, String projectName) {
 		String authorAttribute = "@attribute meta_data-AuthorID {"+projectName+"-"+nominalToFilter+"}";
 		return authorAttribute;
 	}
-
+//remove
 	private String parsingDeveloperName(String stringValue) {
 		String developerName = stringValue;
 		if(stringValue.startsWith(" ")) {
@@ -273,7 +268,7 @@ public class DataFileMaker {
 		}
 	}
 	
-	private String[] extractDataPargs(String arffPath, String directoryPath, boolean noBOW) {
+	private String[] extractDataArgs(String arffPath, String directoryPath, boolean noBOW) {
 
 		String[] extratPDPargs = new String[3];
 		extratPDPargs[0] = arffPath;
@@ -287,18 +282,18 @@ public class DataFileMaker {
 		return extratPDPargs;
 	}
 
-	public ArrayList<String> makeClusterArff() throws Exception {
+	public ArrayList<String> makeClusterArffForTraining() throws Exception {
 		ArrayList<String> clusterArffPaths = new ArrayList<>();
 		
 		Pattern instancesPattern = Pattern.compile("([0-9]+)\\s([^,^}]+)");
 		
 		//cluster csv folder
-		File clusterCSVfolder = new File(projectInformation.getDefectInstancePath()+File.separator+"ClusterCSV");
+		File clusterCSVfolder = new File(projectInformation.getInputInstancePath()+File.separator+"ClusterCSV");
 		
 		//developer arff folder
-		String developerArffFolder = projectInformation.getDefectInstancePath()+File.separator+"totalDevDefectInstances";
+		String developerArffFolder = projectInformation.getInputInstancePath()+File.separator+"totalDevDefectInstances";
 		
-		File clusterModelFolder = new File(projectInformation.getDefectInstancePath() +File.separator+"ClusterArff");
+		File clusterModelFolder = new File(projectInformation.getInputInstancePath() +File.separator+"ClusterArff");
 		String clusterModelFolderPath = clusterModelFolder.getAbsolutePath();
 		if(clusterModelFolder.isDirectory()) {
 			deleteFile(clusterModelFolderPath);

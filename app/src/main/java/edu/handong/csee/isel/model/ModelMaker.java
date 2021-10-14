@@ -35,6 +35,7 @@ import weka.core.Instances;
 import weka.core.SelectedTag;
 import weka.core.SerializationHelper;
 import weka.core.converters.CSVLoader;
+import weka.core.converters.CSVSaver;
 import weka.core.converters.ConverterUtils.DataSource;
 import weka.core.setupgenerator.AbstractParameter;
 import weka.core.setupgenerator.MathParameter;
@@ -51,12 +52,12 @@ public class ModelMaker {
 	
 	public void makeClusterDefectModel(ArrayList<String> clusterArffPaths) throws Exception {		
 		//location of model
-		File clusterModelFolder = new File(projectInformation.getDefectInstancePath() +File.separator+"ClusterModel");
+		File clusterModelFolder = new File(projectInformation.getInputInstancePath() +File.separator+"ClusterModel");
 		String clusterModelFolderPath = clusterModelFolder.getAbsolutePath();
 		clusterModelFolder.mkdir();
 		
 		//location of model information
-		String modelInformationPath = projectInformation.getDefectInstancePath() +File.separator+"Model_Information.csv";
+		String modelInformationPath = projectInformation.getInputInstancePath() +File.separator+"Model_Information.csv";
 		File temp = new File(modelInformationPath);
 		boolean isFile = temp.isFile();
 		FileWriter out = new FileWriter(modelInformationPath, true); 
@@ -232,7 +233,7 @@ System.out.println(clusterName);
 
 			
 			CSVLoader loader = new CSVLoader();
-			loader.setSource(new File(projectInformation.getDefectInstancePath()));
+			loader.setSource(new File(projectInformation.getInputInstancePath()));
 
 			Instances data = loader.getDataSet();
 
@@ -269,6 +270,10 @@ System.out.println(clusterName);
 System.out.println("number Of Cluster : " + numOfCluster);
 			
 			double[] assignments = eval.getClusterAssignments();
+			
+			CSVSaver csvsaver = new CSVSaver();
+			
+			
 			HashMap<Integer,ArrayList<String>> cluster_instances = new HashMap<>();
 			
 			for(int i = 0; i < assignments.length; i++) {

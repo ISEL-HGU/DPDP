@@ -3,7 +3,7 @@ package edu.handong.csee.isel.test;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class EvaluationInformation {
+public class ConfusionMarixInformation {
 	
 	String Developer;
 	String Algorithm;
@@ -40,7 +40,7 @@ public class EvaluationInformation {
 	double DPDP_TN;
 	double DPDP_FN;
 	
-	protected EvaluationInformation() {
+	protected ConfusionMarixInformation() {
 		Developer = null;
 		Algorithm = null;
 		this.modelHash = null;

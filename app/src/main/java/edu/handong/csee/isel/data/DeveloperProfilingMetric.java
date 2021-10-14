@@ -220,7 +220,6 @@ public class DeveloperProfilingMetric {
 			}
 
 			File temp = new File(outputPath);
-///Users/yangsujin/Documents/eclipse/PDP_result/totalDevInstances/Developer_Profiling.csv
 			boolean isFile = temp.isFile();
 			
 			FileWriter out = new FileWriter(outputPath, true); 
