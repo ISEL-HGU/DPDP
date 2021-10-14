@@ -16,7 +16,6 @@ public class ProjectInformation {
 	String locationOfDefectModels;
 	String testFolderPath;
 	int numOfCluster;
-	boolean lessThan10;
 	boolean bow;
 	boolean imb;
 	
@@ -34,7 +33,6 @@ public class ProjectInformation {
 		this.bow = false;
 		this.imb = false;
 		this.numOfCluster = 0;
-		this.lessThan10 = false;
 	}
 
 	public String getInputInstancePath() {
@@ -166,14 +164,6 @@ public class ProjectInformation {
 
 	public void setNumOfCluster(int numOfCluster) {
 		this.numOfCluster = numOfCluster;
-	}
-
-	public boolean isLessThan10() {
-		return lessThan10;
-	}
-
-	public void setLessThan10(boolean lessThan10) {
-		this.lessThan10 = lessThan10;
 	}
 	
 }

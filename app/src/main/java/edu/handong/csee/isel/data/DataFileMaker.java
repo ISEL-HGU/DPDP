@@ -142,13 +142,6 @@ public class DataFileMaker {
 				instances.add(makeChangedIndexInstance_BOW(attributeIndex_value));
 			}
 			
-			int minimumCommit = 0;
-			if(projectInformation.isLessThan10() == true) {
-				minimumCommit = 10;
-			}
-			
-			System.out.println(minimumCommit);
-			
 			for(String instance : instances) {
 				newAttributeContentBuf.append(instance + "\n");
 			}
