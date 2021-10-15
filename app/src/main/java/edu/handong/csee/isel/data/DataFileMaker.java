@@ -34,19 +34,7 @@ public class DataFileMaker {
 		String[] developerProfilingMetrics = new String[6];
 		
 		//make totalDevInstances directory
-		File dir = null;
-		String totalDeveloperInstanceCSV = null;
-		if(mode.equals("train")) {
-			dir = new File(projectInformation.getOutputPath());
-			if(!dir.isDirectory()) {
-				dir.mkdir();
-			}
-			//total developer Instance CSV path
-			totalDeveloperInstanceCSV = dir.getAbsolutePath() + File.separator+"Developer_Profiling.csv";
-		}else if(mode.equals("test")) {
-			totalDeveloperInstanceCSV = projectInformation.getTestFolderPath()+File.separator+"ProilingInstances.csv";
-			projectInformation.setTestDeveloperProfilingInstanceCSV(totalDeveloperInstanceCSV);
-		}
+		String totalDeveloperInstanceCSV = getDirPathToSaveCSVfiles(mode,projectInformation);
 		
 		developerProfilingMetrics[0] = "-m";
 		developerProfilingMetrics[1] = projectInformation.getDeveloperDataCSVPath();
@@ -58,8 +46,9 @@ public class DataFileMaker {
 		DeveloperProfilingMetric developerProfilingMetric = new DeveloperProfilingMetric();
 		developerProfilingMetric.run(developerProfilingMetrics);
 	}
-	
+
 	public void makeDeveloperArff(String mode) throws Exception {
+		
 		HashMap<String,String> developerDefectInstancePath = new HashMap<>();
 		
 		// developer arff directory path
@@ -67,41 +56,35 @@ public class DataFileMaker {
 		
 		//preprocess arff file(remove BOW and re-arrange attribute according to define in order of DefectAttribute.attribute)
 		String preprocessedArffPath = preprocessArffFile(projectInformation);
-System.exit(0);
-		try {
-			//split arff file according to each developer
-			DataSource source = new DataSource(preprocessedArffPath);
-			Instances newData = source.getDataSet();
+
+		try {//split arff file according to each developer
 			
-			Instances filteredInstances = new Instances(newData, 0);
+			//read preprocessed arff file
+			DataSource source = new DataSource(preprocessedArffPath);
+			Instances data = source.getDataSet();
+			
+			//init new instances with only attribute
+			Instances filteredInstances = new Instances(data, 0);
 			
 			ArrayList<String> developerDatas = new ArrayList<String>();
 			String[] developerAttribute = filteredInstances.toString().split("\n");
-			Attribute authorID = newData.attribute("meta_data-AuthorID");
-			int index = authorID.index();
+			Attribute authorID = data.attribute("meta_data-AuthorID");
+			int authorIDindex = authorID.index();
 
 			for(int i = 0; i < authorID.numValues(); i++) {
 				String developerID = parsingDeveloperName(authorID.value(i));
-				String nominalToFilter = authorID.value(i);
-				if(mode.equals("train")) {
-					developerAttribute[index+2] = newAuthorIdAttribute(nominalToFilter,projectInformation.getProjectName());
-				}else if (mode.equals("test")) {
-					developerAttribute[index+2] = "";
-				}
+				String authorIDstringInInstance = authorID.value(i);
 				
-				for(Instance instance : newData) {
-					if(instance.stringValue(index).equals(nominalToFilter)) {
-						String developerData = newDeveloperData(instance.toString(),index);
+				for(Instance instance : data) {
+					
+					//check if authorId is in a instance (because first authorId of the attribute is not expressed as a instance value)
+					if(instance.stringValue(authorIDindex).equals(authorIDstringInInstance)) {
+						String developerData = removeAuthorIDinInstance(instance.toString(),authorIDindex);
 						developerDatas.add(developerData);
 					}
 				}
 				
-//				if(developerDatas.size() < minimumCommit) {
-//					DPDPMain.excludedDeveloper.add(developerID);
-//					DPDPMain.excludedDeveloper.add(nominalToFilter);
-//					continue;
-//				}
-
+				//make developer arff file
 				File newArff = new File(totalDevDefectInstancesForder+File.separator+projectInformation.getProjectName()+"-"+developerID+".arff");
 				StringBuffer newContentBuf = new StringBuffer();
 				
@@ -135,7 +118,7 @@ System.exit(0);
 			preprocessedArffPath = projectInformation.getInputPath();
 		}
 		
-		//BIC 값 하나씩 낮추기 ㅠㅜㅠ (0이상 값만) 임시!! DPMiner에수정하기 
+		//BIC 값 하나씩 낮추기 (0이상 값만) 임시!! DPMiner에수정하기 
 		reduceBICValue(preprocessedArffPath);
 		
 		//re-arrange attribute according to define in order of DefectAttribute.attribute
@@ -151,10 +134,6 @@ System.exit(0);
 		//read arff file to weka format (to parsing index of arff file)
 		DataSource source = new DataSource(preprocessedArffPath);
 		Instances newData = source.getDataSet();
-		
-		//read arff file to string format (to re-arrange value according to attribute)
-		File newAttributeArff = new File(preprocessedArffPath);
-		StringBuffer newAttributeContentBuf = new StringBuffer();
 
 		//parsing sparse type index and value
 		Pattern instancesPattern = Pattern.compile("([0-9]+)\\s([^,^}]+)");
@@ -164,25 +143,27 @@ System.exit(0);
 		for(int i = 0; i < newData.numInstances(); i++) {
 			TreeMap<Integer,String> attributeIndex_value = new TreeMap<>();
 			Matcher matcher = instancesPattern.matcher(newData.get(i).toString());
+			
+			//parsing a instance (ex {0 clean} -> index : 0, value : clean
 			while(matcher.find()) {
 				int index = Integer.parseInt(matcher.group(1));
 				String value = matcher.group(2);
 				index = oriAttrIdx_mergedAttrIdx.get(index);
 				attributeIndex_value.put(index, value);
 			}
-			//make new instances
-			rearrangedInstances.add(makeChangedIndexInstance_BOW(attributeIndex_value));
+			//make re arranged instances
+			rearrangedInstances.add(rearrangeInstanceOrder(attributeIndex_value));
 		}
 		
 		//write the attribute of arranged arff
+		File newAttributeArff = new File(preprocessedArffPath);
+		StringBuffer newAttributeContentBuf = new StringBuffer();
+				
 		for (String line : arffAttribute) {
 			newAttributeContentBuf.append(line + "\n");
 		}
 		newAttributeContentBuf.append(newData.attribute("meta_data-AuthorID").toString()+ "\n");
 		newAttributeContentBuf.append("\n@data\n");
-		
-//		FileUtils.write(newAttributeArff, newAttributeContentBuf.toString(), "UTF-8");
-//		newAttributeContentBuf.delete(0, newAttributeContentBuf.length());
 		
 		for(String instance : rearrangedInstances) {
 			newAttributeContentBuf.append(instance + "\n");
@@ -235,8 +216,26 @@ System.exit(0);
 		
 		return attribute_index;
 	}
+	
+	private String getDirPathToSaveCSVfiles(String mode, ProjectInformation projectInformation) {
+		File dir = null;
+		String totalDeveloperInstanceCSV = null;
+		
+		if(mode.equals("train")) {
+			dir = new File(projectInformation.getOutputPath());
+			if(!dir.isDirectory()) {
+				dir.mkdir();
+			}
+			//total developer Instance CSV path
+			totalDeveloperInstanceCSV = dir.getAbsolutePath() + File.separator+"Developer_Profiling.csv";
+		}else if(mode.equals("test")) {
+			totalDeveloperInstanceCSV = projectInformation.getTestFolderPath()+File.separator+"ProilingInstances.csv";
+			projectInformation.setTestDeveloperProfilingInstanceCSV(totalDeveloperInstanceCSV);
+		}
+		return totalDeveloperInstanceCSV;
+	}
 
-	private String getDirPathToSaveArffFiles(String mode, ProjectInformation projectInformation2) {
+	private String getDirPathToSaveArffFiles(String mode, ProjectInformation projectInformation) {
 		File dir = null;
 
 		if(mode.equals("train")) {
@@ -273,20 +272,15 @@ System.exit(0);
 		saver.writeBatch();
 		
 	}
-///rename
-	private String newDeveloperData(String line, int index) {
-		if((line.contains(","+index+" "))) { //index previous,index commitTime, index key} 
+	
+	private String removeAuthorIDinInstance(String line, int index) {
+		if((line.contains(","+index+" "))) { //{index c-vector,index meta} 
 			String front = line.substring(0,line.lastIndexOf(","+index));
 			line = front + "}";
 		}
 		return line;
 	}
-//remove
-	private String newAuthorIdAttribute(String nominalToFilter, String projectName) {
-		String authorAttribute = "@attribute meta_data-AuthorID {"+projectName+"-"+nominalToFilter+"}";
-		return authorAttribute;
-	}
-//remove
+	
 	private String parsingDeveloperName(String stringValue) {
 		String developerName = stringValue;
 		if(stringValue.startsWith(" ")) {
@@ -443,7 +437,7 @@ System.out.println(clusterName);
 		return oriAttrIdx_mergedAttrIdx;
 	}
 	
-	private String makeChangedIndexInstance_BOW(TreeMap<Integer, String> attributeIndex_value) {
+	private String rearrangeInstanceOrder(TreeMap<Integer, String> attributeIndex_value) {
 		String instance = "{";
 		for(int index : attributeIndex_value.keySet()) {
 			String value = attributeIndex_value.get(index);

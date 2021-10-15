@@ -6,7 +6,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map.Entry;
 
 import org.apache.commons.csv.CSVFormat;
@@ -17,7 +16,6 @@ import java.util.TreeSet;
 
 import edu.handong.csee.isel.ProjectInformation;
 import edu.handong.csee.isel.Utils;
-import edu.handong.csee.isel.data.DeveloperInfo;
 import weka.clusterers.ClusterEvaluation;
 import weka.clusterers.EM;
 import weka.core.Instance;
