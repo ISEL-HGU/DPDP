@@ -35,11 +35,11 @@ public class ProjectInformation {
 		this.numOfCluster = 0;
 	}
 
-	public String getInputInstancePath() {
+	public String getInputPath() {
 		return inputPath;
 	}
 
-	protected void setInputInstancePath(String defectInstancePath) {
+	protected void setInputPath(String defectInstancePath) {
 		this.inputPath = defectInstancePath;
 		
 

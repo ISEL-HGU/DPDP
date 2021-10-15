@@ -62,7 +62,7 @@ public class ProfileEvaluation {
 	public void evaluateTestDeveloper(HashMap<String, ArrayList<String>> cluster_developer) throws Exception {
 	    
 		//confirm none-exist model or dev
-		String inputDeveloperInstancePath = projectInformation.getInputInstancePath();
+		String inputDeveloperInstancePath = projectInformation.getInputPath();
 		String defectModelPath = projectInformation.getLocationOfDefectModels();
 		
 		//init result saver

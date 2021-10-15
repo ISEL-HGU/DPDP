@@ -52,12 +52,12 @@ public class ModelMaker {
 	
 	public void makeClusterDefectModel(ArrayList<String> clusterArffPaths) throws Exception {		
 		//location of model
-		File clusterModelFolder = new File(projectInformation.getInputInstancePath() +File.separator+"ClusterModel");
+		File clusterModelFolder = new File(projectInformation.getInputPath() +File.separator+"ClusterModel");
 		String clusterModelFolderPath = clusterModelFolder.getAbsolutePath();
 		clusterModelFolder.mkdir();
 		
 		//location of model information
-		String modelInformationPath = projectInformation.getInputInstancePath() +File.separator+"Model_Information.csv";
+		String modelInformationPath = projectInformation.getInputPath() +File.separator+"Model_Information.csv";
 		File temp = new File(modelInformationPath);
 		boolean isFile = temp.isFile();
 		FileWriter out = new FileWriter(modelInformationPath, true); 
@@ -233,7 +233,7 @@ System.out.println(clusterName);
 
 			
 			CSVLoader loader = new CSVLoader();
-			loader.setSource(new File(projectInformation.getInputInstancePath()));
+			loader.setSource(new File(projectInformation.getInputPath()));
 
 			Instances data = loader.getDataSet();
 

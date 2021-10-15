@@ -55,7 +55,7 @@ public class ClusterFinder {
 		
 		//read test developer profiling instances
 	    CSVLoader loader = new CSVLoader();
-		loader.setSource(new File(projectInformation.getInputInstancePath()));
+		loader.setSource(new File(projectInformation.getInputPath()));
 		Instances initData = loader.getDataSet();
 		
 		//parsing 1st, 2nd, 3rd ... EM model information

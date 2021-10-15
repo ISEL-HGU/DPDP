@@ -61,95 +61,17 @@ public class DataFileMaker {
 	
 	public void makeDeveloperArff(String mode) throws Exception {
 		HashMap<String,String> developerDefectInstancePath = new HashMap<>();
-		File dir = null;
 		
-		if(mode.equals("train")) {
-			//make totalDevInstances directory
-			dir = new File(projectInformation.getOutputPath() +File.separator+"totalDevDefectInstances");
-			if(!dir.isDirectory()) {
-				dir.mkdir();
-			}
-		}else if(mode.equals("test")) {
-			dir = new File(projectInformation.getTestFolderPath()+File.separator+"DefectInstances");
-			dir.mkdir();
-			projectInformation.setTestDeveloperDefectInstanceArff(dir.getAbsolutePath());
-		}
+		// developer arff directory path
+		String totalDevDefectInstancesForder = getDirPathToSaveArffFiles(mode,projectInformation);
 		
-		//total developer Instance path
-		String totalDevDefectInstancesForder = dir.getAbsolutePath();
-		System.out.println(totalDevDefectInstancesForder);
-		
-		String defectDataArffPath;
-		if(projectInformation.isBow()) { //유지보수  
-			ExtractData.main(extractDataArgs(projectInformation.getInputInstancePath(),projectInformation.getReferenceFolderPath(),projectInformation.isBow()));
-			defectDataArffPath = ExtractData.getResultPath();
-		}else {
-			defectDataArffPath = projectInformation.getInputInstancePath();
-		}
-		System.out.println(defectDataArffPath);
-		
-		//BIC 값 하나씩 낮추기 ㅠㅜㅠ (0이상 값만) 임시!! DPMiner에수정하기 
-		reduceBICValue(defectDataArffPath);
-		
+		//preprocess arff file(remove BOW and re-arrange attribute according to define in order of DefectAttribute.attribute)
+		String preprocessedArffPath = preprocessArffFile(projectInformation);
+System.exit(0);
 		try {
-			DataSource source = new DataSource(defectDataArffPath);
-			Instances data = source.getDataSet();
-			
-			//delete key column
-			int[] toSelect = new int[data.numAttributes()-1];
-
-			for (int i = 0, j = 0; i < data.numAttributes()-1; i++,j++) {
-				toSelect[i] = j;
-			}
-			
-			Remove removeFilter = new Remove();
-			removeFilter.setAttributeIndicesArray(toSelect);
-			removeFilter.setInvertSelection(true);
-			removeFilter.setInputFormat(data);
-			
-			Instances newData = Filter.useFilter(data, removeFilter);
-
-			//re arrange Attribute (make new BOW file)
-			File newAttributeArff = new File(defectDataArffPath);
-			ArrayList<String> arffAttribute = DefectAttribute.attribute;
-			StringBuffer newAttributeContentBuf = new StringBuffer();
-			
-			arffAttribute.add(newData.attribute("meta_data-AuthorID").toString());
-			
-			for (String line : arffAttribute) {
-				newAttributeContentBuf.append(line + "\n");
-			}
-			newAttributeContentBuf.append("\n@data\n");
-			
-			FileUtils.write(newAttributeArff, newAttributeContentBuf.toString(), "UTF-8");
-			newAttributeContentBuf.delete(0, newAttributeContentBuf.length());
-
-			Pattern instancesPattern = Pattern.compile("([0-9]+)\\s([^,^}]+)");
-			ArrayList<String> attributeName_index = DefectAttribute.attribute_index;
-			HashMap<Integer,Integer> oriAttrIdx_mergedAttrIdx = matchingOriginalAtrrIdxWithMergedAtrrIdx(attributeName_index, newData);
-			ArrayList<String> instances = new ArrayList<>();
-			
-			for(int i = 0; i < newData.numInstances(); i++) {
-				TreeMap<Integer,String> attributeIndex_value = new TreeMap<>();
-				Matcher matcher = instancesPattern.matcher(newData.get(i).toString());
-				while(matcher.find()) {
-					int index = Integer.parseInt(matcher.group(1));
-					String value = matcher.group(2);
-					index = oriAttrIdx_mergedAttrIdx.get(index);
-					attributeIndex_value.put(index, value);
-				}
-				//make new instances
-				instances.add(makeChangedIndexInstance_BOW(attributeIndex_value));
-			}
-			
-			for(String instance : instances) {
-				newAttributeContentBuf.append(instance + "\n");
-			}
-			FileUtils.write(newAttributeArff, newAttributeContentBuf.toString(), "UTF-8", true);
-			
 			//split arff file according to each developer
-			source = new DataSource(defectDataArffPath);
-			newData = source.getDataSet();
+			DataSource source = new DataSource(preprocessedArffPath);
+			Instances newData = source.getDataSet();
 			
 			Instances filteredInstances = new Instances(newData, 0);
 			
@@ -200,6 +122,136 @@ public class DataFileMaker {
 			System.out.println("The data file is wrong");
 			System.exit(0);
 		}
+	}
+
+	private String preprocessArffFile(ProjectInformation projectInformation) throws Exception {
+		String preprocessedArffPath = null;
+		
+		//process bow option
+		if(projectInformation.isBow()) { 
+			//removeBOWAttribute(input arff path,output arff path)
+			preprocessedArffPath = removeBOWAttribute(projectInformation.getInputPath(), projectInformation.getReferenceFolderPath(), projectInformation.getProjectName());
+		}else {
+			preprocessedArffPath = projectInformation.getInputPath();
+		}
+		
+		//BIC 값 하나씩 낮추기 ㅠㅜㅠ (0이상 값만) 임시!! DPMiner에수정하기 
+		reduceBICValue(preprocessedArffPath);
+		
+		//re-arrange attribute according to define in order of DefectAttribute.attribute
+		preprocessedArffPath = rearrangeAttributeOrder(preprocessedArffPath);
+		
+		return preprocessedArffPath;
+	}
+
+	private String rearrangeAttributeOrder(String preprocessedArffPath) throws Exception {
+		ArrayList<String> arffAttribute = DefectAttribute.attribute;
+		ArrayList<String> attribute_name = DefectAttribute.attribute_name;
+		
+		//read arff file to weka format (to parsing index of arff file)
+		DataSource source = new DataSource(preprocessedArffPath);
+		Instances newData = source.getDataSet();
+		
+		//read arff file to string format (to re-arrange value according to attribute)
+		File newAttributeArff = new File(preprocessedArffPath);
+		StringBuffer newAttributeContentBuf = new StringBuffer();
+
+		//parsing sparse type index and value
+		Pattern instancesPattern = Pattern.compile("([0-9]+)\\s([^,^}]+)");
+		HashMap<Integer,Integer> oriAttrIdx_mergedAttrIdx = matchingOriginalAtrrIdxWithMergedAtrrIdx(attribute_name, newData);
+		ArrayList<String> rearrangedInstances = new ArrayList<>();
+		
+		for(int i = 0; i < newData.numInstances(); i++) {
+			TreeMap<Integer,String> attributeIndex_value = new TreeMap<>();
+			Matcher matcher = instancesPattern.matcher(newData.get(i).toString());
+			while(matcher.find()) {
+				int index = Integer.parseInt(matcher.group(1));
+				String value = matcher.group(2);
+				index = oriAttrIdx_mergedAttrIdx.get(index);
+				attributeIndex_value.put(index, value);
+			}
+			//make new instances
+			rearrangedInstances.add(makeChangedIndexInstance_BOW(attributeIndex_value));
+		}
+		
+		//write the attribute of arranged arff
+		for (String line : arffAttribute) {
+			newAttributeContentBuf.append(line + "\n");
+		}
+		newAttributeContentBuf.append(newData.attribute("meta_data-AuthorID").toString()+ "\n");
+		newAttributeContentBuf.append("\n@data\n");
+		
+//		FileUtils.write(newAttributeArff, newAttributeContentBuf.toString(), "UTF-8");
+//		newAttributeContentBuf.delete(0, newAttributeContentBuf.length());
+		
+		for(String instance : rearrangedInstances) {
+			newAttributeContentBuf.append(instance + "\n");
+		}
+		FileUtils.write(newAttributeArff, newAttributeContentBuf.toString(), "UTF-8");
+		
+		return preprocessedArffPath;
+	}
+
+	private String removeBOWAttribute(String inputArffPath, String outputArffPath, String projectName) throws Exception {
+		ArrayList<String> attribute_name = DefectAttribute.attribute_name;
+		DataSource source = new DataSource(inputArffPath);
+		Instances data = source.getDataSet();
+		ArrayList<Integer> attribute_index = parsingValidAttributeIndex(data,attribute_name);
+		
+		//delete key, commitTime and BOW attribute
+		int[] toSelect = new int[attribute_index.size()];
+
+		for (int i = 0, j = 0; i < attribute_index.size(); i++,j++) {
+			toSelect[i] = attribute_index.get(j);
+		}
+		
+		Remove removeFilter = new Remove();
+		removeFilter.setAttributeIndicesArray(toSelect);
+		removeFilter.setInvertSelection(true);
+		removeFilter.setInputFormat(data);
+		
+		//apply filter
+		Instances newData = Filter.useFilter(data, removeFilter);
+	
+		//saved filtered result
+		ArffSaver saver = new ArffSaver();
+		saver.setInstances(newData);
+		outputArffPath = outputArffPath + File.separator + projectName + "-bow.arff";
+		saver.setFile(new File(outputArffPath));
+		saver.writeBatch();
+		
+		return outputArffPath;
+	}
+
+	private ArrayList<Integer> parsingValidAttributeIndex(Instances data, ArrayList<String> attribute_name) {
+		ArrayList<Integer> attribute_index = new ArrayList<>();
+		
+		for(int j = 0; j < data.numAttributes(); j++) {
+			Attribute attribute = data.attribute(j);
+			if(attribute_name.contains(attribute.name())) {
+				attribute_index.add(j);
+			}
+		}
+		
+		return attribute_index;
+	}
+
+	private String getDirPathToSaveArffFiles(String mode, ProjectInformation projectInformation2) {
+		File dir = null;
+
+		if(mode.equals("train")) {
+			//make totalDevInstances directory
+			dir = new File(projectInformation.getOutputPath() +File.separator+"totalDevDefectInstances");
+			if(!dir.isDirectory()) {
+				dir.mkdir();
+			}
+		}else if(mode.equals("test")) {
+			dir = new File(projectInformation.getTestFolderPath()+File.separator+"DefectInstances");
+			dir.mkdir();
+			projectInformation.setTestDeveloperDefectInstanceArff(dir.getAbsolutePath());
+		}
+		
+		return dir.getAbsolutePath();
 	}
 
 	private void reduceBICValue(String defectDataArffPath) throws Exception {
@@ -260,20 +312,6 @@ public class DataFileMaker {
 			deleteFolder.delete();
 		}
 	}
-	
-	private String[] extractDataArgs(String arffPath, String directoryPath, boolean noBOW) {
-
-		String[] extratPDPargs = new String[3];
-		extratPDPargs[0] = arffPath;
-		extratPDPargs[1] = directoryPath;
-		if(noBOW == false) {
-			extratPDPargs[2] = "p";
-		}else {
-			extratPDPargs[2] = "bow";
-		}
-
-		return extratPDPargs;
-	}
 
 	public ArrayList<String> makeClusterArffForTraining() throws Exception {
 		ArrayList<String> clusterArffPaths = new ArrayList<>();
@@ -281,12 +319,12 @@ public class DataFileMaker {
 		Pattern instancesPattern = Pattern.compile("([0-9]+)\\s([^,^}]+)");
 		
 		//cluster csv folder
-		File clusterCSVfolder = new File(projectInformation.getInputInstancePath()+File.separator+"ClusterCSV");
+		File clusterCSVfolder = new File(projectInformation.getInputPath()+File.separator+"ClusterCSV");
 		
 		//developer arff folder
-		String developerArffFolder = projectInformation.getInputInstancePath()+File.separator+"totalDevDefectInstances";
+		String developerArffFolder = projectInformation.getInputPath()+File.separator+"totalDevDefectInstances";
 		
-		File clusterModelFolder = new File(projectInformation.getInputInstancePath() +File.separator+"ClusterArff");
+		File clusterModelFolder = new File(projectInformation.getInputPath() +File.separator+"ClusterArff");
 		String clusterModelFolderPath = clusterModelFolder.getAbsolutePath();
 		if(clusterModelFolder.isDirectory()) {
 			deleteFile(clusterModelFolderPath);
@@ -316,7 +354,7 @@ public class DataFileMaker {
 		//merge 1) make total @attribute	
 		for(String clusterName : cluster_developerArff.keySet()) {
 			ArrayList<String> developerArffList = cluster_developerArff.get(clusterName);
-			ArrayList<String> attributeName_index = DefectAttribute.attribute_index; //for change the attribute index of developers arff
+			ArrayList<String> attribute_name = DefectAttribute.attribute_name; //for change the attribute index of developers arff
 			ArrayList<String> arffAttribute = DefectAttribute.attribute;//for print cluster arff file
 System.out.println(clusterName);
 			
@@ -328,6 +366,7 @@ System.out.println(clusterName);
 			for (String line : arffAttribute) {
 				newContentBuf.append(line + "\n");
 			}
+			
 			newContentBuf.append("\n@data\n");
 			
 			FileUtils.write(newArff, newContentBuf.toString(), "UTF-8", true);
@@ -342,7 +381,7 @@ System.out.println(clusterName);
 				Instances data = source.getDataSet();
 				
 				//make oriAttrIdx_mergedAttrIdx
-				HashMap<Integer,Integer> oriAttrIdx_mergedAttrIdx = matchingOriginalAtrrIdxWithMergedAtrrIdx(attributeName_index, data);
+				HashMap<Integer,Integer> oriAttrIdx_mergedAttrIdx = matchingOriginalAtrrIdxWithMergedAtrrIdx(attribute_name, data);
 //				for(int ori : oriAttrIdx_mergedAttrIdx.keySet()) {
 //					System.out.println("ori : "+ori + "	mer : "+oriAttrIdx_mergedAttrIdx.get(ori));
 //				}
@@ -389,16 +428,16 @@ System.out.println(clusterName);
 		return clusterArffPaths;
 	}
 	
-	private HashMap<Integer, Integer> matchingOriginalAtrrIdxWithMergedAtrrIdx(ArrayList<String> attributeName_index, Instances data) {
+	private HashMap<Integer, Integer> matchingOriginalAtrrIdxWithMergedAtrrIdx(ArrayList<String> attribute_name, Instances data) {
 		HashMap<Integer, Integer> oriAttrIdx_mergedAttrIdx = new HashMap<>();
 		for(int j = 0; j < data.numAttributes(); j++) {
 			Attribute attribute = data.attribute(j);
-			int index = attributeName_index.indexOf(attribute.name());
+			int index = attribute_name.indexOf(attribute.name());
 			if(index == -1) {
 				System.out.println("!!!!!!!!!!!!!There is new Attribute~!!!!!!!!!!!!!");
 				System.out.println("Attribute Name = "+attribute.name());
 			}
-			oriAttrIdx_mergedAttrIdx.put(j, attributeName_index.indexOf(attribute.name()));
+			oriAttrIdx_mergedAttrIdx.put(j, attribute_name.indexOf(attribute.name()));
 		}
 		
 		return oriAttrIdx_mergedAttrIdx;

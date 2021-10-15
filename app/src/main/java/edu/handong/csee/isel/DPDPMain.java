@@ -56,7 +56,7 @@ public class DPDPMain {
 			ModelMaker modelMaker = new ModelMaker(projectInformation);
 			
 			if(!clusterM && !defectM && !test) {
-				File isExist = new File(projectInformation.getInputInstancePath());
+				File isExist = new File(projectInformation.getInputPath());
 				if(!isExist.exists()) {
 					System.out.println("The data file is not exist");
 					System.out.println();
@@ -174,7 +174,7 @@ public class DPDPMain {
 
 		try {
 			CommandLine cmd = parser.parse(options, args);
-			projectInformation.setInputInstancePath(cmd.getOptionValue("i"));
+			projectInformation.setInputPath(cmd.getOptionValue("i"));
 			projectInformation.setOutputPath(cmd.getOptionValue("o"));
 			
 			clusterM = cmd.hasOption("clusterM");
@@ -209,7 +209,6 @@ public class DPDPMain {
 				projectInformation.setNumOfCluster(0);
 			}
 
-//			defectM = cmd.hasOption("defectM");
 			help = cmd.hasOption("h");
 
 		} catch (Exception e) {
@@ -282,7 +281,7 @@ public class DPDPMain {
 				.hasArg()
 				.build());
 		
-		options.addOption(Option.builder("m").longOpt("numberOfCluster")
+		options.addOption(Option.builder("m").longOpt("numberOfEMCluster")
 				.desc("Number of profiling cluster")
 				.argName("")
 				.hasArg()

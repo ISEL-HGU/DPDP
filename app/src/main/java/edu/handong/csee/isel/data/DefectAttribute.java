@@ -297,7 +297,7 @@ public class DefectAttribute {
 		    "@attribute meta_data-CommitDate {Thursday,Saturday,Wednesday,Friday,Tuesday,Sunday,Monday}"));
 
 	
-	public static final ArrayList<String> attribute_index = new ArrayList<>(Arrays.asList(
+	public static final ArrayList<String> attribute_name = new ArrayList<>(Arrays.asList(
 			"@@class@@",
 			"change_vector_metric_DEL10",
 			"change_vector_metric_DEL11",
