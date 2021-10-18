@@ -29,12 +29,12 @@ public class DataFileMaker {
 		this.projectInformation = projectInformation;
 	}
 
-	public void makeDeveloperProfilingCSV(String mode) throws Exception {
+	public void makeDeveloperProfilingCSV() throws Exception {
 		//read CSV
 		String[] developerProfilingMetrics = new String[6];
 
 		//make totalDevInstances directory
-		String totalDeveloperInstanceCSV = getDirPathToSaveCSVfiles(mode,projectInformation);
+		String totalDeveloperInstanceCSV = getDirPathToSaveCSVfiles(projectInformation);
 
 		developerProfilingMetrics[0] = "-m";
 		developerProfilingMetrics[1] = projectInformation.getDeveloperDataCSVPath();
@@ -45,14 +45,15 @@ public class DataFileMaker {
 
 		DeveloperProfilingMetric developerProfilingMetric = new DeveloperProfilingMetric();
 		developerProfilingMetric.run(developerProfilingMetrics);
+	
 	}
 
-	public void makeDeveloperArff(String mode) throws Exception {
+	public void makeDeveloperArff() throws Exception {
 
 		HashMap<String,String> developerDefectInstancePath = new HashMap<>();
 
 		// developer arff directory path
-		String totalDevDefectInstancesForder = getDirPathToSaveArffFiles(mode,projectInformation);
+		String totalDevDefectInstancesForder = getDirPathToSaveArffFiles(projectInformation);
 
 		//preprocess arff file(remove BOW and re-arrange attribute according to define in order of DefectAttribute.attribute)
 		String preprocessedArffPath = preprocessArffFile(projectInformation);
@@ -217,36 +218,47 @@ public class DataFileMaker {
 		return attribute_index;
 	}
 
-	private String getDirPathToSaveCSVfiles(String mode, ProjectInformation projectInformation) {
+	private String getDirPathToSaveCSVfiles(ProjectInformation projectInformation) {
 		File dir = null;
 		String totalDeveloperInstanceCSV = null;
 
-		if(mode.equals("train")) {
+		if(!projectInformation.isTestSubOption_once()) {
 			dir = new File(projectInformation.getOutputPath());
 			if(!dir.isDirectory()) {
 				dir.mkdir();
 			}
 			//total developer Instance CSV path
 			totalDeveloperInstanceCSV = dir.getAbsolutePath() + File.separator+"Developer_Profiling.csv";
-		}else if(mode.equals("test")) {
+		}else if(projectInformation.isTestSubOption_once()) {
 			totalDeveloperInstanceCSV = projectInformation.getTestFolderPath()+File.separator+"ProilingInstances.csv";
 			projectInformation.setTestDeveloperProfilingInstanceCSV(totalDeveloperInstanceCSV);
 		}
 		return totalDeveloperInstanceCSV;
 	}
 
-	private String getDirPathToSaveArffFiles(String mode, ProjectInformation projectInformation) {
+	private String getDirPathToSaveArffFiles(ProjectInformation projectInformation) {
 		File dir = null;
-
-		if(mode.equals("train")) {
+		
+		if(!projectInformation.isTestSubOption_once()) {
 			//make totalDevInstances directory
 			dir = new File(projectInformation.getOutputPath() +File.separator+"totalDevDefectInstances");
 			if(!dir.isDirectory()) {
 				dir.mkdir();
 			}
-		}else if(mode.equals("test")) {
-			dir = new File(projectInformation.getTestFolderPath()+File.separator+"DefectInstances");
+		}else if(projectInformation.isTestSubOption_once()) {
+			File testDir = new File(projectInformation.getOutputPath() +File.separator+projectInformation.getProjectName()+"_test");
+			String directoryPath = testDir.getAbsolutePath();
+			
+			if(testDir.isDirectory()) {
+				deleteFile(directoryPath);
+			}
+			testDir.mkdir();
+			projectInformation.setTestFolderPath(testDir.getAbsolutePath());
+			
+			String folderPath = testDir.getAbsolutePath();
+			dir = new File(folderPath+File.separator+"DefectInstances");
 			dir.mkdir();
+			
 			projectInformation.setTestDeveloperDefectInstanceArff(dir.getAbsolutePath());
 		}
 

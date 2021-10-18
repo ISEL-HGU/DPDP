@@ -18,6 +18,7 @@ public class ProjectInformation {
 	int numOfCluster;
 	boolean bow;
 	boolean imb;
+	boolean testSubOption_once;
 	
 	ProjectInformation(){
 		this.inputPath = null;
@@ -29,10 +30,11 @@ public class ProjectInformation {
 		this.testDeveloperDefectInstanceArff = null;
 		this.locationOfClusterModels = null;
 		this.locationOfDefectModels = null;
-		this.testFolderPath = null;
 		this.bow = false;
 		this.imb = false;
 		this.numOfCluster = 0;
+		this.testSubOption_once = false;
+		this.testFolderPath = null;
 	}
 
 	public String getInputPath() {
@@ -134,14 +136,6 @@ public class ProjectInformation {
 		this.imb = imb;
 	}
 
-	public String getTestFolderPath() {
-		return testFolderPath;
-	}
-
-	public void setTestFolderPath(String testFolderPath) {
-		this.testFolderPath = testFolderPath;
-	}
-
 	public String getLocationOfClusterModels() {
 		return locationOfClusterModels;
 	}
@@ -165,5 +159,21 @@ public class ProjectInformation {
 	public void setNumOfCluster(int numOfCluster) {
 		this.numOfCluster = numOfCluster;
 	}
-	
+
+	public boolean isTestSubOption_once() {
+		return testSubOption_once;
+	}
+
+	public void setTestSubOption_once(boolean testSubOption_once) {
+		this.testSubOption_once = testSubOption_once;
+	}
+
+	public String getTestFolderPath() {
+		return testFolderPath;
+	}
+
+	public void setTestFolderPath(String testFolderPath) {
+		this.testFolderPath = testFolderPath;
+	}
+
 }

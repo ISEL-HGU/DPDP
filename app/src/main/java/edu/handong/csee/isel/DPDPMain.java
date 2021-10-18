@@ -57,6 +57,7 @@ public class DPDPMain {
 			
 			if(!clusterM && !defectM && !test) {
 				File isExist = new File(projectInformation.getInputPath());
+				
 				if(!isExist.exists()) {
 					System.out.println("The data file is not exist");
 					System.out.println();
@@ -64,8 +65,8 @@ public class DPDPMain {
 					System.exit(0);
 				}
 				
-				dataFileMaker.makeDeveloperArff("train");
-				dataFileMaker.makeDeveloperProfilingCSV("train");	
+				dataFileMaker.makeDeveloperArff();
+				dataFileMaker.makeDeveloperProfilingCSV();	
 			}
 			
 			if(clusterM) {
@@ -92,39 +93,35 @@ public class DPDPMain {
 				System.out.println("Test");
 				String clusterFinerResultPath = null;
 				
+				if(projectInformation.isTestSubOption_once()) {
+					testMode_fileMaker = true;
+					testMode_clusterFinder = true;
+					testMode_evaluation = true;
+				}
+				
 				if(testMode_fileMaker) {
 					System.out.println("Test mode : fileMaker");
 					
 					//mk test data directory
-					File testDir = new File(projectInformation.getOutputPath() +File.separator+projectInformation.getProjectName()+"_test");
-					String directoryPath = testDir.getAbsolutePath();
-					if(testDir.isDirectory()) {
-						deleteFile(directoryPath);
-					}
-					testDir.mkdir();
-					projectInformation.setTestFolderPath(testDir.getAbsolutePath());
+					dataFileMaker.makeDeveloperArff();
+					dataFileMaker.makeDeveloperProfilingCSV();
+				}
+				
+				if(testMode_clusterFinder) {
+					System.out.println("Test mode : clusterFinder");
 					
-					dataFileMaker.makeDeveloperArff("test");
-					dataFileMaker.makeDeveloperProfilingCSV("test");
-					
-//					System.out.println("1 : "+projectInformation.getTestDeveloperDefectInstanceArff());
-//					System.out.println("2 : "+projectInformation.getTestDeveloperProfilingInstanceCSV());
-
-				}else if(testMode_clusterFinder) {
 					ClusterFinder clusteringFinder = new ClusterFinder(projectInformation);
-					
 					clusterFinerResultPath = clusteringFinder.findDeveloperCluster();
+				}
+				
+				if(testMode_evaluation) {
+					System.out.println("Test mode : evaluation");
 					
-				}else if(testMode_evaluation) {
-					if(clusterFinerResultPath == null) {
-						clusterFinerResultPath = projectInformation.getLocationOfClusterModels();
-					}
+					clusterFinerResultPath = setClusterFinerResultPath(projectInformation,clusterFinerResultPath);
 					ProfileEvaluation eval = new ProfileEvaluation(projectInformation);
 					HashMap<String, ArrayList<String>> cluster_developer = eval.readCsvFile(clusterFinerResultPath);
 					eval.evaluateTestDeveloper(cluster_developer);
 				}
-
-				System.exit(0);
 			}
 			
 			if(verbose) {
@@ -134,6 +131,15 @@ public class DPDPMain {
 		
 		System.out.println();
 		System.out.println();
+	}
+
+	private String setClusterFinerResultPath(ProjectInformation projectInformation, String clusterFinerResultPath) {
+		if(!projectInformation.isTestSubOption_once()) {
+			return projectInformation.getLocationOfClusterModels();
+		}else {
+			return clusterFinerResultPath;
+		}
+		
 	}
 
 	private ArrayList<String> readFileList(String weka2) {
@@ -187,13 +193,17 @@ public class DPDPMain {
 			}
 			
 			if(test == true) {
-				if((testMode_fileMaker&&testMode_clusterFinder&&testMode_evaluation)||(testMode_fileMaker&&testMode_clusterFinder)||(testMode_clusterFinder&&testMode_evaluation)||(testMode_fileMaker&&testMode_evaluation)) {
-					System.out.println("Wrong input!");
-					System.exit(0);
-				}
 				testMode_fileMaker = cmd.hasOption("file");
 				testMode_clusterFinder = cmd.hasOption("cluster");
 				testMode_evaluation = cmd.hasOption("eval");
+				if(cmd.hasOption("once")) {
+					projectInformation.setTestSubOption_once(true);
+				}
+				
+				if(((testMode_fileMaker&&testMode_clusterFinder&&testMode_evaluation)||(testMode_fileMaker&&testMode_clusterFinder)||(testMode_clusterFinder&&testMode_evaluation)||(testMode_fileMaker&&testMode_evaluation))||(!cmd.hasOption("once"))) {
+					System.out.println("Wrong input!");
+					System.exit(0);
+				}
 			}
 			
 			projectInformation.setBow(cmd.hasOption("bow"));
@@ -302,6 +312,11 @@ public class DPDPMain {
 		options.addOption(Option.builder("aweka").longOpt("one arff file")
 				.desc("make Classification Model using weka (one arff file path)")
 				.hasArg()
+				.argName("")
+				.build());
+		
+		options.addOption(Option.builder("once").longOpt("runAllTestProcess")
+				.desc("")
 				.argName("")
 				.build());
 		

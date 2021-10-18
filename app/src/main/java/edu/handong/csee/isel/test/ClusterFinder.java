@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map.Entry;
 
 import org.apache.commons.csv.CSVFormat;
@@ -18,6 +19,7 @@ import edu.handong.csee.isel.ProjectInformation;
 import edu.handong.csee.isel.Utils;
 import weka.clusterers.ClusterEvaluation;
 import weka.clusterers.EM;
+import weka.core.Attribute;
 import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.SerializationHelper;
@@ -33,9 +35,10 @@ public class ClusterFinder {
 	}
 
 	public String findDeveloperCluster() throws Exception {
-		HashMap<String,ArrayList<String>> cluster_developer = new HashMap<>();
+		HashMap<Integer, HashMap<String,ArrayList<String>> > hierachy_cluster_developers = new HashMap<>();
 		String locationOfEMmodel = projectInformation.getLocationOfClusterModels();
-		
+		String locationOfDeveloperProfilingCSV = setDeveloperProfilingCS(projectInformation);
+
 		//read EM models
 		TreeSet<String> fileList = new TreeSet<>(); //save EM models path
 		
@@ -53,9 +56,10 @@ public class ClusterFinder {
 		
 		//read test developer profiling instances
 	    CSVLoader loader = new CSVLoader();
-		loader.setSource(new File(projectInformation.getInputPath()));
+		loader.setSource(new File(locationOfDeveloperProfilingCSV));
 		Instances initData = loader.getDataSet();
-		
+		ArrayList<String> allDeveloperList = saveAllDeveloperId(initData);
+
 		//parsing 1st, 2nd, 3rd ... EM model information
 		TreeMap<Integer,ArrayList<Clustering>> subClustering = new TreeMap<>();
 		
@@ -83,12 +87,13 @@ public class ClusterFinder {
 			}
 		}
 		
-		System.out.println(subClustering);
-		
-		
 		//apply em model to each developer
+		int hierachy = 1;
+		
 		for(int key : subClustering.keySet()) {
 			ArrayList<Clustering> clusterings = subClustering.get(key);
+			HashMap<String,ArrayList<String>> cluster_developer = new HashMap<>();
+			HashSet<String> developers = new HashSet<>();
 			
 			for(Clustering clustering : clusterings) {
 				String emPath = clustering.getEmPath();
@@ -115,24 +120,26 @@ public class ClusterFinder {
 				for(int i = 0; i < assignments.length; i++) {
 					String cluster = clusterName + "cluster_"+(int)assignments[i]+ File.separator;
 					String developerID = parsingDeveloperName(data.get(i).stringValue(0));
-					ArrayList<String> developerList;
 					
-					if(cluster_developer.containsKey(cluster)) {
-						developerList = cluster_developer.get(cluster);
-						developerList.add(developerID);
-					}else {
-						developerList = new ArrayList<>();
-						developerList.add(developerID);
-						cluster_developer.put(cluster, developerList);
-					}
-					
+					set_cluster_developer(cluster_developer,cluster,developerID);
 					setDataIntoSubCluster(subClustering, key, cluster, data, i);
+					developers.add(developerID);
 				}
-			}		
+			}
+			
+			for(String developerId : allDeveloperList) {
+				if(!developers.contains(developerId)) {
+					String previousCluster = findPreviousCluster(developerId,hierachy,hierachy_cluster_developers);
+					set_cluster_developer(cluster_developer,previousCluster,developerId);
+				}
+			}
+			
+			hierachy_cluster_developers.put(hierachy, cluster_developer);
+			hierachy++;
 		}
 		
 		//write cluster_dev information into csv file
-		String outputPath = projectInformation.getOutputPath() + File.separator + "clusterFinderResult.csv";
+		String outputPath = setClusterFinderCSVPath(projectInformation);
 		File temp = new File(outputPath);
 		boolean isFile = temp.isFile();
 		FileWriter out = new FileWriter(outputPath, true); 
@@ -145,15 +152,16 @@ public class ClusterFinder {
 		}			
 		
 		try (printer) {
-			cluster_developer.forEach((cluster,devList) -> {
-				devList.forEach((dev) -> {
-					try {
-						int depth = (int)cluster.chars().filter(c -> c == '/').count();
-						String clusterName = cluster.substring(0, cluster.lastIndexOf(File.separator));
-						printer.printRecord(dev,depth,clusterName);
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
+			hierachy_cluster_developers.forEach((depth,cluster_developer)->{
+				cluster_developer.forEach((cluster,devList) -> {
+					devList.forEach((dev) -> {
+						try {
+							String clusterName = cluster.substring(0, cluster.lastIndexOf(File.separator));
+							printer.printRecord(dev,depth,clusterName);
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					});
 				});
 			});
 			
@@ -162,6 +170,58 @@ public class ClusterFinder {
 		return outputPath;
 	}
 	
+	private void set_cluster_developer(HashMap<String, ArrayList<String>> cluster_developer, String cluster, String developerID) {
+		ArrayList<String> developerList;
+		if(cluster_developer.containsKey(cluster)) {
+			developerList = cluster_developer.get(cluster);
+			developerList.add(developerID);
+		}else {
+			developerList = new ArrayList<>();
+			developerList.add(developerID);
+			cluster_developer.put(cluster, developerList);
+		}
+	}
+
+	private String findPreviousCluster(String developer, int hierachy,
+			HashMap<Integer, HashMap<String, ArrayList<String>>> hierachy_cluster_developers) {
+		String previousCluster = null;
+		hierachy--; //previous hierachy
+		HashMap<String,ArrayList<String>> previous_cluster_developer = hierachy_cluster_developers.get(hierachy);
+		
+		for(String cluster : previous_cluster_developer.keySet()) {
+			if(previous_cluster_developer.get(cluster).contains(developer)) {
+				previousCluster = cluster;
+				break;
+			}
+		}
+		return previousCluster;
+	}
+
+	private ArrayList<String> saveAllDeveloperId(Instances initData) {
+		ArrayList<String> allDeveloperList = new ArrayList<>();
+		Attribute authorID = initData.attribute("ID");
+		for(int i = 0; i < authorID.numValues(); i++) {
+			allDeveloperList.add(authorID.value(i));
+		}
+		return allDeveloperList;
+	}
+
+	private String setClusterFinderCSVPath(ProjectInformation projectInformation) {
+		if(!projectInformation.isTestSubOption_once()) {
+			return projectInformation.getOutputPath() + File.separator + "clusterFinderResult.csv";
+		}else {
+			return projectInformation.getTestFolderPath() + File.separator + projectInformation.getProjectName() + "-clusterFinderResult.csv";
+		}
+	}
+
+	private String setDeveloperProfilingCS(ProjectInformation projectInformation) {
+		if(projectInformation.isTestSubOption_once()) {
+			return projectInformation.getTestDeveloperProfilingInstanceCSV();
+		}else {
+			return projectInformation.getInputPath();
+		}
+	}
+
 	private void setDataIntoSubCluster(TreeMap<Integer, ArrayList<Clustering>> subClustering, int key, String cluster,
 			Instances data, int i) {
 		

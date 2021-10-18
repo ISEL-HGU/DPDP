@@ -62,7 +62,7 @@ public class ProfileEvaluation {
 	public void evaluateTestDeveloper(HashMap<String, ArrayList<String>> cluster_developer) throws Exception {
 	    
 		//confirm none-exist model or dev
-		String inputDeveloperInstancePath = projectInformation.getInputPath();
+		String inputDeveloperInstancePath = setDeveloperInstancePath(projectInformation);
 		String defectModelPath = projectInformation.getLocationOfDefectModels();
 		
 		//init result saver
@@ -80,7 +80,7 @@ public class ProfileEvaluation {
 			});
 		}
 		
-		String outputPath = projectInformation.getOutputPath() + File.separator + "evaluationInstances.csv";
+		String outputPath = projectInformation.getOutputPath() + File.separator + projectInformation.getProjectName() +"-evaluationInstances.csv";
 		File temp = new File(outputPath);
 		boolean isFile = temp.isFile();
 		FileWriter out = new FileWriter(outputPath, true); 
@@ -116,6 +116,14 @@ public class ProfileEvaluation {
 //		System.out.println(predictionResults.size());
 	}
 
+	private String setDeveloperInstancePath(ProjectInformation projectInformation2) {
+		if(!projectInformation.isTestSubOption_once()) {
+			return projectInformation.getInputPath();
+		}else {
+			return projectInformation.getTestDeveloperDefectInstanceArff();
+		}
+	}
+
 	private ArrayList<PredictionResult> evaluateEachDeveloper(String dev, String cluster, String defectModelPath,
 			String inputDeveloperInstancePath) throws Exception {
 		ArrayList<PredictionResult> predictionResults = new ArrayList<>();
@@ -140,7 +148,6 @@ public class ProfileEvaluation {
 		AttributeStats attStats = data.attributeStats(0);
 
 		int buggyIndex = data.attribute(0).indexOfValue("buggy");
-		int cleanIndex = data.attribute(0).indexOfValue("clean");
 			
 		//parsing model information
 		String modelPathStr = model;
@@ -148,7 +155,7 @@ public class ProfileEvaluation {
 		String[] modelInformation = modelPathStr.split("_");
 		String modelHash = modelInformation[3];
 		
-		printModelInformation(modelInformation, dev, cluster);
+//		printModelInformation(modelInformation, dev, cluster);
 		
 		//read model
 		Classifier DPDPclassifyModel = (Classifier) SerializationHelper.read(new FileInputStream(model));
