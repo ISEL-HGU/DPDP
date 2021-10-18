@@ -2,6 +2,7 @@ package edu.handong.csee.isel.data;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -111,6 +112,9 @@ public class DataFileMaker {
 	private String preprocessArffFile(ProjectInformation projectInformation) throws Exception {
 		String preprocessedArffPath = null;
 
+		//임시!!!DPMiner에서 key값을 절대 겹칠것 같지 않은 값으로 바꾸기 
+		changeKeyIntometaKey(projectInformation.getInputPath());
+		
 		//process bow option
 		if(projectInformation.isBow()) { 
 			//removeBOWAttribute(input arff path,output arff path)
@@ -126,6 +130,27 @@ public class DataFileMaker {
 		preprocessedArffPath = rearrangeAttributeOrder(preprocessedArffPath);
 
 		return preprocessedArffPath;
+	}
+
+	private void changeKeyIntometaKey(String inputPath) throws IOException {
+		String content = FileUtils.readFileToString(new File(inputPath), "UTF-8");
+		String[] lines = content.split("\n");
+		
+		for(int i = 0; i<lines.length; i++) {
+			if(lines[i].startsWith("@attribute Key {")) {
+				lines[i] = lines[i].replace("@attribute Key {", "@attribute isel_meata_data-Key {");
+				break;
+			}
+		}
+		
+		File newAttributeArff = new File(inputPath);
+		StringBuffer newAttributeContentBuf = new StringBuffer();
+		
+		for(String instance : lines) {
+			newAttributeContentBuf.append(instance + "\n");
+		}
+		FileUtils.write(newAttributeArff, newAttributeContentBuf.toString(), "UTF-8");
+		System.exit(0);
 	}
 
 	private String rearrangeAttributeOrder(String preprocessedArffPath) throws Exception {
