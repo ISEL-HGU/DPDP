@@ -150,7 +150,6 @@ public class DataFileMaker {
 			newAttributeContentBuf.append(instance + "\n");
 		}
 		FileUtils.write(newAttributeArff, newAttributeContentBuf.toString(), "UTF-8");
-		System.exit(0);
 	}
 
 	private String rearrangeAttributeOrder(String preprocessedArffPath) throws Exception {
