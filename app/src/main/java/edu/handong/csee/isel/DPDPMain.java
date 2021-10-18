@@ -119,8 +119,10 @@ public class DPDPMain {
 					
 					clusterFinerResultPath = setClusterFinerResultPath(projectInformation,clusterFinerResultPath);
 					ProfileEvaluation eval = new ProfileEvaluation(projectInformation);
-					HashMap<String, ArrayList<String>> cluster_developer = eval.readCsvFile(clusterFinerResultPath);
-					eval.evaluateTestDeveloper(cluster_developer);
+					HashMap<Integer, HashMap<String,ArrayList<String>> > hierachy_cluster_developers = eval.readCsvFile(clusterFinerResultPath);
+//					HashMap<String, ArrayList<String>> cluster_developer = eval.readCsvFile(clusterFinerResultPath);
+					
+					eval.evaluateTestDeveloper(hierachy_cluster_developers);
 				}
 			}
 			

@@ -31,24 +31,26 @@ public class ProfileEvaluation {
 		this.projectInformation = projectInformation;
 	}
 
-	public HashMap<String, ArrayList<String>> readCsvFile(String clusterFinerResultPath) {
-		HashMap<String, ArrayList<String>> cluster_developer = new HashMap<>();
+	public HashMap<Integer, HashMap<String,ArrayList<String>> > readCsvFile(String clusterFinerResultPath) {
+		HashMap<Integer, HashMap<String,ArrayList<String>> > hierachy_cluster_developers = new HashMap<>();
+		
 		try {
 			Reader in = new FileReader(clusterFinerResultPath);
 			Iterable<CSVRecord> records = CSVFormat.RFC4180.withHeader().parse(in);
 
 			for (CSVRecord record : records) {
 				String developerID = record.get(PredictionResult.clusterFinderCSVHeader[0]);
+				int hierachy =  Integer.parseInt(record.get(PredictionResult.clusterFinderCSVHeader[1]));
 				String cluster = record.get(PredictionResult.clusterFinderCSVHeader[2]);
-				ArrayList<String> developerList = null;
+				HashMap<String, ArrayList<String>> cluster_developer = null;
 				
-				if(cluster_developer.containsKey(cluster)) {
-					developerList = cluster_developer.get(cluster);
-					developerList.add(developerID);
+				if(hierachy_cluster_developers.containsKey(hierachy)) {
+					cluster_developer = hierachy_cluster_developers.get(hierachy);
+					set_cluster_developer(cluster_developer,cluster,developerID);
 				}else {
-					developerList = new ArrayList<>();
-					developerList.add(developerID);
-					cluster_developer.put(cluster, developerList);
+					cluster_developer = new HashMap<>();
+					set_cluster_developer(cluster_developer,cluster,developerID);
+					hierachy_cluster_developers.put(hierachy,cluster_developer);
 				}
 			}
 		} catch (Exception e) {
@@ -56,10 +58,22 @@ public class ProfileEvaluation {
 			e.printStackTrace();
 		}
 		
-		return cluster_developer;
+		return hierachy_cluster_developers;
+	}
+	
+	private void set_cluster_developer(HashMap<String, ArrayList<String>> cluster_developer, String cluster, String developerID) {
+		ArrayList<String> developerList;
+		if(cluster_developer.containsKey(cluster)) {
+			developerList = cluster_developer.get(cluster);
+			developerList.add(developerID);
+		}else {
+			developerList = new ArrayList<>();
+			developerList.add(developerID);
+			cluster_developer.put(cluster, developerList);
+		}
 	}
 
-	public void evaluateTestDeveloper(HashMap<String, ArrayList<String>> cluster_developer) throws Exception {
+	public void evaluateTestDeveloper(HashMap<Integer, HashMap<String, ArrayList<String>>> hierachy_cluster_developers) throws Exception {
 	    
 		//confirm none-exist model or dev
 		String inputDeveloperInstancePath = setDeveloperInstancePath(projectInformation);
@@ -68,16 +82,20 @@ public class ProfileEvaluation {
 		//init result saver
 		ArrayList<PredictionResult> predictionResults = new ArrayList<>();
 		
-		for(String cluster : cluster_developer.keySet()) {
-			ArrayList<String> devList = cluster_developer.get(cluster);
-			//dev이름, cluster, model path, instance path
-			devList.forEach((dev)->{
-				try {
-					predictionResults.addAll(evaluateEachDeveloper(dev, cluster, defectModelPath, inputDeveloperInstancePath));
-				} catch (Exception e1) {
-					e1.printStackTrace();
-				}
-			});
+		for(int hierachy : hierachy_cluster_developers.keySet()) {
+			HashMap<String, ArrayList<String>> cluster_developer = hierachy_cluster_developers.get(hierachy);
+			
+			for(String cluster : cluster_developer.keySet()) {
+				ArrayList<String> devList = cluster_developer.get(cluster);
+				//dev이름, cluster, model path, instance path
+				devList.forEach((dev)->{
+					try {
+						predictionResults.addAll(evaluateEachDeveloper(hierachy, dev, cluster, defectModelPath, inputDeveloperInstancePath));
+					} catch (Exception e1) {
+						e1.printStackTrace();
+					}
+				});
+			}
 		}
 		
 		String outputPath = projectInformation.getOutputPath() + File.separator + projectInformation.getProjectName() +"-evaluationInstances.csv";
@@ -124,7 +142,7 @@ public class ProfileEvaluation {
 		}
 	}
 
-	private ArrayList<PredictionResult> evaluateEachDeveloper(String dev, String cluster, String defectModelPath,
+	private ArrayList<PredictionResult> evaluateEachDeveloper(int hierachy, String dev, String cluster, String defectModelPath,
 			String inputDeveloperInstancePath) throws Exception {
 		ArrayList<PredictionResult> predictionResults = new ArrayList<>();
 		
@@ -145,7 +163,6 @@ public class ProfileEvaluation {
 		DataSource source = new DataSource(developerDefectInstance);
 		Instances data = source.getDataSet();
 		data.setClassIndex(0);
-		AttributeStats attStats = data.attributeStats(0);
 
 		int buggyIndex = data.attribute(0).indexOfValue("buggy");
 			
@@ -167,7 +184,6 @@ public class ProfileEvaluation {
 		//save evaluation result
 		evaluation.predictions().forEach((eva) -> {
 			PredictionResult predictionResult = new PredictionResult();
-			int depth = (int)cluster.chars().filter(c -> c == '/').count() + 1;
 
 			if(eva.predicted() == buggyIndex) {
 				predictionResult.setPredict("buggy");
@@ -189,7 +205,7 @@ public class ProfileEvaluation {
 			
 			predictionResult.setAuthorId(dev);
 			predictionResult.setClusterType(cluster);
-			predictionResult.setHierachy(depth);
+			predictionResult.setHierachy(hierachy);
 			predictionResult.setModel(modelHash);
 			predictionResults.add(predictionResult);
 		});
