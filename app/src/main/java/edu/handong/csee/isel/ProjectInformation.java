@@ -16,6 +16,7 @@ public class ProjectInformation {
 	String locationOfDefectModels;
 	String testFolderPath;
 	int numOfCluster;
+	int hierarchy;
 	boolean bow;
 	boolean imb;
 	boolean testSubOption_once;
@@ -35,6 +36,7 @@ public class ProjectInformation {
 		this.numOfCluster = 0;
 		this.testSubOption_once = false;
 		this.testFolderPath = null;
+		this.hierarchy = 0;
 	}
 
 	public String getInputPath() {
@@ -176,4 +178,11 @@ public class ProjectInformation {
 		this.testFolderPath = testFolderPath;
 	}
 
+	public int getHierarchy() {
+		return hierarchy;
+	}
+
+	public void setHierarchy(int hierarchy) {
+		this.hierarchy = hierarchy;
+	}
 }

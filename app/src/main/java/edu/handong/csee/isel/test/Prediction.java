@@ -24,24 +24,24 @@ import weka.core.Instances;
 import weka.core.SerializationHelper;
 import weka.core.converters.ConverterUtils.DataSource;
 
-public class ProfileEvaluation {
+public class Prediction {
 	ProjectInformation projectInformation;
 	
-	public ProfileEvaluation(ProjectInformation projectInformation) {
+	public Prediction(ProjectInformation projectInformation) {
 		this.projectInformation = projectInformation;
 	}
 
 	public HashMap<Integer, HashMap<String,ArrayList<String>> > readCsvFile(String clusterFinerResultPath) {
 		HashMap<Integer, HashMap<String,ArrayList<String>> > hierachy_cluster_developers = new HashMap<>();
-		
+		String[] clusterFinderCSVHeader = PredictionResult.clusterFinderCSVHeader;
 		try {
 			Reader in = new FileReader(clusterFinerResultPath);
 			Iterable<CSVRecord> records = CSVFormat.RFC4180.withHeader().parse(in);
 
 			for (CSVRecord record : records) {
-				String developerID = record.get(PredictionResult.clusterFinderCSVHeader[0]);
-				int hierachy =  Integer.parseInt(record.get(PredictionResult.clusterFinderCSVHeader[1]));
-				String cluster = record.get(PredictionResult.clusterFinderCSVHeader[2]);
+				String developerID = record.get(clusterFinderCSVHeader[0]);
+				int hierachy =  Integer.parseInt(record.get(clusterFinderCSVHeader[1]));
+				String cluster = record.get(clusterFinderCSVHeader[2]);
 				HashMap<String, ArrayList<String>> cluster_developer = null;
 				
 				if(hierachy_cluster_developers.containsKey(hierachy)) {
@@ -73,7 +73,7 @@ public class ProfileEvaluation {
 		}
 	}
 
-	public void evaluateTestDeveloper(HashMap<Integer, HashMap<String, ArrayList<String>>> hierachy_cluster_developers) throws Exception {
+	public void predictionArffOfTestDeveloper(HashMap<Integer, HashMap<String, ArrayList<String>>> hierachy_cluster_developers) throws Exception {
 	    
 		//confirm none-exist model or dev
 		String inputDeveloperInstancePath = setDeveloperInstancePath(projectInformation);
@@ -98,17 +98,9 @@ public class ProfileEvaluation {
 			}
 		}
 		
-		String outputPath = projectInformation.getOutputPath() + File.separator + projectInformation.getProjectName() +"-evaluationInstances.csv";
-		File temp = new File(outputPath);
-		boolean isFile = temp.isFile();
-		FileWriter out = new FileWriter(outputPath, true); 
-		CSVPrinter printer;
-		
-		if(isFile) {
-			printer = new CSVPrinter(out, CSVFormat.DEFAULT);
-		}else {
-			printer = new CSVPrinter(out, CSVFormat.DEFAULT.withHeader(PredictionResult.evaluationCSVHeader));
-		}			
+		String outputPath = projectInformation.getOutputPath() + File.separator + projectInformation.getProjectName() +"-PredictionInstances.csv";
+		FileWriter out = new FileWriter(outputPath); 
+		CSVPrinter printer = new CSVPrinter(out, CSVFormat.DEFAULT.withHeader(PredictionResult.evaluationCSVHeader));		
 		
 		try (printer) {
 			predictionResults.forEach((predictionResult) -> {
@@ -130,6 +122,8 @@ public class ProfileEvaluation {
 			});
 			
 		}
+		printer.close();
+		out.close();
 		
 //		System.out.println(predictionResults.size());
 	}

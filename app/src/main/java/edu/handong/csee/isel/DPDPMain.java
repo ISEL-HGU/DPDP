@@ -14,22 +14,27 @@ import org.apache.commons.cli.Options;
 import edu.handong.csee.isel.data.DataFileMaker;
 import edu.handong.csee.isel.model.ModelMaker;
 import edu.handong.csee.isel.test.ClusterFinder;
-import edu.handong.csee.isel.test.ProfileEvaluation;
-import edu.handong.csee.isel.test.Testing;
-import weka.core.Instances;
-import weka.core.converters.ConverterUtils.DataSource;
+import edu.handong.csee.isel.test.ConfusionMatrix;
+import edu.handong.csee.isel.test.Evaluation;
+import edu.handong.csee.isel.test.Prediction;
+import edu.handong.csee.isel.test.PredictionResult;
 
 public class DPDPMain {
 	ProjectInformation projectInformation;
 //	static public ArrayList<String> excludedDeveloper = new ArrayList<>();
 	String weka;
 	String aWeka;
-	boolean test;
 	boolean clusterM;
 	boolean defectM;
+	
+	boolean test;
 	boolean testMode_fileMaker;
 	boolean testMode_clusterFinder;
-	boolean testMode_evaluation;
+	boolean testMode_prediction;
+	
+	boolean evaluation;
+	int evaluationMode;
+	
 	boolean verbose;
 	boolean help;
 	
@@ -55,7 +60,7 @@ public class DPDPMain {
 			DataFileMaker dataFileMaker = new DataFileMaker(projectInformation);
 			ModelMaker modelMaker = new ModelMaker(projectInformation);
 			
-			if(!clusterM && !defectM && !test) {
+			if(!clusterM && !defectM && !test &&!evaluation) {
 				File isExist = new File(projectInformation.getInputPath());
 				
 				if(!isExist.exists()) {
@@ -96,7 +101,7 @@ public class DPDPMain {
 				if(projectInformation.isTestSubOption_once()) {
 					testMode_fileMaker = true;
 					testMode_clusterFinder = true;
-					testMode_evaluation = true;
+					testMode_prediction = true;
 				}
 				
 				if(testMode_fileMaker) {
@@ -114,16 +119,40 @@ public class DPDPMain {
 					clusterFinerResultPath = clusteringFinder.findDeveloperCluster();
 				}
 				
-				if(testMode_evaluation) {
+				if(testMode_prediction) {
 					System.out.println("Test mode : evaluation");
 					
 					clusterFinerResultPath = setClusterFinerResultPath(projectInformation,clusterFinerResultPath);
-					ProfileEvaluation eval = new ProfileEvaluation(projectInformation);
-					HashMap<Integer, HashMap<String,ArrayList<String>> > hierachy_cluster_developers = eval.readCsvFile(clusterFinerResultPath);
-//					HashMap<String, ArrayList<String>> cluster_developer = eval.readCsvFile(clusterFinerResultPath);
+					Prediction prediction = new Prediction(projectInformation);
+					HashMap<Integer, HashMap<String,ArrayList<String>> > hierachy_cluster_developers = prediction.readCsvFile(clusterFinerResultPath);
 					
-					eval.evaluateTestDeveloper(hierachy_cluster_developers);
+					prediction.predictionArffOfTestDeveloper(hierachy_cluster_developers);
 				}
+			}
+			
+			if(evaluation) {
+				Evaluation eval = new Evaluation(projectInformation);
+				ArrayList<PredictionResult> predictionResults = eval.readPredictedCSVfile(projectInformation.getHierarchy());
+				HashMap<String, ConfusionMatrix> dev_confusionMatrix = null;
+				HashMap<String, ConfusionMatrix> clu_confusionMatrix = null;
+				
+				switch(evaluationMode) {
+				case 1:
+					dev_confusionMatrix = eval.evaluateDeveloper(predictionResults);
+					clu_confusionMatrix = eval.evaluateCluster(dev_confusionMatrix);
+					eval.evaluateProject(clu_confusionMatrix);
+					break;
+					
+				case 2:
+					dev_confusionMatrix = eval.evaluateDeveloper(predictionResults);
+					eval.evaluateCluster(dev_confusionMatrix);
+					break;
+					
+				case 3:
+					eval.evaluateDeveloper(predictionResults);
+					break;
+				}
+				
 			}
 			
 			if(verbose) {
@@ -188,21 +217,22 @@ public class DPDPMain {
 			clusterM = cmd.hasOption("clusterM");
 			defectM = cmd.hasOption("defectM");
 			test = cmd.hasOption("test");
+			evaluation = cmd.hasOption("eval");
 			
-			if((clusterM&&defectM&&test)||(clusterM&&defectM)||(defectM&&test)||(clusterM&&test)) {
-				System.out.println("Wrong input!");
-				System.exit(0);
-			}
+//			if((clusterM&&defectM&&test)||(clusterM&&defectM)||(defectM&&test)||(clusterM&&test)) {
+//				System.out.println("Wrong input!");
+//				System.exit(0);
+//			}
 			
 			if(test == true) {
 				testMode_fileMaker = cmd.hasOption("file");
 				testMode_clusterFinder = cmd.hasOption("cluster");
-				testMode_evaluation = cmd.hasOption("eval");
+				testMode_prediction = cmd.hasOption("eval");
 				if(cmd.hasOption("once")) {
 					projectInformation.setTestSubOption_once(true);
 				}
 				
-				if(((testMode_fileMaker&&testMode_clusterFinder&&testMode_evaluation)||(testMode_fileMaker&&testMode_clusterFinder)||(testMode_clusterFinder&&testMode_evaluation)||(testMode_fileMaker&&testMode_evaluation))||(!cmd.hasOption("once"))) {
+				if(((testMode_fileMaker&&testMode_clusterFinder&&testMode_prediction)||(testMode_fileMaker&&testMode_clusterFinder)||(testMode_clusterFinder&&testMode_prediction)||(testMode_fileMaker&&testMode_prediction))||(!cmd.hasOption("once"))) {
 					System.out.println("Wrong input!");
 					System.exit(0);
 				}
@@ -215,10 +245,23 @@ public class DPDPMain {
 			weka = cmd.getOptionValue("weka");
 			aWeka = cmd.getOptionValue("aweka");
 			
-			if(cmd.getOptionValue("m") != null) {
-				projectInformation.setNumOfCluster(Integer.parseInt(cmd.getOptionValue("m")));
+			if(cmd.getOptionValue("k") != null) {
+				projectInformation.setNumOfCluster(Integer.parseInt(cmd.getOptionValue("k")));
 			}else {
 				projectInformation.setNumOfCluster(0);
+			}
+			
+			if(cmd.hasOption("eval")) {
+				if(cmd.hasOption("project")) {
+					evaluationMode = 1;
+				}else if (cmd.hasOption("cluster")) {
+					evaluationMode = 2;
+				}else if(cmd.hasOption("developer")) {
+					evaluationMode = 3;
+				}
+				
+				projectInformation.setHierarchy(Integer.parseInt(cmd.getOptionValue("hi")));
+				projectInformation.setProjectName(cmd.getOptionValue("n"));
 			}
 
 			help = cmd.hasOption("h");
@@ -233,7 +276,7 @@ public class DPDPMain {
 	private Options createOptions() {
 		Options options = new Options();
 
-		// add options by using OptionBuilder
+		//common option
 		options.addOption(Option.builder("i").longOpt("metadata.arff")
 				.desc("Address of meta data arff file. Don't use double quotation marks")
 				.hasArg()
@@ -251,7 +294,14 @@ public class DPDPMain {
 				.desc("Remove the metric of Bag Of Words")
 				.argName("NoBagOfWords")
 				.build());
-
+		
+		//not use
+		options.addOption(Option.builder("imb").longOpt("applySMOTE")
+				.desc("Sove imbalanced data problem using SMOTE")
+				.argName("")
+				.build());
+		
+		//train option
 		options.addOption(Option.builder("clusterM").longOpt("developerClusteringModel")
 				.desc("")
 				.argName("")
@@ -262,65 +312,103 @@ public class DPDPMain {
 				.argName("")
 				.build());
 		
-		options.addOption(Option.builder("test").longOpt("testMode")
-				.desc("")
-				.argName("")
-				.build());
-		
-		options.addOption(Option.builder("file").longOpt("testDataFileMaker")
-				.desc("")
-				.argName("")
-				.build());
-		
-		options.addOption(Option.builder("cluster").longOpt("testClusterFinder")
-				.desc("")
-				.argName("")
-				.build());
-		
-		options.addOption(Option.builder("eval").longOpt("testEvaluation")
-				.desc("")
-				.argName("")
-				.build());
-		
-		options.addOption(Option.builder("imb").longOpt("applySMOTE")
-				.desc("Sove imbalanced data problem using SMOTE")
-				.argName("")
-				.build());
-		
-		options.addOption(Option.builder("cm").longOpt("locationOfClusterModels")
-				.desc("location of saved cluster model")
-				.argName("")
-				.hasArg()
-				.build());
-		
-		options.addOption(Option.builder("m").longOpt("numberOfEMCluster")
+		//train option - sub option with clusterM
+		options.addOption(Option.builder("k").longOpt("numberOfEMCluster")
 				.desc("Number of profiling cluster")
 				.argName("")
 				.hasArg()
 				.build());
 		
-		options.addOption(Option.builder("dm").longOpt("locationOfDefectModels")
-				.desc("location of saved defect prediction model")
-				.argName("")
-				.hasArg()
-				.build());
-		
+		//train option - sub option with defectM
 		options.addOption(Option.builder("weka").longOpt("arff file folder path")
 				.desc("make Classification Model using weka (arff file folder path)")
 				.argName("")
 				.hasArg()
 				.build());
 		
+		//train option - sub option with defectM
 		options.addOption(Option.builder("aweka").longOpt("one arff file")
 				.desc("make Classification Model using weka (one arff file path)")
 				.hasArg()
 				.argName("")
 				.build());
 		
+		//test option
+		options.addOption(Option.builder("test").longOpt("testMode")
+				.desc("")
+				.argName("")
+				.build());
+		//step 1
+		options.addOption(Option.builder("file").longOpt("testDataFileMaker")
+				.desc("")
+				.argName("")
+				.build());
+		//step 2
+		options.addOption(Option.builder("cluster").longOpt("testClusterFinder")
+				.desc("")
+				.argName("")
+				.build());
+				
+		//step 3
+		options.addOption(Option.builder("pre").longOpt("testPredictionArff")
+				.desc("")
+				.argName("")
+				.build());
+		
+		//test option - sub option with cluster and pre
+		options.addOption(Option.builder("cm").longOpt("locationOfClusterModels")
+				.desc("location of saved cluster model")
+				.argName("")
+				.hasArg()
+				.build());
+		
+		//test option - sub option with pre
+		options.addOption(Option.builder("dm").longOpt("locationOfDefectModels")
+				.desc("location of saved defect prediction model")
+				.argName("")
+				.hasArg()
+				.build());
+		
+		//test option - sub option - run all test step at once
 		options.addOption(Option.builder("once").longOpt("runAllTestProcess")
 				.desc("")
 				.argName("")
 				.build());
+		
+		
+		//evaluation option
+		options.addOption(Option.builder("eval").longOpt("evaluation")
+				.desc("")
+				.argName("")
+				.build());
+		
+		options.addOption(Option.builder("hi").longOpt("hierarchy")
+				.desc("hierarchy of clustering")
+				.argName("")
+				.hasArg()
+				.build());
+		
+		options.addOption(Option.builder("n").longOpt("projectName")
+				.desc("name of project")
+				.argName("")
+				.hasArg()
+				.build());
+		
+		options.addOption(Option.builder("project").longOpt("testDataFileMaker")
+				.desc("")
+				.argName("")
+				.build());
+		
+		options.addOption(Option.builder("cluster").longOpt("testDataFileMaker")
+				.desc("")
+				.argName("")
+				.build());
+		
+		options.addOption(Option.builder("developer").longOpt("testDataFileMaker")
+				.desc("")
+				.argName("")
+				.build());
+		
 		
 		return options;
 	}
