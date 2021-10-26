@@ -8,7 +8,9 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -119,11 +121,33 @@ public class Evaluation {
 				findCaseAndSave(confusionMatrix, actual, match);
 				dev_confusionMatrix.put(key, confusionMatrix);
 			}
-		});		
+		});
 		
-		printConfusionMatrixResult(dev_confusionMatrix);
+		HashMap<String, ConfusionMatrix> re_dev_confusionMatrix = null;
+		if(projectInformation.getAtLeastOfCommit() > 0) {
+			re_dev_confusionMatrix = saveAtLeastCommitDev(dev_confusionMatrix, projectInformation.getAtLeastOfCommit());
+		}else {
+			re_dev_confusionMatrix = dev_confusionMatrix;
+		}
+		printConfusionMatrixResult(re_dev_confusionMatrix);
 		
-		return dev_confusionMatrix;
+		return re_dev_confusionMatrix;
+	}
+
+	private HashMap<String, ConfusionMatrix> saveAtLeastCommitDev(HashMap<String, ConfusionMatrix> dev_confusionMatrix, int atLeastOfCommit) {
+		HashMap<String, ConfusionMatrix> re_dev_confusionMatrix = new HashMap<>();
+		
+		dev_confusionMatrix.forEach((dev,confusionMatrix)-> {
+			int numOfClean = confusionMatrix.getNumOfClean();
+			int numOfBuggy = confusionMatrix.getNumOfBuggy();
+			int totalCommit = numOfClean + numOfBuggy;
+			
+			if(totalCommit >= atLeastOfCommit) {
+				re_dev_confusionMatrix.put(dev, confusionMatrix);
+			}
+		});
+		
+		return re_dev_confusionMatrix;
 	}
 
 	private void findCaseAndSave(ConfusionMatrix confusionMatrix, String actual, boolean match) {

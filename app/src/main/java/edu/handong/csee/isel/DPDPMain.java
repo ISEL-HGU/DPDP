@@ -152,7 +152,6 @@ public class DPDPMain {
 					eval.evaluateDeveloper(predictionResults);
 					break;
 				}
-				
 			}
 			
 			if(verbose) {
@@ -260,6 +259,11 @@ public class DPDPMain {
 					evaluationMode = 3;
 				}
 				
+				if(cmd.hasOption("al")) {
+					projectInformation.setAtLeastOfCommit(Integer.parseInt(cmd.getOptionValue("al")));
+				}else {
+					projectInformation.setAtLeastOfCommit(0);
+				}
 				projectInformation.setHierarchy(Integer.parseInt(cmd.getOptionValue("hi")));
 				projectInformation.setProjectName(cmd.getOptionValue("n"));
 			}
@@ -407,6 +411,12 @@ public class DPDPMain {
 		options.addOption(Option.builder("developer").longOpt("testDataFileMaker")
 				.desc("")
 				.argName("")
+				.build());
+		
+		options.addOption(Option.builder("al").longOpt("atLeast")
+				.desc("at Least (minimum commit of dev)")
+				.argName("")
+				.hasArg()
 				.build());
 		
 		

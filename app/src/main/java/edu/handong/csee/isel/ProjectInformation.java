@@ -17,6 +17,7 @@ public class ProjectInformation {
 	String testFolderPath;
 	int numOfCluster;
 	int hierarchy;
+	int atLeastOfCommit;
 	boolean bow;
 	boolean imb;
 	boolean testSubOption_once;
@@ -33,6 +34,7 @@ public class ProjectInformation {
 		this.locationOfDefectModels = null;
 		this.bow = false;
 		this.imb = false;
+		this.atLeastOfCommit = 0;
 		this.numOfCluster = 0;
 		this.testSubOption_once = false;
 		this.testFolderPath = null;
@@ -185,4 +187,14 @@ public class ProjectInformation {
 	public void setHierarchy(int hierarchy) {
 		this.hierarchy = hierarchy;
 	}
+
+	public int getAtLeastOfCommit() {
+		return atLeastOfCommit;
+	}
+
+	public void setAtLeastOfCommit(int atLeastOfCommit) {
+		this.atLeastOfCommit = atLeastOfCommit;
+	}
+	
+	
 }
