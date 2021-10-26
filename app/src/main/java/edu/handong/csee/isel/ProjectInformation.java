@@ -15,6 +15,7 @@ public class ProjectInformation {
 	String locationOfClusterModels;
 	String locationOfDefectModels;
 	String testFolderPath;
+	String modelInformationCSV;
 	int numOfCluster;
 	int hierarchy;
 	int atLeastOfCommit;
@@ -39,6 +40,7 @@ public class ProjectInformation {
 		this.testSubOption_once = false;
 		this.testFolderPath = null;
 		this.hierarchy = 0;
+		this.modelInformationCSV = null;
 	}
 
 	public String getInputPath() {
@@ -195,6 +197,12 @@ public class ProjectInformation {
 	public void setAtLeastOfCommit(int atLeastOfCommit) {
 		this.atLeastOfCommit = atLeastOfCommit;
 	}
-	
-	
+
+	public String getModelInformationCSV() {
+		return modelInformationCSV;
+	}
+
+	public void setModelInformationCSV(String modelInformationCSV) {
+		this.modelInformationCSV = modelInformationCSV;
+	}
 }

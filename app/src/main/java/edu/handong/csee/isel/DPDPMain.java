@@ -11,6 +11,8 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import edu.handong.csee.isel.baseline.ChangeClassification;
+import edu.handong.csee.isel.baseline.PersonalizedDefectPrediction;
 import edu.handong.csee.isel.data.DataFileMaker;
 import edu.handong.csee.isel.model.ModelMaker;
 import edu.handong.csee.isel.test.ClusterFinder;
@@ -34,6 +36,9 @@ public class DPDPMain {
 	
 	boolean evaluation;
 	int evaluationMode;
+	
+	boolean baseline;
+	int baselineMode;
 	
 	boolean verbose;
 	boolean help;
@@ -154,6 +159,24 @@ public class DPDPMain {
 				}
 			}
 			
+			if(baseline) {
+				ChangeClassification cc = new ChangeClassification(projectInformation);
+				PersonalizedDefectPrediction pdp = new PersonalizedDefectPrediction(projectInformation);
+
+				switch(baselineMode) {
+				case 1: //once
+					
+					break;
+					
+				case 2: //cc
+					break;
+					
+				case 3: //pdp
+					
+					break;
+				}
+			}
+			
 			if(verbose) {
 				System.out.println("Your program is terminated. (This message is shown because you turned on -v option!");
 			}
@@ -265,6 +288,25 @@ public class DPDPMain {
 					projectInformation.setAtLeastOfCommit(0);
 				}
 				projectInformation.setHierarchy(Integer.parseInt(cmd.getOptionValue("hi")));
+				projectInformation.setProjectName(cmd.getOptionValue("n"));
+			}
+			
+			if(cmd.hasOption("base")) {
+				if(cmd.hasOption("once")) {
+					baselineMode = 1;
+				}else if(cmd.hasOption("cc")) {
+					baselineMode = 2;
+				}else if (cmd.hasOption("pdp")) {
+					baselineMode = 3;
+				}
+				
+				if(cmd.hasOption("al")) {
+					projectInformation.setAtLeastOfCommit(Integer.parseInt(cmd.getOptionValue("al")));
+				}else {
+					projectInformation.setAtLeastOfCommit(0);
+				}
+				
+				projectInformation.setModelInformationCSV(cmd.getOptionValue("model"));
 				projectInformation.setProjectName(cmd.getOptionValue("n"));
 			}
 
@@ -419,6 +461,29 @@ public class DPDPMain {
 				.hasArg()
 				.build());
 		
+		//baseline cc or pdp
+		options.addOption(Option.builder("base").longOpt("baseline")
+				.desc("")
+				.argName("")
+				.build());
+		
+			//suboptionMode
+		options.addOption(Option.builder("cc").longOpt("changeClassification")
+				.desc("")
+				.argName("")
+				.build());
+		
+			//suboptionMode
+		options.addOption(Option.builder("pdp").longOpt("PersonalizedDefectPrediction")
+				.desc("")
+				.argName("")
+				.build());
+		
+		options.addOption(Option.builder("model").longOpt("modelCSVfile")
+				.desc("model information csv file")
+				.argName("")
+				.hasArg()
+				.build());
 		
 		return options;
 	}
