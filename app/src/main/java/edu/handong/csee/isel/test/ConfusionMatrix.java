@@ -1,7 +1,6 @@
 package edu.handong.csee.isel.test;
 
 public class ConfusionMatrix {
-	public static String[] evaluationHeader = {"hierachy","Cluster","ID","NOC","NOB","Precision","Recall","Fmeasure","MCC","TP","FP","TN","FN"};
 	
 	String cluster; // use only evaluateDeveloper
 	
@@ -13,7 +12,7 @@ public class ConfusionMatrix {
 	double TN;
 	double FN;
 	
-	ConfusionMatrix(){
+	public ConfusionMatrix(){
 		this.numOfClean = 0;
 		this.numOfBuggy = 0;
 		
@@ -25,83 +24,81 @@ public class ConfusionMatrix {
 
 	
 	
-	protected int getNumOfClean() {
+	public int getNumOfClean() {
 		return numOfClean;
 	}
 
 
 
-	protected void setNumOfClean(int numOfClean) {
+	public void setNumOfClean(int numOfClean) {
 		this.numOfClean = this.numOfClean + numOfClean;
 	}
 
 
 
-	protected int getNumOfBuggy() {
+	public int getNumOfBuggy() {
 		return numOfBuggy;
 	}
 
 
 
-	protected void setNumOfBuggy(int numOfBuggy) {
+	public void setNumOfBuggy(int numOfBuggy) {
 		this.numOfBuggy = this.numOfBuggy + numOfBuggy;
 	}
 
 
 
-	protected double getTP() {
+	public double getTP() {
 		return TP;
 	}
 
 
 
-	protected void setTP(double tP) {
+	public void setTP(double tP) {
 		TP = TP + tP;
 	}
 
 
 
-	protected double getFP() {
+	public double getFP() {
 		return FP;
 	}
 
 
 
-	protected void setFP(double fP) {
+	public void setFP(double fP) {
 		FP = FP + fP;
 	}
 
 
 
-	protected double getTN() {
+	public double getTN() {
 		return TN;
 	}
 
 
 
-	protected void setTN(double tN) {
+	public void setTN(double tN) {
 		TN = TN + tN;
 	}
 
 
 
-	protected double getFN() {
+	public double getFN() {
 		return FN;
 	}
 
 
 
-	protected void setFN(double fN) {
+	public void setFN(double fN) {
 		FN = FN + fN;
 	}
 
-
-
-	protected String getCluster() {
+	public String getCluster() {
 		return cluster;
 	}
 
-	protected void setCluster(String cluster) {
+	public void setCluster(String cluster) {
 		this.cluster = cluster;
 	}
 }

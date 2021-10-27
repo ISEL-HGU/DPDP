@@ -1,6 +1,9 @@
 package edu.handong.csee.isel;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -10,6 +13,8 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVRecord;
 
 import edu.handong.csee.isel.baseline.ChangeClassification;
 import edu.handong.csee.isel.baseline.PersonalizedDefectPrediction;
@@ -17,7 +22,7 @@ import edu.handong.csee.isel.data.DataFileMaker;
 import edu.handong.csee.isel.model.ModelMaker;
 import edu.handong.csee.isel.test.ClusterFinder;
 import edu.handong.csee.isel.test.ConfusionMatrix;
-import edu.handong.csee.isel.test.Evaluation;
+import edu.handong.csee.isel.test.DPDPEvaluation;
 import edu.handong.csee.isel.test.Prediction;
 import edu.handong.csee.isel.test.PredictionResult;
 
@@ -65,7 +70,7 @@ public class DPDPMain {
 			DataFileMaker dataFileMaker = new DataFileMaker(projectInformation);
 			ModelMaker modelMaker = new ModelMaker(projectInformation);
 			
-			if(!clusterM && !defectM && !test &&!evaluation) {
+			if(!clusterM && !defectM && !test &&!evaluation && !baseline) {
 				File isExist = new File(projectInformation.getInputPath());
 				
 				if(!isExist.exists()) {
@@ -136,7 +141,7 @@ public class DPDPMain {
 			}
 			
 			if(evaluation) {
-				Evaluation eval = new Evaluation(projectInformation);
+				DPDPEvaluation eval = new DPDPEvaluation(projectInformation);
 				ArrayList<PredictionResult> predictionResults = eval.readPredictedCSVfile(projectInformation.getHierarchy());
 				HashMap<String, ConfusionMatrix> dev_confusionMatrix = null;
 				HashMap<String, ConfusionMatrix> clu_confusionMatrix = null;
@@ -162,7 +167,8 @@ public class DPDPMain {
 			if(baseline) {
 				ChangeClassification cc = new ChangeClassification(projectInformation);
 				PersonalizedDefectPrediction pdp = new PersonalizedDefectPrediction(projectInformation);
-
+				HashMap<String,String> modelSetting = readModelInformationCSV(projectInformation.getModelInformationCSV());
+				
 				switch(baselineMode) {
 				case 1: //once
 					
@@ -172,7 +178,7 @@ public class DPDPMain {
 					break;
 					
 				case 3: //pdp
-					
+					pdp.predictPersonalizedDefectPrediction(modelSetting);
 					break;
 				}
 			}
@@ -184,6 +190,24 @@ public class DPDPMain {
 		
 		System.out.println();
 		System.out.println();
+	}
+
+	private HashMap<String, String> readModelInformationCSV(String modelInformationCSV) throws Exception {
+		HashMap<String,String> modelSetting = new HashMap<>();
+		Reader in = new FileReader(modelInformationCSV);
+		Iterable<CSVRecord> records = CSVFormat.RFC4180.withHeader().parse(in);
+		
+		for (CSVRecord record : records) {
+			modelSetting.put("classImbalanceAlgo", record.get("classImbalanceAlgo"));
+			modelSetting.put("Algorithm",record.get("Algorithm"));
+			modelSetting.put("EvaluationName",record.get("EvaluationName"));
+			modelSetting.put("PTproperty",record.get("PTproperty"));
+			modelSetting.put("PTmin",record.get("PTmin"));
+			modelSetting.put("PTmax",record.get("PTmax"));
+			modelSetting.put("PTstep",record.get("PTstep"));
+			break;
+		}
+		return modelSetting;
 	}
 
 	private String setClusterFinerResultPath(ProjectInformation projectInformation, String clusterFinerResultPath) {
@@ -292,6 +316,7 @@ public class DPDPMain {
 			}
 			
 			if(cmd.hasOption("base")) {
+				baseline = true;
 				if(cmd.hasOption("once")) {
 					baselineMode = 1;
 				}else if(cmd.hasOption("cc")) {

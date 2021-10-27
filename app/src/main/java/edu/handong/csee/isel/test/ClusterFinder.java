@@ -148,7 +148,7 @@ public class ClusterFinder {
 		if(isFile) {
 			printer = new CSVPrinter(out, CSVFormat.DEFAULT);
 		}else {
-			printer = new CSVPrinter(out, CSVFormat.DEFAULT.withHeader(PredictionResult.clusterFinderCSVHeader));
+			printer = new CSVPrinter(out, CSVFormat.DEFAULT.withHeader(Utils.clusterFinderCSVHeader));
 		}			
 		
 		try (printer) {

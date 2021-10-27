@@ -1,8 +1,6 @@
 package edu.handong.csee.isel.test;
 
 public class PredictionResult {
-	public static String[] clusterFinderCSVHeader = {"ID","hierachy","clusterType"};
-	public static String[] evaluationCSVHeader = {"ID","hierachy","clusterType","prediction","actual","match","model"};
 	
 	String authorId;
 	String clusterType;

@@ -33,7 +33,7 @@ public class Prediction {
 
 	public HashMap<Integer, HashMap<String,ArrayList<String>> > readCsvFile(String clusterFinerResultPath) {
 		HashMap<Integer, HashMap<String,ArrayList<String>> > hierachy_cluster_developers = new HashMap<>();
-		String[] clusterFinderCSVHeader = PredictionResult.clusterFinderCSVHeader;
+		String[] clusterFinderCSVHeader = Utils.clusterFinderCSVHeader;
 		try {
 			Reader in = new FileReader(clusterFinerResultPath);
 			Iterable<CSVRecord> records = CSVFormat.RFC4180.withHeader().parse(in);
@@ -100,7 +100,7 @@ public class Prediction {
 		
 		String outputPath = projectInformation.getOutputPath() + File.separator + projectInformation.getProjectName() +"-PredictionInstances.csv";
 		FileWriter out = new FileWriter(outputPath); 
-		CSVPrinter printer = new CSVPrinter(out, CSVFormat.DEFAULT.withHeader(PredictionResult.evaluationCSVHeader));		
+		CSVPrinter printer = new CSVPrinter(out, CSVFormat.DEFAULT.withHeader(Utils.evaluationCSVHeader));		
 		
 		try (printer) {
 			predictionResults.forEach((predictionResult) -> {

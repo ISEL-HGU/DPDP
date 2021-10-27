@@ -411,6 +411,4 @@ class AlgorithmInfo{
 	protected void setProperty(String property) {
 		this.property = property;
 	}
-	
-	
 }
