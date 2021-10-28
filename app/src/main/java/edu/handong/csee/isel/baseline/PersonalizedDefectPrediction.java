@@ -7,6 +7,7 @@ import java.util.Random;
 import edu.handong.csee.isel.ProjectInformation;
 import edu.handong.csee.isel.Utils;
 import edu.handong.csee.isel.test.ConfusionMatrix;
+import edu.handong.csee.isel.test.DPDPEvaluation;
 import weka.classifiers.Classifier;
 import weka.classifiers.bayes.BayesNet;
 import weka.classifiers.bayes.NaiveBayes;
@@ -49,17 +50,18 @@ public class PersonalizedDefectPrediction {
 			String developerID = parsingDeveloperNameFromArff(file.toString(),projectName);
 			
 			ConfusionMatrix cm = buildModelAndEvaluation(file.toString(),modelSetting);
-			
+
 			if(cm == null) {
 //				System.out.println("the number of "+developerID+" commit is less than "+projectInformation.getAtLeastOfCommit());
 				continue;
 			}
-			
 			dev_evaluationResult.put(developerID, cm);
 		}
 		
 		Utils.printConfusionMatrixResult(dev_evaluationResult,projectInformation,"PDP");
 		System.out.println("Finish print the evaluation result of each developer~! | projectName : " + projectName);
+		DPDPEvaluation eval = new DPDPEvaluation(projectInformation);
+		eval.evaluateProject(dev_evaluationResult,"PDP");
 	}
 
 	private String parsingDeveloperNameFromArff(String string, String projectName) {
@@ -75,7 +77,7 @@ public class PersonalizedDefectPrediction {
 		Instances data = source.getDataSet();
 		data.setClassIndex(0);
 		AttributeStats attStats = data.attributeStats(0);
-		
+		System.out.println(arffPath);
 		int buggyIndex = data.attribute(0).indexOfValue("buggy");
 		int cleanIndex = data.attribute(0).indexOfValue("clean");
 		int numOfBuggy = attStats.nominalCounts[buggyIndex];
@@ -169,6 +171,7 @@ public class PersonalizedDefectPrediction {
 		cm.setFP(evaluation.numFalsePositives(buggyIndex));
 		cm.setTN(evaluation.numTrueNegatives(buggyIndex));
 		cm.setFN(evaluation.numFalseNegatives(buggyIndex));
+		
 		return cm;
 	}
 }

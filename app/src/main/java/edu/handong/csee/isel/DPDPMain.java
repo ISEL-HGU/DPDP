@@ -150,7 +150,7 @@ public class DPDPMain {
 				case 1:
 					dev_confusionMatrix = eval.evaluateDeveloper(predictionResults);
 					clu_confusionMatrix = eval.evaluateCluster(dev_confusionMatrix);
-					eval.evaluateProject(clu_confusionMatrix);
+					eval.evaluateProject(clu_confusionMatrix,"DPDP");
 					break;
 					
 				case 2:

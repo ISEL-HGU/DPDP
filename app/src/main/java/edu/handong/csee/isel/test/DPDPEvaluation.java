@@ -171,7 +171,7 @@ public class DPDPEvaluation {
 		}
 	}
 
-	public void evaluateProject(HashMap<String, ConfusionMatrix> clu_confusionMatrix) throws IOException {
+	public void evaluateProject(HashMap<String, ConfusionMatrix> clu_confusionMatrix, String architecture) throws IOException {
 		HashMap<String,ConfusionMatrix> pro_confusionMatrix = new HashMap<>();
 		String projectName = projectInformation.getProjectName();
 		
@@ -206,7 +206,7 @@ public class DPDPEvaluation {
 			}
 		});		
 		
-		Utils.printConfusionMatrixResult(pro_confusionMatrix,projectInformation,"DPDP");
+		Utils.printConfusionMatrixResult(pro_confusionMatrix,projectInformation,architecture);
 	}
 
 }
