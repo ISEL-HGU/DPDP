@@ -140,6 +140,12 @@ public class Utils {
 		double precision = TP/(TP + FP);
 		return Double.toString(precision);
 	}
+	
+	public static String parsingDeveloperNameFromArff(String string, String projectName) {
+		string = string.substring(string.lastIndexOf(File.separator)+1,string.lastIndexOf("."));
+		string = string.replace(projectName+"-", "");
+		return string;
+	}
 }
 
 

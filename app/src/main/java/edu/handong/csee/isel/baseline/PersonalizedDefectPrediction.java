@@ -47,14 +47,16 @@ public class PersonalizedDefectPrediction {
 		
 		//list arff file
 		for(File file : files) {
-			String developerID = parsingDeveloperNameFromArff(file.toString(),projectName);
+			if(!file.toString().endsWith(".arff")) continue;
+			String developerID = Utils.parsingDeveloperNameFromArff(file.toString(),projectName);
 			
 			ConfusionMatrix cm = buildModelAndEvaluation(file.toString(),modelSetting);
-
+			
 			if(cm == null) {
 //				System.out.println("the number of "+developerID+" commit is less than "+projectInformation.getAtLeastOfCommit());
 				continue;
 			}
+			
 			dev_evaluationResult.put(developerID, cm);
 		}
 		
@@ -62,12 +64,6 @@ public class PersonalizedDefectPrediction {
 		System.out.println("Finish print the evaluation result of each developer~! | projectName : " + projectName);
 		DPDPEvaluation eval = new DPDPEvaluation(projectInformation);
 		eval.evaluateProject(dev_evaluationResult,"PDP");
-	}
-
-	private String parsingDeveloperNameFromArff(String string, String projectName) {
-		string = string.substring(string.lastIndexOf(File.separator)+1,string.lastIndexOf("."));
-		string = string.replace(projectName+"-", "");
-		return string;
 	}
 
 	private ConfusionMatrix buildModelAndEvaluation(String arffPath, HashMap<String, String> modelSetting) throws Exception {

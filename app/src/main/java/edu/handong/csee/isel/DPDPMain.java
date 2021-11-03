@@ -175,6 +175,7 @@ public class DPDPMain {
 					break;
 					
 				case 2: //cc
+					cc.predictChangeClassification(modelSetting);
 					break;
 					
 				case 3: //pdp
