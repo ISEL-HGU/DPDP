@@ -25,24 +25,30 @@ public class DPDPEvaluation {
 	
 	public ArrayList<PredictionResult> readPredictedCSVfile(int hierarchy){
 		ArrayList<PredictionResult> predictionResults = new ArrayList<>();
-		String[] evaluationCSVHeader = Utils.evaluationCSVHeader;
-		
+		String[] predictionCSVHeader = Utils.predictionCSVHeader;
+		String evaluationAlgorithm = projectInformation.getEvaluation_algorithm();
 		try {
 			Reader in = new FileReader(projectInformation.getInputPath());
 			Iterable<CSVRecord> records = CSVFormat.RFC4180.withHeader().parse(in);
 			
 			for (CSVRecord record : records) {
-				int hierachy =  Integer.parseInt(record.get(evaluationCSVHeader[1]));
+				int hierachy =  Integer.parseInt(record.get(predictionCSVHeader[1]));
 				if(hierachy != hierarchy) continue;
 				
-				String developerID = record.get(evaluationCSVHeader[0]);
-				String cluster = record.get(evaluationCSVHeader[2]);
-				String actual = record.get(evaluationCSVHeader[4]);
-				boolean match = Boolean.parseBoolean(record.get(evaluationCSVHeader[5]));
+				String developerID = record.get(predictionCSVHeader[0]);
+				String cluster = record.get(predictionCSVHeader[2]);
+				String algorithm = record.get(predictionCSVHeader[3]);
+				String actual = record.get(predictionCSVHeader[5]);
+				boolean match = Boolean.parseBoolean(record.get(predictionCSVHeader[6]));
+				
+				if(evaluationAlgorithm.equals(algorithm)) {
+					continue;
+				}
 
 				PredictionResult predictionResult = new PredictionResult();
 				predictionResult.setAuthorId(developerID);
 				predictionResult.setClusterType(cluster);
+				predictionResult.setAlgorithm(algorithm);
 				predictionResult.setLabel(actual);
 				predictionResult.setMatch(match);
 				
@@ -95,7 +101,7 @@ public class DPDPEvaluation {
 			}
 		});		
 		
-		Utils.printConfusionMatrixResult(clu_confusionMatrix,projectInformation,"DPDP");
+		Utils.printConfusionMatrixResult(clu_confusionMatrix,projectInformation,projectInformation.getEvaluation_algorithm(),"DPDP");
 		
 		return clu_confusionMatrix;
 	}
@@ -103,6 +109,7 @@ public class DPDPEvaluation {
 	
 	public HashMap<String, ConfusionMatrix> evaluateDeveloper(ArrayList<PredictionResult> predictionResults) throws IOException {
 		HashMap<String,ConfusionMatrix> dev_confusionMatrix = new HashMap<>();
+		
 		
 		predictionResults.forEach((predictionResult) -> {
 			String key = predictionResult.getAuthorId();
@@ -128,7 +135,7 @@ public class DPDPEvaluation {
 			re_dev_confusionMatrix = dev_confusionMatrix;
 		}
 		
-		Utils.printConfusionMatrixResult(re_dev_confusionMatrix,projectInformation,"DPDP");
+		Utils.printConfusionMatrixResult(re_dev_confusionMatrix,projectInformation,projectInformation.getEvaluation_algorithm(),"DPDP");
 		
 		return re_dev_confusionMatrix;
 	}
@@ -206,7 +213,7 @@ public class DPDPEvaluation {
 			}
 		});		
 		
-		Utils.printConfusionMatrixResult(pro_confusionMatrix,projectInformation,architecture);
+		Utils.printConfusionMatrixResult(pro_confusionMatrix,projectInformation,projectInformation.getEvaluation_algorithm(),architecture);
 	}
 
 }

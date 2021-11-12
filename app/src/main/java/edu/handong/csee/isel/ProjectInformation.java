@@ -16,6 +16,7 @@ public class ProjectInformation {
 	String locationOfDefectModels;
 	String testFolderPath;
 	String modelInformationCSV;
+	String evaluation_algorithm;
 	int numOfCluster;
 	int hierarchy;
 	int atLeastOfCommit;
@@ -41,6 +42,7 @@ public class ProjectInformation {
 		this.testFolderPath = null;
 		this.hierarchy = 0;
 		this.modelInformationCSV = null;
+		this.evaluation_algorithm = null;
 	}
 
 	public String getInputPath() {
@@ -204,5 +206,13 @@ public class ProjectInformation {
 
 	public void setModelInformationCSV(String modelInformationCSV) {
 		this.modelInformationCSV = modelInformationCSV;
+	}
+
+	public String getEvaluation_algorithm() {
+		return evaluation_algorithm;
+	}
+
+	public void setEvaluation_algorithm(String evaluation_algorithm) {
+		this.evaluation_algorithm = evaluation_algorithm;
 	}
 }

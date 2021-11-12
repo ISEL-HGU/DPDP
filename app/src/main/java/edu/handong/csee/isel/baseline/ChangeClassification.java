@@ -90,7 +90,7 @@ public class ChangeClassification {
 		ConfusionMatrix cm = buildModelAndEvaluation(totalArffFilePath,modelSetting);
 
 		project_evaluationResult.put(projectName, cm);
-		Utils.printConfusionMatrixResult(project_evaluationResult,projectInformation,"PDP");
+		Utils.printConfusionMatrixResult(project_evaluationResult,projectInformation,modelSetting.get("Algorithm"),"PDP");
 	}
 	
 	private ConfusionMatrix buildModelAndEvaluation(String arffPath, HashMap<String, String> modelSetting) throws Exception {

@@ -312,6 +312,12 @@ public class DPDPMain {
 				}else {
 					projectInformation.setAtLeastOfCommit(0);
 				}
+				
+				if(cmd.hasOption("algo")) {
+					projectInformation.setEvaluation_algorithm(cmd.getOptionValue("algo"));
+				}else {
+					projectInformation.setEvaluation_algorithm("adt");
+				}
 				projectInformation.setHierarchy(Integer.parseInt(cmd.getOptionValue("hi")));
 				projectInformation.setProjectName(cmd.getOptionValue("n"));
 			}
@@ -483,6 +489,12 @@ public class DPDPMain {
 		
 		options.addOption(Option.builder("al").longOpt("atLeast")
 				.desc("at Least (minimum commit of dev)")
+				.argName("")
+				.hasArg()
+				.build());
+		
+		options.addOption(Option.builder("algo").longOpt("algorithm")
+				.desc("algorithm for evaluation")
 				.argName("")
 				.hasArg()
 				.build());

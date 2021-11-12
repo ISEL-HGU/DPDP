@@ -60,7 +60,7 @@ public class PersonalizedDefectPrediction {
 			dev_evaluationResult.put(developerID, cm);
 		}
 		
-		Utils.printConfusionMatrixResult(dev_evaluationResult,projectInformation,"PDP");
+		Utils.printConfusionMatrixResult(dev_evaluationResult,projectInformation,modelSetting.get("Algorithm"),"PDP");
 		System.out.println("Finish print the evaluation result of each developer~! | projectName : " + projectName);
 		DPDPEvaluation eval = new DPDPEvaluation(projectInformation);
 		eval.evaluateProject(dev_evaluationResult,"PDP");

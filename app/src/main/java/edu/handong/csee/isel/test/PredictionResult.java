@@ -8,6 +8,7 @@ public class PredictionResult {
 	String prediction;
 	String actual;
 	String model;
+	String algorithm;
 	boolean match;
 	
 	PredictionResult(){
@@ -18,6 +19,7 @@ public class PredictionResult {
 		this.actual = null;
 		this.model = null;
 		this.match = false;
+		this.algorithm = null;
 	}
 
 	protected String getAuthorId() {
@@ -74,5 +76,13 @@ public class PredictionResult {
 
 	protected void setMatch(boolean match) {
 		this.match = match;
+	}
+
+	protected String getAlgorithm() {
+		return algorithm;
+	}
+
+	protected void setAlgorithm(String algorithm) {
+		this.algorithm = algorithm;
 	}
 }

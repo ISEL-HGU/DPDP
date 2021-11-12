@@ -98,9 +98,10 @@ public class Prediction {
 			}
 		}
 		
+		//print prediction result
 		String outputPath = projectInformation.getOutputPath() + File.separator + projectInformation.getProjectName() +"-PredictionInstances.csv";
 		FileWriter out = new FileWriter(outputPath); 
-		CSVPrinter printer = new CSVPrinter(out, CSVFormat.DEFAULT.withHeader(Utils.evaluationCSVHeader));		
+		CSVPrinter printer = new CSVPrinter(out, CSVFormat.DEFAULT.withHeader(Utils.predictionCSVHeader));		
 		
 		try (printer) {
 			predictionResults.forEach((predictionResult) -> {
@@ -109,6 +110,7 @@ public class Prediction {
 					resultList.add(predictionResult.getAuthorId());
 					resultList.add(Integer.toString(predictionResult.getHierachy()));
 					resultList.add(predictionResult.getClusterType());
+					resultList.add(predictionResult.getAlgorithm());
 					resultList.add(predictionResult.getPredict());
 					resultList.add(predictionResult.getLabel());
 					resultList.add(Boolean.toString(predictionResult.isMatch()));
@@ -164,6 +166,7 @@ public class Prediction {
 		String modelPathStr = model;
 		modelPathStr = modelPathStr.substring(modelPathStr.lastIndexOf("/")+1, modelPathStr.lastIndexOf("."));
 		String[] modelInformation = modelPathStr.split("_");
+		String modelAlgorithm = modelInformation[2];
 		String modelHash = modelInformation[3];
 		
 //		printModelInformation(modelInformation, dev, cluster);
@@ -201,6 +204,7 @@ public class Prediction {
 			predictionResult.setClusterType(cluster);
 			predictionResult.setHierachy(hierachy);
 			predictionResult.setModel(modelHash);
+			predictionResult.setAlgorithm(modelAlgorithm);
 			predictionResults.add(predictionResult);
 		});
 		

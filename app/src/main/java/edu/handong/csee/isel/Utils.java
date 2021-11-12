@@ -20,9 +20,9 @@ import edu.handong.csee.isel.data.MetaData;
 import edu.handong.csee.isel.test.ConfusionMatrix;
 
 public class Utils {
-	public static String[] evaluationHeader = {"hierachy","Cluster","ID","NOC","NOB","Precision","Recall","Fmeasure","MCC","TP","FP","TN","FN"};
+	public static String[] evaluationHeader = {"hierachy","Cluster","ID","Algorithm","NOC","NOB","Precision","Recall","Fmeasure","MCC","TP","FP","TN","FN"};
 	public static String[] clusterFinderCSVHeader = {"ID","hierachy","clusterType"};
-	public static String[] evaluationCSVHeader = {"ID","hierachy","clusterType","prediction","actual","match","model"};
+	public static String[] predictionCSVHeader = {"ID","hierachy","clusterType","Algorithm","prediction","actual","match","model"};
 	
 	public static MetaData readMetadataCSV(String metadataPath) throws IOException {
         ArrayList<HashMap<String, String>> metricToValueMapList = new ArrayList<>();
@@ -63,8 +63,8 @@ public class Utils {
 	    }
 	}
 	
-	public static void printConfusionMatrixResult(HashMap<String, ConfusionMatrix> key_confusionMatrix,ProjectInformation projectInformation, String architecture) throws IOException {
-		String outputPath = projectInformation.getOutputPath() + File.separator + projectInformation.getProjectName() +"-"+architecture+"-evaluation.csv";;
+	public static void printConfusionMatrixResult(HashMap<String, ConfusionMatrix> key_confusionMatrix,ProjectInformation projectInformation, String algorithm, String architecture) throws IOException {
+		String outputPath = projectInformation.getOutputPath() + File.separator + architecture + "-" + projectInformation.getProjectName() +"-evaluation.csv";;
 		
 		File temp = new File(outputPath);
 		boolean isFile = temp.isFile();
@@ -91,6 +91,7 @@ public class Utils {
 					informationList.add(confusionMatrix.getCluster());
 					if(key.equals(confusionMatrix.getCluster())||key.equals(projectInformation.getProjectName())) key = "-";
 					informationList.add(key);
+					informationList.add(algorithm);
 					informationList.add(Integer.toString(confusionMatrix.getNumOfClean()));
 					informationList.add(Integer.toString(confusionMatrix.getNumOfBuggy()));
 					informationList.add(calPrecision(TP,FP)); //TP/(TP + FP)
@@ -113,6 +114,12 @@ public class Utils {
 			printer.close();
 			out.close();
 		}
+	}
+	
+	private static String calAUC(double TP, double FP, double FN, double TN) {
+		
+		
+		return null;
 	}
 	
 	private static String calMCC(double TP, double FP, double FN, double TN) {
