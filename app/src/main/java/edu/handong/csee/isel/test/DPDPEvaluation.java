@@ -1,9 +1,13 @@
 package edu.handong.csee.isel.test;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,6 +19,7 @@ import org.apache.commons.csv.CSVRecord;
 
 import edu.handong.csee.isel.ProjectInformation;
 import edu.handong.csee.isel.Utils;
+import weka.classifiers.evaluation.Prediction;
 
 public class DPDPEvaluation {
 	ProjectInformation projectInformation;
@@ -40,8 +45,10 @@ public class DPDPEvaluation {
 				String algorithm = record.get(predictionCSVHeader[3]);
 				String actual = record.get(predictionCSVHeader[5]);
 				boolean match = Boolean.parseBoolean(record.get(predictionCSVHeader[6]));
-				
-				if(evaluationAlgorithm.equals(algorithm)) {
+				String predictionHash = record.get(predictionCSVHeader[8]);
+				Prediction predictionObject = getPredictionObject(predictionHash);
+
+				if(!evaluationAlgorithm.equals(algorithm)) {
 					continue;
 				}
 
@@ -51,7 +58,7 @@ public class DPDPEvaluation {
 				predictionResult.setAlgorithm(algorithm);
 				predictionResult.setLabel(actual);
 				predictionResult.setMatch(match);
-				
+				predictionResult.setPredictionObject(predictionObject);
 				predictionResults.add(predictionResult);
 			}
 			
@@ -63,6 +70,29 @@ public class DPDPEvaluation {
 		return predictionResults;
 	}
 	
+	private Prediction getPredictionObject(String predictionHash) throws Exception {
+		
+		String inputPath = projectInformation.getInputPath();
+		if(inputPath.endsWith(".csv")) {
+			inputPath = inputPath.substring(0, inputPath.lastIndexOf(File.separator));
+		}else {
+			System.out.println("Wrong input!!!");
+		}
+		
+		FileInputStream file = new FileInputStream(inputPath+File.separator+"PredictionObjects"+File.separator+predictionHash);
+		byte[] serializedPrediction = file.readAllBytes();
+		
+		ByteArrayInputStream baos = new ByteArrayInputStream(serializedPrediction);
+		ObjectInputStream oos = new ObjectInputStream(baos);
+		
+		Prediction prediction = (Prediction)oos.readObject();
+		
+	    oos.close();
+	    baos.close();
+	    
+		return prediction;
+	}
+
 	public HashMap<String, ConfusionMatrix> evaluateCluster(HashMap<String, ConfusionMatrix> dev_confusionMatrix) throws IOException {
 		HashMap<String,ConfusionMatrix> clu_confusionMatrix = new HashMap<>();
 		
@@ -77,6 +107,8 @@ public class DPDPEvaluation {
 			double TN = dConfusionMatrix.getTN();
 			double FN = dConfusionMatrix.getFN();
 			
+			ArrayList<Prediction> predictions = dConfusionMatrix.getPredictionObjects();
+			
 			ConfusionMatrix confusionMatrix = null;
 			
 			if(clu_confusionMatrix.containsKey(cluster)) {
@@ -87,7 +119,7 @@ public class DPDPEvaluation {
 				confusionMatrix.setFP(FP);
 				confusionMatrix.setTN(TN);
 				confusionMatrix.setFN(FN);
-				
+				confusionMatrix.setPredictionObjects(predictions);
 			}else {
 				confusionMatrix = new ConfusionMatrix();
 				confusionMatrix.setCluster(cluster);
@@ -97,6 +129,7 @@ public class DPDPEvaluation {
 				confusionMatrix.setFP(FP);
 				confusionMatrix.setTN(TN);
 				confusionMatrix.setFN(FN);
+				confusionMatrix.setPredictionObjects(predictions);
 				clu_confusionMatrix.put(cluster, confusionMatrix);
 			}
 		});		
@@ -110,20 +143,22 @@ public class DPDPEvaluation {
 	public HashMap<String, ConfusionMatrix> evaluateDeveloper(ArrayList<PredictionResult> predictionResults) throws IOException {
 		HashMap<String,ConfusionMatrix> dev_confusionMatrix = new HashMap<>();
 		
-		
 		predictionResults.forEach((predictionResult) -> {
 			String key = predictionResult.getAuthorId();
 			String actual = predictionResult.getLabel();
 			boolean match = predictionResult.isMatch();
+			Prediction prediction = predictionResult.getPredictionObject();
 			ConfusionMatrix confusionMatrix = null;
 			
 			if(dev_confusionMatrix.containsKey(key)) {
 				confusionMatrix = dev_confusionMatrix.get(key);
 				findCaseAndSave(confusionMatrix, actual, match);
+				confusionMatrix.setPredictionObjects(prediction);
 			}else {
 				confusionMatrix = new ConfusionMatrix();
 				confusionMatrix.setCluster(predictionResult.getClusterType());
 				findCaseAndSave(confusionMatrix, actual, match);
+				confusionMatrix.setPredictionObjects(prediction);
 				dev_confusionMatrix.put(key, confusionMatrix);
 			}
 		});
@@ -190,6 +225,9 @@ public class DPDPEvaluation {
 			double FP = cConfusionMatrix.getFP();
 			double TN = cConfusionMatrix.getTN();
 			double FN = cConfusionMatrix.getFN();
+			
+			ArrayList<Prediction> predictions = cConfusionMatrix.getPredictionObjects();
+			
 			ConfusionMatrix confusionMatrix = null;
 			
 			if(pro_confusionMatrix.containsKey(projectName)) {
@@ -200,6 +238,7 @@ public class DPDPEvaluation {
 				confusionMatrix.setFP(FP);
 				confusionMatrix.setTN(TN);
 				confusionMatrix.setFN(FN);
+				confusionMatrix.setPredictionObjects(predictions);
 			}else {
 				confusionMatrix = new ConfusionMatrix();
 				confusionMatrix.setCluster("-");
@@ -209,6 +248,7 @@ public class DPDPEvaluation {
 				confusionMatrix.setFP(FP);
 				confusionMatrix.setTN(TN);
 				confusionMatrix.setFN(FN);
+				confusionMatrix.setPredictionObjects(predictions);
 				pro_confusionMatrix.put(projectName, confusionMatrix);
 			}
 		});		

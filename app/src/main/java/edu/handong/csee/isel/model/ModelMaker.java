@@ -15,6 +15,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 
 import edu.handong.csee.isel.ProjectInformation;
+import edu.handong.csee.isel.Utils;
 import edu.handong.csee.isel.data.DeveloperInfo;
 import weka.classifiers.Classifier;
 import weka.classifiers.bayes.BayesNet;
@@ -177,14 +178,9 @@ System.out.println(clusterName);
 					multi_search.buildClassifier(data);
 					
 					//make the hashkey of model
-					String input = clusterName+algorithm+algorithmInfo.getProperty()+"_"+algorithmInfo.getMin()+"_"+algorithmInfo.getMax()+"_"+algorithmInfo.getStep()+
-									multisearchEvaluationName+clusterModelInfo.getNumOfBuggy()+clusterModelInfo.getNumOfClean();
-					MessageDigest digest = MessageDigest.getInstance("SHA-1");
-					digest.reset();
-					digest.update(input.getBytes("utf8"));
-					String hashKey = String.format("%64x", new BigInteger(1, digest.digest()));
-					hashKey = hashKey.trim();
-					
+					String hashKey = Utils.makeHashKey(clusterName+algorithm+algorithmInfo.getProperty()+"_"+algorithmInfo.getMin()+"_"+algorithmInfo.getMax()
+									+"_"+algorithmInfo.getStep()+multisearchEvaluationName+clusterModelInfo.getNumOfBuggy()+clusterModelInfo.getNumOfClean());
+
 					//save model information
 					List<String> informationList = new ArrayList<>();
 					informationList.add(hashKey);

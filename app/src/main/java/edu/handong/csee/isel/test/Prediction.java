@@ -1,10 +1,13 @@
 package edu.handong.csee.isel.test;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -74,7 +77,15 @@ public class Prediction {
 	}
 
 	public void predictionArffOfTestDeveloper(HashMap<Integer, HashMap<String, ArrayList<String>>> hierachy_cluster_developers) throws Exception {
-	    
+	    //make directory for save prediction object of evaluation
+		File predictionDir = new File(projectInformation.getOutputPath() + File.separator + "PredictionObjects");
+		System.out.println(projectInformation.getOutputPath());
+		String predictionDirPath = predictionDir.getAbsolutePath();
+		
+		if(!predictionDir.isDirectory()) {
+			predictionDir.mkdir();
+		}
+		
 		//confirm none-exist model or dev
 		String inputDeveloperInstancePath = setDeveloperInstancePath(projectInformation);
 		String defectModelPath = projectInformation.getLocationOfDefectModels();
@@ -90,7 +101,7 @@ public class Prediction {
 				//dev이름, cluster, model path, instance path
 				devList.forEach((dev)->{
 					try {
-						predictionResults.addAll(evaluateEachDeveloper(hierachy, dev, cluster, defectModelPath, inputDeveloperInstancePath));
+						predictionResults.addAll(predictEachDeveloper(hierachy, dev, cluster, defectModelPath, inputDeveloperInstancePath));
 					} catch (Exception e1) {
 						e1.printStackTrace();
 					}
@@ -104,26 +115,48 @@ public class Prediction {
 		CSVPrinter printer = new CSVPrinter(out, CSVFormat.DEFAULT.withHeader(Utils.predictionCSVHeader));		
 		
 		try (printer) {
-			predictionResults.forEach((predictionResult) -> {
-				try {
-					List<String> resultList = new ArrayList<>();
-					resultList.add(predictionResult.getAuthorId());
-					resultList.add(Integer.toString(predictionResult.getHierachy()));
-					resultList.add(predictionResult.getClusterType());
-					resultList.add(predictionResult.getAlgorithm());
-					resultList.add(predictionResult.getPredict());
-					resultList.add(predictionResult.getLabel());
-					resultList.add(Boolean.toString(predictionResult.isMatch()));
-					resultList.add(predictionResult.getModel());
-					
-					printer.printRecord(resultList);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			});
-			
+			for(int i = 0; i < predictionResults.size(); i++) {
+				PredictionResult predictionResult = predictionResults.get(i);
+				String hashKey = Utils.makeHashKey(predictionResult.getAuthorId() + i);
+	
+				//save prediction result as csv file
+				List<String> resultList = new ArrayList<>();
+				resultList.add(predictionResult.getAuthorId());
+				resultList.add(Integer.toString(predictionResult.getHierachy()));
+				resultList.add(predictionResult.getClusterType());
+				resultList.add(predictionResult.getAlgorithm());
+				resultList.add(predictionResult.getPredict());
+				resultList.add(predictionResult.getLabel());
+				resultList.add(Boolean.toString(predictionResult.isMatch()));
+				resultList.add(predictionResult.getModel());
+				resultList.add(hashKey);
+				printer.printRecord(resultList);
+				
+				
+				//save prediction object 
+				
+					//serialize (change object into byte array)
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				ObjectOutputStream oos = new ObjectOutputStream(baos);
+				
+				oos.writeObject(predictionResult.getPredictionObject());
+				byte[] serializedPrediction = baos.toByteArray();
+				
+				oos.flush();
+			    oos.close();
+			    baos.close();
+			    
+			    	//save byte array
+				FileOutputStream fileOutputStream = new FileOutputStream(new File(predictionDirPath+File.separator+hashKey));
+				fileOutputStream.write(serializedPrediction);
+
+				fileOutputStream.close();
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+		
 		printer.close();
 		out.close();
 		
@@ -138,7 +171,7 @@ public class Prediction {
 		}
 	}
 
-	private ArrayList<PredictionResult> evaluateEachDeveloper(int hierachy, String dev, String cluster, String defectModelPath,
+	private ArrayList<PredictionResult> predictEachDeveloper(int hierachy, String dev, String cluster, String defectModelPath,
 			String inputDeveloperInstancePath) throws Exception {
 		ArrayList<PredictionResult> predictionResults = new ArrayList<>();
 		
@@ -177,7 +210,7 @@ public class Prediction {
 		//evaluation
 		Evaluation evaluation = new Evaluation(data);
 		evaluation.evaluateModel(DPDPclassifyModel, data);
-		
+
 		//save evaluation result
 		evaluation.predictions().forEach((eva) -> {
 			PredictionResult predictionResult = new PredictionResult();
@@ -200,6 +233,7 @@ public class Prediction {
 				predictionResult.setMatch(false);
 			}
 			
+			predictionResult.setPredictionObject(eva);
 			predictionResult.setAuthorId(dev);
 			predictionResult.setClusterType(cluster);
 			predictionResult.setHierachy(hierachy);

@@ -122,51 +122,59 @@ public class PersonalizedDefectPrediction {
 			classifyModel = new ADTree();
 		}
 		
-		MultiSearch multi_search = new MultiSearch();
-		//set multisearch option
-		MathParameter param = new MathParameter();
-		param.setProperty(modelSetting.get("PTproperty")); //change according to algorithm
-		param.setMin(Integer.parseInt(modelSetting.get("PTmin")));
-		param.setMax(Integer.parseInt(modelSetting.get("PTmax")));
-		param.setStep(Integer.parseInt(modelSetting.get("PTstep")));
-		param.setExpression("I");
-		
-		//set multisearch evaluation option
-		String multisearchEvaluationName = modelSetting.get("EvaluationName");
-		SelectedTag tag = null;
-		if(multisearchEvaluationName.equals("AUC")) {
-			tag = new SelectedTag(DefaultEvaluationMetrics.EVALUATION_AUC, new DefaultEvaluationMetrics().getTags());
-		}
-		else if(multisearchEvaluationName.equals("Fmeasure")) {//!
-			tag = new SelectedTag(DefaultEvaluationMetrics.EVALUATION_FMEASURE, new DefaultEvaluationMetrics().getTags());
-		}
-		else if(multisearchEvaluationName.equals("MCC")) {//!
-			tag = new SelectedTag(DefaultEvaluationMetrics.EVALUATION_MATTHEWS_CC, new DefaultEvaluationMetrics().getTags());
-		}
-		else if(multisearchEvaluationName.equals("Precision")) {
-			tag = new SelectedTag(DefaultEvaluationMetrics.EVALUATION_PRECISION, new DefaultEvaluationMetrics().getTags());
-		}
-		else if(multisearchEvaluationName.equals("Recall")) {
-			tag = new SelectedTag(DefaultEvaluationMetrics.EVALUATION_RECALL, new DefaultEvaluationMetrics().getTags());
-		}
-		
-		//build classify model
-		multi_search.setSearchParameters(new AbstractParameter[]{param});
-		multi_search.setEvaluation(tag);
-		multi_search.setAlgorithm(new DefaultSearch());
-		multi_search.setClassifier(classifyModel);
-		multi_search.buildClassifier(data);
+//		MultiSearch multi_search = new MultiSearch();
+//		//set multisearch option
+//		MathParameter param = new MathParameter();
+//		param.setProperty(modelSetting.get("PTproperty")); //change according to algorithm
+//		param.setMin(Integer.parseInt(modelSetting.get("PTmin")));
+//		param.setMax(Integer.parseInt(modelSetting.get("PTmax")));
+//		param.setStep(Integer.parseInt(modelSetting.get("PTstep")));
+//		param.setExpression("I");
+//		
+//		//set multisearch evaluation option
+//		String multisearchEvaluationName = modelSetting.get("EvaluationName");
+//		SelectedTag tag = null;
+//		if(multisearchEvaluationName.equals("AUC")) {
+//			tag = new SelectedTag(DefaultEvaluationMetrics.EVALUATION_AUC, new DefaultEvaluationMetrics().getTags());
+//		}
+//		else if(multisearchEvaluationName.equals("Fmeasure")) {//!
+//			tag = new SelectedTag(DefaultEvaluationMetrics.EVALUATION_FMEASURE, new DefaultEvaluationMetrics().getTags());
+//		}
+//		else if(multisearchEvaluationName.equals("MCC")) {//!
+//			tag = new SelectedTag(DefaultEvaluationMetrics.EVALUATION_MATTHEWS_CC, new DefaultEvaluationMetrics().getTags());
+//		}
+//		else if(multisearchEvaluationName.equals("Precision")) {
+//			tag = new SelectedTag(DefaultEvaluationMetrics.EVALUATION_PRECISION, new DefaultEvaluationMetrics().getTags());
+//		}
+//		else if(multisearchEvaluationName.equals("Recall")) {
+//			tag = new SelectedTag(DefaultEvaluationMetrics.EVALUATION_RECALL, new DefaultEvaluationMetrics().getTags());
+//		}
+//		
+//		//build classify model
+//		multi_search.setSearchParameters(new AbstractParameter[]{param});
+//		multi_search.setEvaluation(tag);
+//		multi_search.setAlgorithm(new DefaultSearch());
+//		multi_search.setClassifier(classifyModel);
+//		multi_search.buildClassifier(data);
 		
 		//evaluation
+		classifyModel.buildClassifier(data);
 		Evaluation evaluation = new Evaluation(data);
-		evaluation.crossValidateModel(multi_search, data, 10, new Random(1));
-		
+		evaluation.crossValidateModel(classifyModel, data, 10, new Random(1));
+
+//		evaluation.crossValidateModel(multi_search, data, 10, new Random(1));
+
 		cm.setNumOfBuggy(numOfBuggy);
 		cm.setNumOfClean(numOfClean);
 		cm.setTP(evaluation.numTruePositives(buggyIndex));
 		cm.setFP(evaluation.numFalsePositives(buggyIndex));
 		cm.setTN(evaluation.numTrueNegatives(buggyIndex));
 		cm.setFN(evaluation.numFalseNegatives(buggyIndex));
+		
+		evaluation.areaUnderROC(buggyIndex);
+		
+		System.out.println("weka : "+ evaluation.areaUnderROC(buggyIndex));
+//		System.out.println("call : "+ Utils.calAUC(cm.getTP(),cm.getFP(),cm.getFN(),cm.getTN()));
 		
 		return cm;
 	}

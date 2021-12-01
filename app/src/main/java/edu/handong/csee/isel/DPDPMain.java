@@ -168,7 +168,7 @@ public class DPDPMain {
 				ChangeClassification cc = new ChangeClassification(projectInformation);
 				PersonalizedDefectPrediction pdp = new PersonalizedDefectPrediction(projectInformation);
 				HashMap<String,String> modelSetting = readModelInformationCSV(projectInformation.getModelInformationCSV());
-				
+		
 				switch(baselineMode) {
 				case 1: //once
 					
@@ -274,7 +274,7 @@ public class DPDPMain {
 			if(test == true) {
 				testMode_fileMaker = cmd.hasOption("file");
 				testMode_clusterFinder = cmd.hasOption("cluster");
-				testMode_prediction = cmd.hasOption("eval");
+				testMode_prediction = cmd.hasOption("pre");
 				if(cmd.hasOption("once")) {
 					projectInformation.setTestSubOption_once(true);
 				}

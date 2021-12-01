@@ -5,6 +5,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -18,11 +22,14 @@ import org.apache.commons.csv.CSVRecord;
 import edu.handong.csee.isel.data.DeveloperInfo;
 import edu.handong.csee.isel.data.MetaData;
 import edu.handong.csee.isel.test.ConfusionMatrix;
+import weka.classifiers.evaluation.Prediction;
+import weka.classifiers.evaluation.ThresholdCurve;
+import weka.core.Instances;
 
-public class Utils {
-	public static String[] evaluationHeader = {"hierachy","Cluster","ID","Algorithm","NOC","NOB","Precision","Recall","Fmeasure","MCC","TP","FP","TN","FN"};
+public class Utils {/////////!!!!!!!!!!!!evaluationHeader 주석처리해서 PDP, baseline에서 수정 필요한 애들 보기!!!!!!
+	public static String[] evaluationHeader = {"hierachy","Cluster","ID","Algorithm","NOC","NOB","Precision","Recall","Fmeasure","MCC","AUC","TP","FP","TN","FN"};
 	public static String[] clusterFinderCSVHeader = {"ID","hierachy","clusterType"};
-	public static String[] predictionCSVHeader = {"ID","hierachy","clusterType","Algorithm","prediction","actual","match","model"};
+	public static String[] predictionCSVHeader = {"ID","hierachy","clusterType","Algorithm","prediction","actual","match","model","object"};
 	
 	public static MetaData readMetadataCSV(String metadataPath) throws IOException {
         ArrayList<HashMap<String, String>> metricToValueMapList = new ArrayList<>();
@@ -85,7 +92,8 @@ public class Utils {
 					double FP = confusionMatrix.getFP();
 					double TN = confusionMatrix.getTN();
 					double FN = confusionMatrix.getFN();
-				
+					ArrayList<Prediction> predictionObjects = confusionMatrix.getPredictionObjects();
+	
 					List<String> informationList = new ArrayList<>();
 					informationList.add(Integer.toString(projectInformation.getHierarchy()));
 					informationList.add(confusionMatrix.getCluster());
@@ -98,6 +106,7 @@ public class Utils {
 					informationList.add(calRecall(TP,FN)); // TP/(TP + FN);
 					informationList.add(calFmeasure(TP,FP,FN)); //((precision * recall)/(precision + recall))*2;
 					informationList.add(calMCC(TP,FP,FN,TN));
+					informationList.add(Double.toString(calAUC(predictionObjects)));
 					informationList.add(Double.toString(TP));
 					informationList.add(Double.toString(FP));
 					informationList.add(Double.toString(TN));
@@ -116,10 +125,10 @@ public class Utils {
 		}
 	}
 	
-	private static String calAUC(double TP, double FP, double FN, double TN) {
-		
-		
-		return null;
+	public static double calAUC(ArrayList<Prediction> predictionObjects) {
+		ThresholdCurve tc = new ThresholdCurve();
+		Instances result = tc.getCurve(predictionObjects, 0);
+	    return ThresholdCurve.getROCArea(result);
 	}
 	
 	private static String calMCC(double TP, double FP, double FN, double TN) {
@@ -152,6 +161,25 @@ public class Utils {
 		string = string.substring(string.lastIndexOf(File.separator)+1,string.lastIndexOf("."));
 		string = string.replace(projectName+"-", "");
 		return string;
+	}
+	
+	public static String makeHashKey(String input) throws UnsupportedEncodingException {
+		String hashKey = null;
+		try {
+			
+			MessageDigest digest = MessageDigest.getInstance("SHA-1");
+			digest.reset();
+			digest.update(input.getBytes("utf8"));
+			
+			hashKey = String.format("%64x", new BigInteger(1, digest.digest()));
+			hashKey = hashKey.trim();
+			
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return hashKey;
 	}
 }
 

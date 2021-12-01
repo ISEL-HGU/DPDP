@@ -1,5 +1,8 @@
 package edu.handong.csee.isel.test;
 
+import java.util.ArrayList;
+import weka.classifiers.evaluation.Prediction;
+
 public class ConfusionMatrix {
 	
 	String cluster; // use only evaluateDeveloper
@@ -12,6 +15,8 @@ public class ConfusionMatrix {
 	double TN;
 	double FN;
 	
+	ArrayList<Prediction> predictionObjects;
+	
 	public ConfusionMatrix(){
 		this.numOfClean = 0;
 		this.numOfBuggy = 0;
@@ -20,6 +25,8 @@ public class ConfusionMatrix {
 		this.FP = 0;
 		this.TN = 0;
 		this.FN = 0;
+		
+		this.predictionObjects = new ArrayList<>();
 	}
 
 	
@@ -100,5 +107,21 @@ public class ConfusionMatrix {
 
 	public void setCluster(String cluster) {
 		this.cluster = cluster;
+	}
+
+
+
+	public ArrayList<Prediction> getPredictionObjects() {
+		return predictionObjects;
+	}
+
+
+
+	public void setPredictionObjects(Prediction prediction) {
+		this.predictionObjects.add(prediction);
+	}
+	
+	public void setPredictionObjects(ArrayList<Prediction> prediction) {
+		this.predictionObjects.addAll(prediction);
 	}
 }

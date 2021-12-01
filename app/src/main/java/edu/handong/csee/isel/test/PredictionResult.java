@@ -1,5 +1,7 @@
 package edu.handong.csee.isel.test;
 
+import weka.classifiers.evaluation.Prediction;
+
 public class PredictionResult {
 	
 	String authorId;
@@ -10,6 +12,7 @@ public class PredictionResult {
 	String model;
 	String algorithm;
 	boolean match;
+	Prediction predictionObject;
 	
 	PredictionResult(){
 		this.authorId = null;
@@ -20,6 +23,7 @@ public class PredictionResult {
 		this.model = null;
 		this.match = false;
 		this.algorithm = null;
+		this.predictionObject = null;
 	}
 
 	protected String getAuthorId() {
@@ -85,4 +89,13 @@ public class PredictionResult {
 	protected void setAlgorithm(String algorithm) {
 		this.algorithm = algorithm;
 	}
+
+	protected Prediction getPredictionObject() {
+		return predictionObject;
+	}
+
+	protected void setPredictionObject(Prediction eva) {
+		this.predictionObject = eva;
+	}
+	
 }
