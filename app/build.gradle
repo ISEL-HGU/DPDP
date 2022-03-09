@@ -48,4 +48,7 @@ dependencies {
 	// https://mvnrepository.com/artifact/nz.ac.waikato.cms.weka/alternatingDecisionTrees
 	implementation group: 'nz.ac.waikato.cms.weka', name: 'alternatingDecisionTrees', version: '1.0.5'
 	
+	// https://mvnrepository.com/artifact/com.github.tsantalis/refactoring-miner
+	implementation group: 'com.github.tsantalis', name: 'refactoring-miner', version: '2.2.0'
+	
 }
