@@ -368,6 +368,12 @@ System.out.println("number Of Cluster : " + numOfCluster);
 			deleteFolder.delete();
 		}
 	}
+	
+/*Python cluster model*/
+	
+	public void makeDeveloperProfilingClusterModelPython() {
+		
+	}
 }
 
 class AlgorithmInfo{
