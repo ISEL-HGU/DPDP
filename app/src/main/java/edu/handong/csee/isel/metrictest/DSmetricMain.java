@@ -1,8 +1,18 @@
 package edu.handong.csee.isel.metrictest;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.TreeSet;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.lib.Repository;
 import org.refactoringminer.api.GitHistoryRefactoringMiner;
 import org.refactoringminer.api.GitService;
@@ -14,16 +24,60 @@ import org.refactoringminer.util.GitServiceImpl;
 
 public class DSmetricMain {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		long beforeTime = System.currentTimeMillis();
 		
 		
 		String input = "/Users/yangsujin/Documents/DPDP/ranger-reference/ranger_Label.csv";
-//				args[0]; //project_label.csv
+		String repositoryPath = "tmp/ranger_result_Name.txt";
 		String projectName = setProjectName(input);
-		TreeSet<String> refactoringCommit = new TreeSet<>();
+		TreeSet<String> refactoringCommit = null;
 		
 		//parsing refactoring commit
+		boolean test = true;
+		if(test == true) {
+			refactoringCommit = readTxtFileForTest(repositoryPath);
+		}else {
+			refactoringCommit = miningRefactoringCommit(repositoryPath);
+		}
+		System.out.println("Length of refactoring commit : "+refactoringCommit.size());
+		
+		long afterTime = System.currentTimeMillis(); 
+		long secDiffTime = (afterTime - beforeTime)/1000;
+		System.out.println("Mining refactoring commit 실행시(m) : "+secDiffTime/60);
+		
+		//read project commit history metric
+		Reader in = new FileReader(input);
+		Iterable<CSVRecord> records = CSVFormat.RFC4180.withHeader().parse(in);
+		for(CSVRecord record : records) {
+			String key = record.get("Key");
+			Date commitTime = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss").parse(record.get("meta_data-commitTime"));
+			System.out.println(commitTime);
+			System.exit(0);
+		}
+
+	}
+
+	private static TreeSet<String> readTxtFileForTest(String repositoryPath) {
+		TreeSet<String> refactoringCommit = new TreeSet<>();
+		
+		try {
+			String content = FileUtils.readFileToString(new File(repositoryPath), "UTF-8");
+			String[] lines = content.split("\n");
+			
+			for(int i = 0; i<lines.length; i++) {
+				refactoringCommit.add(lines[i]);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return refactoringCommit;
+	}
+
+	private static TreeSet<String> miningRefactoringCommit(String repositoryPath) {
+		TreeSet<String> refactoringCommit = new TreeSet<>();
+		
 		try {
 			GitService gitService = new GitServiceImpl();
 			GitHistoryRefactoringMiner miner = new GitHistoryRefactoringMinerImpl();
@@ -53,16 +107,7 @@ public class DSmetricMain {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	
-		
-		long afterTime = System.currentTimeMillis(); 
-		long secDiffTime = (afterTime - beforeTime)/1000;
-		
-		System.out.println("parsing refactoring commit 실행시(m) : "+secDiffTime/60);
-		
-		//read project commit history metric
-		
-
+		return refactoringCommit;
 	}
 
 	private static String setProjectName(String input) {
