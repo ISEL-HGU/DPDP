@@ -6,8 +6,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.apache.commons.csv.CSVFormat;
@@ -41,18 +43,37 @@ public class DSmetricMain {
 			refactoringCommit = miningRefactoringCommit(repositoryPath);
 		}
 		System.out.println("Length of refactoring commit : "+refactoringCommit.size());
-		
+
 		long afterTime = System.currentTimeMillis(); 
 		long secDiffTime = (afterTime - beforeTime)/1000;
 		System.out.println("Mining refactoring commit 실행시(m) : "+secDiffTime/60);
 		
-		//read project commit history metric
+		//read and save project commit history metric
+		TreeMap<Date,ProjectHistory> projectHistories = new TreeMap<>();
 		Reader in = new FileReader(input);
 		Iterable<CSVRecord> records = CSVFormat.RFC4180.withHeader().parse(in);
+		
 		for(CSVRecord record : records) {
 			String key = record.get("Key");
 			Date commitTime = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss").parse(record.get("meta_data-commitTime"));
+			String hashkey = key.substring(0,key.indexOf("-"));
+			String filepath = key.substring(key.indexOf("-")+1,key.length());
+			
+			if(projectHistories.containsKey(commitTime)) {
+				ProjectHistory projectHistory = projectHistories.get(commitTime);
+				projectHistory.addHashkeys(hashkey);
+				projectHistory.addFilePath(filepath);
+			}else {
+				ProjectHistory projectHistory = new ProjectHistory();
+				projectHistory.addHashkeys(hashkey);
+				projectHistory.addFilePath(filepath);
+				projectHistories.put(commitTime, projectHistory);
+			}
+			
+			System.out.println(key);
 			System.out.println(commitTime);
+			System.out.println(hashkey);
+			System.out.println(filepath);
 			System.exit(0);
 		}
 
@@ -115,4 +136,39 @@ public class DSmetricMain {
 		return null;
 	}
 
+}
+
+class ProjectHistory{
+	ArrayList<String> hashkeys = null;
+	ArrayList<String> filePath = null;
+	
+	ProjectHistory(){
+		this.hashkeys = new ArrayList<>();
+		this.filePath = new ArrayList<>();
+	}
+	
+	protected void addHashkeys(String hashkey) {
+		this.hashkeys.add(hashkey);
+	}
+	
+	protected void addFilePath(String filepath) {
+		this.filePath.add(filepath);
+	}
+
+	protected ArrayList<String> getHashkeys() {
+		return hashkeys;
+	}
+
+	protected void setHashkeys(ArrayList<String> hashkeys) {
+		this.hashkeys = hashkeys;
+	}
+
+	protected ArrayList<String> getFilePath() {
+		return filePath;
+	}
+
+	protected void setFilePath(ArrayList<String> filePath) {
+		this.filePath = filePath;
+	}
+	
 }
