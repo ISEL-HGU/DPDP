@@ -1,10 +1,13 @@
 package edu.handong.csee.isel.metrictest;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -33,10 +36,10 @@ public class DSmetricMain {
 		String input = "/Users/yangsujin/Documents/DPDP/ranger-reference/ranger_Label.csv";
 		String repositoryPath = "tmp/ranger_result_Name.txt";
 		String projectName = setProjectName(input);
-		TreeSet<String> refactoringCommit = null;
 		
 		//parsing refactoring commit
 		boolean test = true;
+		TreeSet<String> refactoringCommit = null;
 		if(test == true) {
 			refactoringCommit = readTxtFileForTest(repositoryPath);
 		}else {
@@ -49,9 +52,16 @@ public class DSmetricMain {
 		System.out.println("Mining refactoring commit 실행시(m) : "+secDiffTime/60);
 		
 		//read and save project commit history metric
-		TreeMap<Date,ProjectHistory> projectHistories = new TreeMap<>();
 		Reader in = new FileReader(input);
 		Iterable<CSVRecord> records = CSVFormat.RFC4180.withHeader().parse(in);
+		TreeMap<Date,ProjectHistory> projectHistories = saveProjectHistoryInformation(records);
+		
+		//calculate developer scattering metric
+		
+	}
+
+	private static TreeMap<Date, ProjectHistory> saveProjectHistoryInformation(Iterable<CSVRecord> records) throws ParseException {
+		TreeMap<Date,ProjectHistory> projectHistories = new TreeMap<>();
 		
 		for(CSVRecord record : records) {
 			String key = record.get("Key");
@@ -76,7 +86,7 @@ public class DSmetricMain {
 			System.out.println(filepath);
 			System.exit(0);
 		}
-
+		return projectHistories;
 	}
 
 	private static TreeSet<String> readTxtFileForTest(String repositoryPath) {
@@ -96,8 +106,11 @@ public class DSmetricMain {
 		return refactoringCommit;
 	}
 
-	private static TreeSet<String> miningRefactoringCommit(String repositoryPath) {
+	private static TreeSet<String> miningRefactoringCommit(String repositoryPath) throws IOException {
 		TreeSet<String> refactoringCommit = new TreeSet<>();
+		
+		FileWriter write = new FileWriter("tmp/ranger_result_Name.txt");
+		BufferedWriter buff = new BufferedWriter(write);
 		
 		try {
 			GitService gitService = new GitServiceImpl();
@@ -119,12 +132,20 @@ public class DSmetricMain {
 		    					|| ref.getRefactoringType().equals(RefactoringType.MERGE_PACKAGE)) {
 //				    		System.out.println("|"+count+"|	Refactorings at " + commitId+"\n");
 //							System.out.println("	"+ref.toString()+"\n");
+//		    				try {
+//								buff.write(commitId++"\n");
+//							} catch (IOException e) {
+//								// TODO Auto-generated catch block
+//								e.printStackTrace();
+//							}
+		    				
 							refactoringCommit.add(commitId);
 				    	}
 				    }
 				  }
 				});
-			
+			buff.close();
+			write.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
