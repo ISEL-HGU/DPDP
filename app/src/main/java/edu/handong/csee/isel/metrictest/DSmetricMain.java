@@ -11,6 +11,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -40,6 +41,7 @@ public class DSmetricMain {
 		//parsing refactoring commit
 		boolean test = true;
 		TreeSet<String> refactoringCommit = null;
+		
 		if(test == true) {
 			refactoringCommit = readTxtFileForTest(repositoryPath);
 		}else {
@@ -47,6 +49,7 @@ public class DSmetricMain {
 		}
 		System.out.println("Length of refactoring commit : "+refactoringCommit.size());
 
+		//print the time of finding refactoring commit
 		long afterTime = System.currentTimeMillis(); 
 		long secDiffTime = (afterTime - beforeTime)/1000;
 		System.out.println("Mining refactoring commit 실행시(m) : "+secDiffTime/60);
@@ -54,37 +57,68 @@ public class DSmetricMain {
 		//read and save project commit history metric
 		Reader in = new FileReader(input);
 		Iterable<CSVRecord> records = CSVFormat.RFC4180.withHeader().parse(in);
-		TreeMap<Date,ProjectHistory> projectHistories = saveProjectHistoryInformation(records);
+		TreeMap<Date,ArrayList<String>> time_refactoringCommit = new TreeMap<>();
+		TreeMap<Date,ProjectHistory> projectHistories = saveProjectHistoryInformation(records,refactoringCommit,time_refactoringCommit);
 		
 		//calculate developer scattering metric
+		Date startCommitTime = projectHistories.firstKey();
+		Date endCommitTime = projectHistories.lastKey();
 		
+		System.out.println((startCommitTime.before(endCommitTime)));
+		System.out.println((endCommitTime.after(startCommitTime)));
+		
+		Iterator<Date> dates = time_refactoringCommit.keySet().iterator(); 
+		while (true){ 
+			
+			Date commitTime = dates.next();
+	
+			if(dates.hasNext()) {
+				
+			}else {
+				break;
+			}
+		}
+
+//		for(Date commitTime : time_refactoringCommit.keySet()) {
+//			
+//		}
 	}
 
-	private static TreeMap<Date, ProjectHistory> saveProjectHistoryInformation(Iterable<CSVRecord> records) throws ParseException {
+	private static TreeMap<Date, ProjectHistory> saveProjectHistoryInformation(Iterable<CSVRecord> records, TreeSet<String> refactoringCommit, TreeMap<Date, ArrayList<String>> time_refactoringCommit) throws ParseException {
 		TreeMap<Date,ProjectHistory> projectHistories = new TreeMap<>();
 		
 		for(CSVRecord record : records) {
 			String key = record.get("Key");
 			Date commitTime = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss").parse(record.get("meta_data-commitTime"));
+			String authorId = record.get("AuthorID");
 			String hashkey = key.substring(0,key.indexOf("-"));
 			String filepath = key.substring(key.indexOf("-")+1,key.length());
 			
-			if(projectHistories.containsKey(commitTime)) {
-				ProjectHistory projectHistory = projectHistories.get(commitTime);
-				projectHistory.addHashkeys(hashkey);
-				projectHistory.addFilePath(filepath);
-			}else {
-				ProjectHistory projectHistory = new ProjectHistory();
-				projectHistory.addHashkeys(hashkey);
-				projectHistory.addFilePath(filepath);
-				projectHistories.put(commitTime, projectHistory);
+			//save refactoring Commit time
+			if(refactoringCommit.contains(hashkey)) {
+				if(time_refactoringCommit.containsKey(commitTime)) {
+					ArrayList<String> commits = time_refactoringCommit.get(commitTime);
+					commits.add(hashkey);
+				}else {
+					ArrayList<String> commits = new ArrayList<>();
+					commits.add(hashkey);
+					time_refactoringCommit.put(commitTime, commits);
+				}
 			}
 			
-			System.out.println(key);
-			System.out.println(commitTime);
-			System.out.println(hashkey);
-			System.out.println(filepath);
-			System.exit(0);
+			//save Project History Information. key : commit time
+			if(projectHistories.containsKey(commitTime)) {
+				ProjectHistory projectHistory = projectHistories.get(commitTime);
+				projectHistory.addHashkey(hashkey);
+				projectHistory.addFilePath(filepath);
+				projectHistory.addAuthorId(authorId);
+			}else {
+				ProjectHistory projectHistory = new ProjectHistory();
+				projectHistory.addHashkey(hashkey);
+				projectHistory.addFilePath(filepath);
+				projectHistory.addAuthorId(authorId);
+				projectHistories.put(commitTime, projectHistory);
+			}
 		}
 		return projectHistories;
 	}
@@ -132,12 +166,6 @@ public class DSmetricMain {
 		    					|| ref.getRefactoringType().equals(RefactoringType.MERGE_PACKAGE)) {
 //				    		System.out.println("|"+count+"|	Refactorings at " + commitId+"\n");
 //							System.out.println("	"+ref.toString()+"\n");
-//		    				try {
-//								buff.write(commitId++"\n");
-//							} catch (IOException e) {
-//								// TODO Auto-generated catch block
-//								e.printStackTrace();
-//							}
 		    				
 							refactoringCommit.add(commitId);
 				    	}
@@ -162,18 +190,24 @@ public class DSmetricMain {
 class ProjectHistory{
 	ArrayList<String> hashkeys = null;
 	ArrayList<String> filePath = null;
+	ArrayList<String> authorIds = null;
 	
 	ProjectHistory(){
 		this.hashkeys = new ArrayList<>();
 		this.filePath = new ArrayList<>();
+		this.authorIds = new ArrayList<>();
 	}
 	
-	protected void addHashkeys(String hashkey) {
+	protected void addHashkey(String hashkey) {
 		this.hashkeys.add(hashkey);
 	}
 	
 	protected void addFilePath(String filepath) {
 		this.filePath.add(filepath);
+	}
+	
+	protected void addAuthorId(String authorId) {
+		this.authorIds.add(authorId);
 	}
 
 	protected ArrayList<String> getHashkeys() {
@@ -191,5 +225,14 @@ class ProjectHistory{
 	protected void setFilePath(ArrayList<String> filePath) {
 		this.filePath = filePath;
 	}
+
+	protected ArrayList<String> getAuthorIds() {
+		return authorIds;
+	}
+
+	protected void setAuthorIds(ArrayList<String> authorIds) {
+		this.authorIds = authorIds;
+	}
+	
 	
 }
