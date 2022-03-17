@@ -10,9 +10,13 @@ import java.io.Reader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -61,27 +65,52 @@ public class DSmetricMain {
 		TreeMap<Date,ProjectHistory> projectHistories = saveProjectHistoryInformation(records,refactoringCommit,time_refactoringCommit);
 		
 		//calculate developer scattering metric
-		Date startCommitTime = projectHistories.firstKey();
-		Date endCommitTime = projectHistories.lastKey();
+		TreeMap<Date,Date> start_endCommittime = startAndEndCommittimeOfRefactoring(time_refactoringCommit,projectHistories);
 		
-		System.out.println((startCommitTime.before(endCommitTime)));
-		System.out.println((endCommitTime.after(startCommitTime)));
+
 		
-		Iterator<Date> dates = time_refactoringCommit.keySet().iterator(); 
-		while (true){ 
-			
-			Date commitTime = dates.next();
-	
-			if(dates.hasNext()) {
-				
-			}else {
-				break;
-			}
-		}
 
 //		for(Date commitTime : time_refactoringCommit.keySet()) {
 //			
 //		}
+	}
+
+	private static TreeMap<Date,Date> startAndEndCommittimeOfRefactoring(
+			TreeMap<Date, ArrayList<String>> time_refactoringCommit, TreeMap<Date, ProjectHistory> projectHistories) {
+		TreeSet<Date> startNendCommittime = new TreeSet<>();
+		
+		startNendCommittime.add(projectHistories.firstKey());
+		startNendCommittime.add(projectHistories.lastKey());
+		
+		for(Date key : time_refactoringCommit.keySet()) {
+			startNendCommittime.add(key);
+		}
+		
+		TreeMap<Date,Date> start_endCommittime = new TreeMap<>();
+		Iterator<Date> times = startNendCommittime.iterator();
+		Date[] keys = projectHistories.keySet().toArray(new Date[projectHistories.size()]);
+		
+		Date startTime = times.next();
+		Date endTime = null;
+		
+		while(true) {
+			if(times.hasNext()) {
+				endTime = times.next();
+			}else {
+				break;
+			}
+			
+			//subtraction millisecond in endtime
+			int indexOfEndtime = Arrays.asList(keys).indexOf(endTime);
+			if(indexOfEndtime-1 > 0) {
+				endTime = keys[indexOfEndtime-1];
+			}
+			start_endCommittime.put(startTime, endTime);
+			
+			startTime = endTime;
+		}
+		
+		return start_endCommittime;
 	}
 
 	private static TreeMap<Date, ProjectHistory> saveProjectHistoryInformation(Iterable<CSVRecord> records, TreeSet<String> refactoringCommit, TreeMap<Date, ArrayList<String>> time_refactoringCommit) throws ParseException {
