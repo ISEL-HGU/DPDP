@@ -77,7 +77,7 @@ public class DSmetricMain {
 			
 			System.out.println("Time from  "+startCommitTime+"  to  "+endCommitTime);
 
-			//calculate the structural developer metric
+			//calculate the structural metric
 			for(String authorId : authorID_filePaths.keySet()) {
 				TreeSet<String> filePaths = authorID_filePaths.get(authorId);
 				
@@ -85,16 +85,20 @@ public class DSmetricMain {
 				if(filePaths.size() < 2) {
 					
 				}else {
+					//split file path according to "/"
+					ArrayList<String[]> splitPaths = new ArrayList<>();
 					for(String filePath : filePaths) {
-						String[] splitPaths = filePath.split("-");
-						for(String splitPath : splitPaths) System.out.print(splitPath+" ");
-						System.out.println();
+						String[] split = filePath.split("-");
+						splitPaths.add(split);
 					}
 					
+					//calculate combination of structural metric
 					int theNumberOfFiles = filePaths.size();
 					int combination = calculateCombination(theNumberOfFiles);
 					float normalization = (float)((float)theNumberOfFiles/(float)combination);
 					int[][] caseOfCombination = saveCombinationSet(theNumberOfFiles,combination);
+					
+					//calculate the depth of two filePath
 
 				    System.exit(0);
 				}
