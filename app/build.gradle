@@ -51,4 +51,6 @@ dependencies {
 	// https://mvnrepository.com/artifact/com.github.tsantalis/refactoring-miner
 	implementation group: 'com.github.tsantalis', name: 'refactoring-miner', version: '2.2.0'
 	
+	// https://mvnrepository.com/artifact/org.apache.commons/commons-math3
+	implementation group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'	
 }

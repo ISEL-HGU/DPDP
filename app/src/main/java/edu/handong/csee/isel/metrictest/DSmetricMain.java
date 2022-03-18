@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,8 @@ import java.util.TreeSet;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.math3.util.Combinations;
+import org.apache.commons.math3.util.CombinatoricsUtils;
 import org.eclipse.jgit.lib.Repository;
 import org.refactoringminer.api.GitHistoryRefactoringMiner;
 import org.refactoringminer.api.GitService;
@@ -31,6 +34,8 @@ import org.refactoringminer.api.RefactoringHandler;
 import org.refactoringminer.api.RefactoringType;
 import org.refactoringminer.rm1.GitHistoryRefactoringMinerImpl;
 import org.refactoringminer.util.GitServiceImpl;
+
+import com.google.common.collect.Iterators;
 
 public class DSmetricMain {
 
@@ -65,17 +70,92 @@ public class DSmetricMain {
 		TreeMap<Date,ProjectHistory> projectHistories = saveProjectHistoryInformation(records,refactoringCommit,time_refactoringCommit);
 		
 		//calculate developer scattering metric
-		TreeMap<Date,Date> start_endCommittime = startAndEndCommittimeOfRefactoring(time_refactoringCommit,projectHistories);
+		TreeMap<Date,Date> start_endCommittime = saveStartAndEndCommittimeOfRefactoring(time_refactoringCommit,projectHistories);
 		
+		start_endCommittime.forEach((startCommitTime, endCommitTime) -> {
+			HashMap<String, TreeSet<String>> authorID_filePaths = saveAuthorIdAndFilePathsInTheCurrentPeriod(startCommitTime,endCommitTime,projectHistories);
+			
+			System.out.println("Time from  "+startCommitTime+"  to  "+endCommitTime);
 
-		
+			//calculate the structural developer metric
+			for(String authorId : authorID_filePaths.keySet()) {
+				TreeSet<String> filePaths = authorID_filePaths.get(authorId);
+				
+				//if the developer modified one file or less
+				if(filePaths.size() < 2) {
+					
+				}else {
+					for(String filePath : filePaths) {
+						String[] splitPaths = filePath.split("-");
+						for(String splitPath : splitPaths) System.out.print(splitPath+" ");
+						System.out.println();
+					}
+					
+					int theNumberOfFiles = filePaths.size();
+					int combination = calculateCombination(theNumberOfFiles);
+					float normalization = (float)((float)theNumberOfFiles/(float)combination);
+					int[][] caseOfCombination = saveCombinationSet(theNumberOfFiles,combination);
 
-//		for(Date commitTime : time_refactoringCommit.keySet()) {
-//			
-//		}
+				    System.exit(0);
+				}
+				
+				System.out.println(authorId);
+				System.out.println(filePaths.size());
+				System.out.println();
+				System.exit(0);
+			}
+			System.exit(0);
+		});
 	}
 
-	private static TreeMap<Date,Date> startAndEndCommittimeOfRefactoring(
+	private static int[][] saveCombinationSet(int theNumberOfFiles, int combination) {
+		int[][] caseOfCombination = new int[combination][2];
+		Iterator<int[]> combinations = new Combinations(theNumberOfFiles, 2).iterator();
+	    int i = 0;
+	    while(combinations.hasNext()) {
+    		caseOfCombination[i][0] = combinations.next()[0];
+    		caseOfCombination[i][1] = combinations.next()[0];
+	    	i++;
+	    }
+		return caseOfCombination;
+	}
+
+	private static int calculateCombination(int theNumberOfFiles) {
+		Iterator<int[]> caseOfCombination = new Combinations(theNumberOfFiles, 2).iterator();
+		return Iterators.size(caseOfCombination);
+	}
+
+	private static HashMap<String, TreeSet<String>> saveAuthorIdAndFilePathsInTheCurrentPeriod(Date startCommitTime,
+			Date endCommitTime, TreeMap<Date, ProjectHistory> projectHistories) {
+		HashMap<String, TreeSet<String>> authorID_filePaths = new HashMap<>();
+		
+		for(Date commitTime : projectHistories.keySet()) {
+			if( startCommitTime.after(commitTime) || startCommitTime.equals(commitTime) 
+					||endCommitTime.before(commitTime) || commitTime.equals(commitTime)) {
+				ProjectHistory projectHistory = projectHistories.get(commitTime);
+				ArrayList<String> authorIds = projectHistory.getAuthorIds();
+				ArrayList<String> filePaths = projectHistory.getFilePath();
+				
+				for(int i = 0; i < authorIds.size(); i++) {
+					String authorId = authorIds.get(i);
+					String filePath = filePaths.get(i);
+					
+					if(authorID_filePaths.containsKey(authorId)) {
+						TreeSet<String> files = authorID_filePaths.get(authorId);
+						files.add(filePath);
+					}else {
+						TreeSet<String> files = new TreeSet<>();
+						files.add(filePath);
+						authorID_filePaths.put(authorId, files);
+					}
+				}
+			}
+		}
+		
+		return authorID_filePaths;
+	}
+
+	private static TreeMap<Date,Date> saveStartAndEndCommittimeOfRefactoring(
 			TreeMap<Date, ArrayList<String>> time_refactoringCommit, TreeMap<Date, ProjectHistory> projectHistories) {
 		TreeSet<Date> startNendCommittime = new TreeSet<>();
 		
@@ -195,7 +275,6 @@ public class DSmetricMain {
 		    					|| ref.getRefactoringType().equals(RefactoringType.MERGE_PACKAGE)) {
 //				    		System.out.println("|"+count+"|	Refactorings at " + commitId+"\n");
 //							System.out.println("	"+ref.toString()+"\n");
-		    				
 							refactoringCommit.add(commitId);
 				    	}
 				    }
