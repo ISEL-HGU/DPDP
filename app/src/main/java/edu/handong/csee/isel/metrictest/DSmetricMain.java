@@ -48,7 +48,7 @@ public class DSmetricMain {
 		String projectName = setProjectName(input);
 		
 		//parsing refactoring commit
-		boolean test = false;
+		boolean test = true;
 		TreeSet<String> refactoringCommit = null;
 		
 		if(test == true) {
@@ -70,9 +70,10 @@ public class DSmetricMain {
 		TreeMap<Date,ProjectHistory> projectHistories = saveProjectHistoryInformation(records,refactoringCommit,time_refactoringCommit);
 		
 		//calculate developer scattering metric
-		TreeMap<Date,Date> start_endCommittime = saveStartAndEndCommittimeOfRefactoring(time_refactoringCommit,projectHistories);
+		TreeMap<Date,Date> windows = saveStartAndEndCommittimeOfRefactoring(time_refactoringCommit,projectHistories);
 		
-		start_endCommittime.forEach((startCommitTime, endCommitTime) -> {
+		windows.forEach((startCommitTime, endCommitTime) -> {
+			//1) find file names that each developer modified in specified period
 			HashMap<String, TreeSet<String>> authorID_filePaths = saveAuthorIdAndFilePathsInTheCurrentPeriod(startCommitTime,endCommitTime,projectHistories);
 			
 			System.out.println("Time from  "+startCommitTime+"  to  "+endCommitTime);
@@ -80,25 +81,30 @@ public class DSmetricMain {
 			for(String authorId : authorID_filePaths.keySet()) {
 				TreeSet<String> filePaths = authorID_filePaths.get(authorId);
 				
-				//find file names that each developer modified
-				
-				if(filePaths.size() < 2) {//if the developer modified one file or less
+				if(filePaths.size() < 2) {//1)-1 if the developer modified one file or less
 					
-				}else {
-					//split file path according to "/"
+				}else {//1)-2 more than 2 files developer
+					
+					//1)-3 preprocess file name - split file path according to "/"
 					ArrayList<String[]> splitPaths = new ArrayList<>();
 					for(String filePath : filePaths) {
 						String[] split = filePath.split("-");
 						splitPaths.add(split);
 					}
 					
-					//calculate combination of developer scattering metric
+					//2) calculate combination of files 
 					int theNumberOfFiles = filePaths.size();
 					int combination = calculateCombination(theNumberOfFiles);
 					float normalization = (float)((float)theNumberOfFiles/(float)combination);
 					int[][] caseOfCombination = saveCombinationSet(theNumberOfFiles,combination);
 					
-					//calculate the depth of two filePath
+					
+					//2) calculate the structural scattering
+					
+					//2)-1 calculate the depth of two filePath
+					
+					//3) calculate the semantic scattering
+					
 				    System.exit(0);
 				}
 				
