@@ -8,8 +8,5 @@ public class TestClass {
 	protected String getTestClass() {
 		return testClass;
 	}
-	protected void setTestClass(String testClass) {
-		this.testClass = testClass;
-	}
 	
 }
