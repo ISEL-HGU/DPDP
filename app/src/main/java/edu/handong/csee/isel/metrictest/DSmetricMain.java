@@ -48,7 +48,7 @@ public class DSmetricMain {
 		String projectName = setProjectName(input);
 		
 		//parsing refactoring commit
-		boolean test = true;
+		boolean test = false;
 		TreeSet<String> refactoringCommit = null;
 		
 		if(test == true) {
@@ -77,12 +77,12 @@ public class DSmetricMain {
 			
 			System.out.println("Time from  "+startCommitTime+"  to  "+endCommitTime);
 
-			//calculate the structural metric
 			for(String authorId : authorID_filePaths.keySet()) {
 				TreeSet<String> filePaths = authorID_filePaths.get(authorId);
 				
-				//if the developer modified one file or less
-				if(filePaths.size() < 2) {
+				//find file names that each developer modified
+				
+				if(filePaths.size() < 2) {//if the developer modified one file or less
 					
 				}else {
 					//split file path according to "/"
@@ -92,14 +92,13 @@ public class DSmetricMain {
 						splitPaths.add(split);
 					}
 					
-					//calculate combination of structural metric
+					//calculate combination of developer scattering metric
 					int theNumberOfFiles = filePaths.size();
 					int combination = calculateCombination(theNumberOfFiles);
 					float normalization = (float)((float)theNumberOfFiles/(float)combination);
 					int[][] caseOfCombination = saveCombinationSet(theNumberOfFiles,combination);
 					
 					//calculate the depth of two filePath
-
 				    System.exit(0);
 				}
 				
@@ -271,14 +270,14 @@ public class DSmetricMain {
 				    
 				    for (Refactoring ref : refactorings) {
 		    			if(ref.getRefactoringType().equals(RefactoringType.RENAME_PACKAGE) 
-		    					|| ref.getRefactoringType().equals(RefactoringType.MOVE_CLASS)
-		    					|| ref.getRefactoringType().equals(RefactoringType.MOVE_RENAME_CLASS) 
-		    					|| ref.getRefactoringType().equals(RefactoringType.MOVE_SOURCE_FOLDER)
-		    					|| ref.getRefactoringType().equals(RefactoringType.MOVE_PACKAGE) 
-		    					|| ref.getRefactoringType().equals(RefactoringType.SPLIT_PACKAGE)
-		    					|| ref.getRefactoringType().equals(RefactoringType.MERGE_PACKAGE)) {
-//				    		System.out.println("|"+count+"|	Refactorings at " + commitId+"\n");
-//							System.out.println("	"+ref.toString()+"\n");
+	    					|| ref.getRefactoringType().equals(RefactoringType.MOVE_CLASS)
+	    					|| ref.getRefactoringType().equals(RefactoringType.MOVE_RENAME_CLASS) 
+	    					|| ref.getRefactoringType().equals(RefactoringType.MOVE_SOURCE_FOLDER)
+	    					|| ref.getRefactoringType().equals(RefactoringType.MOVE_PACKAGE) 
+	    					|| ref.getRefactoringType().equals(RefactoringType.SPLIT_PACKAGE)
+	    					|| ref.getRefactoringType().equals(RefactoringType.MERGE_PACKAGE)) {
+//		    				System.out.println("||	Refactorings at " + commitId+"\n");
+//							System.out.println("	"+ref.toJSON()+"\n");
 							refactoringCommit.add(commitId);
 				    	}
 				    }
