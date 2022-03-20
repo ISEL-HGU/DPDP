@@ -24,6 +24,7 @@ import java.util.TreeSet;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.util.Combinations;
 import org.apache.commons.math3.util.CombinatoricsUtils;
 import org.eclipse.jgit.lib.Repository;
@@ -71,14 +72,17 @@ public class DSmetricMain {
 		
 		//calculate developer scattering metric
 		TreeMap<Date,Date> windows = saveStartAndEndCommittimeOfRefactoring(time_refactoringCommit,projectHistories);
+		ArrayList<HashMap<String,DeveloperScatteringMetric>> developerScatteringMetrics = new ArrayList<>();
 		
 		windows.forEach((startCommitTime, endCommitTime) -> {
 			//1) find file names that each developer modified in specified period
 			HashMap<String, TreeSet<String>> authorID_filePaths = saveAuthorIdAndFilePathsInTheCurrentPeriod(startCommitTime,endCommitTime,projectHistories);
-			
 			System.out.println("Time from  "+startCommitTime+"  to  "+endCommitTime);
+			
+			HashMap<String,DeveloperScatteringMetric> developerScatteringMetric = new HashMap<>();
 
 			for(String authorId : authorID_filePaths.keySet()) {
+				DeveloperScatteringMetric scatteringMetric = new DeveloperScatteringMetric();
 				TreeSet<String> filePaths = authorID_filePaths.get(authorId);
 				
 				if(filePaths.size() < 2) {//1)-1 if the developer modified one file or less
@@ -97,13 +101,26 @@ public class DSmetricMain {
 					int combination = calculateCombination(theNumberOfFiles);
 					float normalization = (float)((float)theNumberOfFiles/(float)combination);
 					int[][] caseOfCombination = saveCombinationSet(theNumberOfFiles,combination);
+
+					//start cal structural&semantic
+					ArrayList<Integer> dists = new ArrayList<>();
+					ArrayList<Float> sims = new ArrayList<>();
 					
-					
-					//2) calculate the structural scattering
-					
-					//2)-1 calculate the depth of two filePath
-					
-					//3) calculate the semantic scattering
+					for(int i = 0; i < combination; i++) {
+						int file1Index = caseOfCombination[i][0];
+						int file2Index = caseOfCombination[i][1];
+						
+						System.out.println("file index : "+file1Index + " " + file2Index);
+						
+						String[] file1 = splitPaths.get(file1Index);
+						String[] file2 = splitPaths.get(file2Index);
+						
+						//2) calculate the structural scattering
+						//2)-1 calculate the dist of two filePath
+						int dist = calculateDistOfTwoFiles(file1,file2);
+						
+						//3) calculate the semantic scattering
+					}
 					
 				    System.exit(0);
 				}
@@ -115,6 +132,47 @@ public class DSmetricMain {
 			}
 			System.exit(0);
 		});
+	}
+
+	private static int calculateDistOfTwoFiles(String[] file1, String[] file2) {
+		ArrayList<String> dist = new ArrayList<>();
+		
+		for(String f1 : file1) System.out.print(f1+" ");
+		System.out.println();
+		for(String f2 : file2) System.out.print(f2+" ");
+		System.out.println();
+		
+		//remove class name
+		file1 = ArrayUtils.remove(file1, file1.length-1);
+		file2 = ArrayUtils.remove(file2, file2.length-1);
+		
+//		for(String f1 : file1) System.out.print(f1+" ");
+//		System.out.println();
+//		for(String f2 : file2) System.out.print(f2+" ");
+//		System.out.println();
+		
+		//compare two file path name (file.length - 1 : for excluding className)
+		int length = 0;
+		if(file1.length < file2.length) {
+			length = file1.length - 1;
+		}else {
+			length = file2.length - 1;
+		}
+		
+		//index of the last same path name
+		int lastIndex = 0;
+		for(int i = 0; i < length; i++) {
+			if(!file1[i].equals(file2[i])) {
+				lastIndex = i;
+				break;
+			}else {
+				lastIndex = length;
+			}
+		}
+		
+		System.out.println("lastIndex : " + lastIndex);
+		System.out.println();
+		return dist.size();
 	}
 
 	private static int[][] saveCombinationSet(int theNumberOfFiles, int combination) {
