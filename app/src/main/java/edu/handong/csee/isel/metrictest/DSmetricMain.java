@@ -137,10 +137,10 @@ public class DSmetricMain {
 	private static int calculateDistOfTwoFiles(String[] file1, String[] file2) {
 		ArrayList<String> dist = new ArrayList<>();
 		
-		for(String f1 : file1) System.out.print(f1+" ");
-		System.out.println();
-		for(String f2 : file2) System.out.print(f2+" ");
-		System.out.println();
+//		for(String f1 : file1) System.out.print(f1+" ");
+//		System.out.println();
+//		for(String f2 : file2) System.out.print(f2+" ");
+//		System.out.println();
 		
 		//remove class name
 		file1 = ArrayUtils.remove(file1, file1.length-1);
@@ -180,8 +180,9 @@ public class DSmetricMain {
 		Iterator<int[]> combinations = new Combinations(theNumberOfFiles, 2).iterator();
 	    int i = 0;
 	    while(combinations.hasNext()) {
-    		caseOfCombination[i][0] = combinations.next()[0];
-    		caseOfCombination[i][1] = combinations.next()[0];
+	    	int[] cases = combinations.next();
+    		caseOfCombination[i][0] = cases[0];
+    		caseOfCombination[i][1] = cases[1];
 	    	i++;
 	    }
 		return caseOfCombination;
