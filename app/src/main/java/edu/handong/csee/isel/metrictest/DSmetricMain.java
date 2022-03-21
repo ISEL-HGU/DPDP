@@ -41,6 +41,8 @@ import org.refactoringminer.util.GitServiceImpl;
 
 import com.google.common.collect.Iterators;
 
+import edu.handong.csee.isel.Utils;
+
 public class DSmetricMain {
 
 	public static void main(String[] args) throws Exception {
@@ -149,9 +151,14 @@ public class DSmetricMain {
 
 	private static float calSimularityOfTwoFiles(String[] file1, String[] file2, Date endCommitTime,
 			String repositoryPath, String endCommitHash) {
+		String filePath1 = originalFilePath(file1);
+		String filePath2 = originalFilePath(file2);
 		
+		System.out.println();
 		System.out.println(endCommitTime);
 		System.out.println(endCommitHash);
+		System.out.println(filePath1);
+		System.out.println(filePath2);
 		
 		String branchName = "ISEL-SUJIN-Time";
 		try {
@@ -162,10 +169,20 @@ public class DSmetricMain {
 					.setName(branchName)
 					.setStartPoint(endCommitHash)
 					.call();
+			Repository repo = git.getRepository();
+			//set source path
+			
+			String fileSource1 = Utils.fetchBlob(repo, endCommitHash, filePath1);
+			String fileSource2 = Utils.fetchBlob(repo, endCommitHash, filePath2);
+			System.out.println(fileSource1);
+			System.out.println(fileSource2);
+			
 			
 			//make the branch in endCommitTime
 			git.checkout().setName("master").call();
 			git.branchDelete().setBranchNames(branchName).call();
+			
+			System.out.println("remove branch");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -173,6 +190,14 @@ public class DSmetricMain {
 		
 		System.exit(0);
 		return 0;
+	}
+
+	private static String originalFilePath(String[] file) {
+		String filePath1 = file[0];
+		for(int i = 1; i < file.length; i++) {
+			filePath1 = filePath1 + File.separator + file[i];
+		}
+		return filePath1;
 	}
 
 	private static int sumAllDistInteger(ArrayList<Integer> dists) {
