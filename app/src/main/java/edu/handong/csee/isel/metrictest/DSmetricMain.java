@@ -118,9 +118,15 @@ public class DSmetricMain {
 						//2) calculate the structural scattering
 						//2)-1 calculate the dist of two filePath
 						int dist = calculateDistOfTwoFiles(file1,file2);
+						dists.add(dist);
 						
 						//3) calculate the semantic scattering
+						//3)-1 calculate the sim of two filePath
 					}
+					
+					int sumDist = sumAllDistInteger(dists);
+					float structural = (sumDist/(float)combination) * (float)theNumberOfFiles;
+					System.out.println(structural);
 					
 				    System.exit(0);
 				}
@@ -134,22 +140,22 @@ public class DSmetricMain {
 		});
 	}
 
+	private static int sumAllDistInteger(ArrayList<Integer> dists) {
+		int sumDist = dists.stream().mapToInt(i -> i.intValue()).sum();
+		return sumDist;
+	}
+
 	private static int calculateDistOfTwoFiles(String[] file1, String[] file2) {
 		ArrayList<String> dist = new ArrayList<>();
-		
-//		for(String f1 : file1) System.out.print(f1+" ");
-//		System.out.println();
-//		for(String f2 : file2) System.out.print(f2+" ");
-//		System.out.println();
 		
 		//remove class name (file.length - 1 : for excluding className)
 		file1 = ArrayUtils.remove(file1, file1.length-1);
 		file2 = ArrayUtils.remove(file2, file2.length-1);
 		
-		for(String f1 : file1) System.out.print(f1+" ");
-		System.out.println();
-		for(String f2 : file2) System.out.print(f2+" ");
-		System.out.println();
+//		for(String f1 : file1) System.out.print(f1+" ");
+//		System.out.println();
+//		for(String f2 : file2) System.out.print(f2+" ");
+//		System.out.println();
 		
 		//compare two file path name
 		int length = 0;
@@ -170,13 +176,13 @@ public class DSmetricMain {
 			}
 		}
 		
-		System.out.println("lastIndex : " + lastIndex);
+//		System.out.println("lastIndex : " + lastIndex);
 		
 		for(int i = lastIndex; i < file1.length; i++) dist.add(file1[i]);
 		for(int i = lastIndex; i < file2.length; i++) dist.add(file2[i]);
 		
-		System.out.println("dist" + dist);
-		System.out.println();
+//		System.out.println("dist" + dist);
+//		System.out.println();
 		return dist.size();
 	}
 
