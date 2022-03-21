@@ -160,25 +160,23 @@ public class DSmetricMain {
 		System.out.println(filePath1);
 		System.out.println(filePath2);
 		
-		String branchName = "ISEL-SUJIN-Time";
+		String branchName = "ISEL-SUJIN-DSmetric";
 		try {
 			Git git = Git.open(new File("/Users/yangsujin/Desktop/reference/repositories/ranger"));
-			//make the branch in endCommitTime
-			Ref checkoutRef = git.checkout()
-					.setCreateBranch(true)
-					.setName(branchName)
-					.setStartPoint(endCommitHash)
-					.call();
-			Repository repo = git.getRepository();
-			//set source path
 			
+			//make the branch in endCommitTime
+			git.checkout().setCreateBranch(true).setName(branchName).setStartPoint(endCommitHash).call();
+			
+			//get endCommitTime repository
+			Repository repo = git.getRepository();
+			
+			//get original source code
 			String fileSource1 = Utils.fetchBlob(repo, endCommitHash, filePath1);
 			String fileSource2 = Utils.fetchBlob(repo, endCommitHash, filePath2);
 			System.out.println(fileSource1);
 			System.out.println(fileSource2);
 			
-			
-			//make the branch in endCommitTime
+			//delete the branch in endCommitTime
 			git.checkout().setName("master").call();
 			git.branchDelete().setBranchNames(branchName).call();
 			
