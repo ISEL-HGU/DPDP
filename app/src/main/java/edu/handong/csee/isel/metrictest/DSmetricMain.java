@@ -142,23 +142,23 @@ public class DSmetricMain {
 //		for(String f2 : file2) System.out.print(f2+" ");
 //		System.out.println();
 		
-		//remove class name
+		//remove class name (file.length - 1 : for excluding className)
 		file1 = ArrayUtils.remove(file1, file1.length-1);
 		file2 = ArrayUtils.remove(file2, file2.length-1);
 		
-//		for(String f1 : file1) System.out.print(f1+" ");
-//		System.out.println();
-//		for(String f2 : file2) System.out.print(f2+" ");
-//		System.out.println();
+		for(String f1 : file1) System.out.print(f1+" ");
+		System.out.println();
+		for(String f2 : file2) System.out.print(f2+" ");
+		System.out.println();
 		
-		//compare two file path name (file.length - 1 : for excluding className)
+		//compare two file path name
 		int length = 0;
 		if(file1.length < file2.length) {
-			length = file1.length - 1;
+			length = file1.length;
 		}else {
-			length = file2.length - 1;
+			length = file2.length;
 		}
-		
+	
 		//index of the last same path name
 		int lastIndex = 0;
 		for(int i = 0; i < length; i++) {
@@ -166,11 +166,16 @@ public class DSmetricMain {
 				lastIndex = i;
 				break;
 			}else {
-				lastIndex = length;
+				lastIndex = length+1;
 			}
 		}
 		
 		System.out.println("lastIndex : " + lastIndex);
+		
+		for(int i = lastIndex; i < file1.length; i++) dist.add(file1[i]);
+		for(int i = lastIndex; i < file2.length; i++) dist.add(file2[i]);
+		
+		System.out.println("dist" + dist);
 		System.out.println();
 		return dist.size();
 	}
