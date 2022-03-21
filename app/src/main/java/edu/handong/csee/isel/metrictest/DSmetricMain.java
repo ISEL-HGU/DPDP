@@ -27,7 +27,10 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.util.Combinations;
 import org.apache.commons.math3.util.CombinatoricsUtils;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.refactoringminer.api.GitHistoryRefactoringMiner;
 import org.refactoringminer.api.GitService;
 import org.refactoringminer.api.Refactoring;
@@ -74,12 +77,14 @@ public class DSmetricMain {
 		TreeMap<Date,Date> windows = saveStartAndEndCommittimeOfRefactoring(time_refactoringCommit,projectHistories);
 		ArrayList<HashMap<String,DeveloperScatteringMetric>> developerScatteringMetrics = new ArrayList<>();
 		
+//		developerScatteringMetrics 
 		windows.forEach((startCommitTime, endCommitTime) -> {
+			HashMap<String,DeveloperScatteringMetric> developerScatteringMetric = new HashMap<>();
+			String endCommitHash = projectHistories.get(endCommitTime).getHashkeys().get(0); // 같은 commitTime에 중복되는 commitHash가 없는지 확인하기! 일단 첫번째 index의 commitHash만 사용 
+
 			//1) find file names that each developer modified in specified period
 			HashMap<String, TreeSet<String>> authorID_filePaths = saveAuthorIdAndFilePathsInTheCurrentPeriod(startCommitTime,endCommitTime,projectHistories);
 			System.out.println("Time from  "+startCommitTime+"  to  "+endCommitTime);
-			
-			HashMap<String,DeveloperScatteringMetric> developerScatteringMetric = new HashMap<>();
 
 			for(String authorId : authorID_filePaths.keySet()) {
 				DeveloperScatteringMetric scatteringMetric = new DeveloperScatteringMetric();
@@ -121,11 +126,13 @@ public class DSmetricMain {
 						dists.add(dist);
 						
 						//3) calculate the semantic scattering
-						//3)-1 calculate the sim of two filePath
+						//3)-1 calculate the similarity of two filePath
+						float sim = calSimularityOfTwoFiles(file1,file2,endCommitTime,repositoryPath,endCommitHash);
+						
 					}
 					
 					int sumDist = sumAllDistInteger(dists);
-					float structural = (sumDist/(float)combination) * (float)theNumberOfFiles;
+					float structural = normalization * sumDist;
 					System.out.println(structural);
 					
 				    System.exit(0);
@@ -138,6 +145,34 @@ public class DSmetricMain {
 			}
 			System.exit(0);
 		});
+	}
+
+	private static float calSimularityOfTwoFiles(String[] file1, String[] file2, Date endCommitTime,
+			String repositoryPath, String endCommitHash) {
+		
+		System.out.println(endCommitTime);
+		System.out.println(endCommitHash);
+		
+		String branchName = "ISEL-SUJIN-Time";
+		try {
+			Git git = Git.open(new File("/Users/yangsujin/Desktop/reference/repositories/ranger"));
+			//make the branch in endCommitTime
+			Ref checkoutRef = git.checkout()
+					.setCreateBranch(true)
+					.setName(branchName)
+					.setStartPoint(endCommitHash)
+					.call();
+			
+			//make the branch in endCommitTime
+			git.checkout().setName("master").call();
+			git.branchDelete().setBranchNames(branchName).call();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		System.exit(0);
+		return 0;
 	}
 
 	private static int sumAllDistInteger(ArrayList<Integer> dists) {
@@ -258,14 +293,12 @@ public class DSmetricMain {
 			}else {
 				break;
 			}
-			
-			//subtraction millisecond in endtime
+
 			int indexOfEndtime = Arrays.asList(keys).indexOf(endTime);
 			if(indexOfEndtime-1 > 0) {
 				endTime = keys[indexOfEndtime-1];
 			}
 			start_endCommittime.put(startTime, endTime);
-			
 			startTime = endTime;
 		}
 		
@@ -277,7 +310,7 @@ public class DSmetricMain {
 		
 		for(CSVRecord record : records) {
 			String key = record.get("Key");
-			Date commitTime = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss").parse(record.get("meta_data-commitTime"));
+			Date commitTime = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse(record.get("meta_data-commitTime"));
 			String authorId = record.get("AuthorID");
 			String hashkey = key.substring(0,key.indexOf("-"));
 			String filepath = key.substring(key.indexOf("-")+1,key.length());
