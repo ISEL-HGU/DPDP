@@ -268,7 +268,7 @@ public class DSmetricMain {
 		
 		for(Date commitTime : projectHistories.keySet()) {
 			if( startCommitTime.after(commitTime) || startCommitTime.equals(commitTime) 
-					||endCommitTime.before(commitTime) || commitTime.equals(commitTime)) {
+					||endCommitTime.before(commitTime) || endCommitTime.equals(commitTime)) {
 				ProjectHistory projectHistory = projectHistories.get(commitTime);
 				ArrayList<String> authorIds = projectHistory.getAuthorIds();
 				ArrayList<String> filePaths = projectHistory.getFilePath();
