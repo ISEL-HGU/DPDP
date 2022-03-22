@@ -99,7 +99,7 @@ public class DSmetricMain {
 					//1)-3 preprocess file name - split file path according to "/"
 					ArrayList<String[]> splitPaths = new ArrayList<>();
 					for(String filePath : filePaths) {
-						String[] split = filePath.split("-");
+						String[] split = filePath.split(File.separator);
 						splitPaths.add(split);
 					}
 					
@@ -336,7 +336,7 @@ public class DSmetricMain {
 			Date commitTime = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse(record.get("meta_data-commitTime"));
 			String authorId = record.get("AuthorID");
 			String hashkey = key.substring(0,key.indexOf("-"));
-			String filepath = key.substring(key.indexOf("-")+1,key.length());
+			String filepath = rollbackPathName(key.substring(key.indexOf("-")+1,key.length()));
 			
 			//save refactoring Commit time
 			if(refactoringCommit.contains(hashkey)) {
@@ -365,6 +365,16 @@ public class DSmetricMain {
 			}
 		}
 		return projectHistories;
+	}
+	
+	private static String rollbackPathName(String name) {
+		if (name.contains("ISUJIN")) {
+			name = name.replace("ISUJIN", ":");
+		}
+		if (name.contains(":")) {
+			name = name.replace(":", File.separator);
+		}
+		return name;
 	}
 
 	private static TreeSet<String> readTxtFileForTest(String repositoryPath) {
