@@ -1,11 +1,15 @@
 package edu.handong.csee.isel.metrictest;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -23,6 +27,9 @@ import java.util.TreeSet;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.exec.CommandLine;
+import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.util.Combinations;
@@ -47,7 +54,6 @@ public class DSmetricMain {
 
 	public static void main(String[] args) throws Exception {
 		long beforeTime = System.currentTimeMillis();
-		
 		
 		String input = "/Users/yangsujin/Documents/DPDP/ranger-reference/ranger_Label.csv";
 		String repositoryPath = "tmp/ranger_result_Name.txt";
@@ -129,7 +135,7 @@ public class DSmetricMain {
 						
 						//3) calculate the semantic scattering
 						//3)-1 calculate the similarity of two filePath
-						float sim = calSimularityOfTwoFiles(file1,file2,endCommitTime,repositoryPath,endCommitHash);
+						float sim = calSimularityOfTwoFiles(file1,file2,endCommitTime,repositoryPath,endCommitHash,projectHistories);
 						
 					}
 					
@@ -148,9 +154,25 @@ public class DSmetricMain {
 			System.exit(0);
 		});
 	}
+	
+	private static String output(InputStream inputStream) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        BufferedReader br = null;
+        try {
+            br = new BufferedReader(new InputStreamReader(inputStream));
+            String line = null;
+            while ((line = br.readLine()) != null) {
+                sb.append(line + System.getProperty("line.separator"));
+            }
+        } finally {
+            br.close();
+        }
+        return sb.toString();
+    }
 
 	private static float calSimularityOfTwoFiles(String[] file1, String[] file2, Date endCommitTime,
-			String repositoryPath, String endCommitHash) {
+			String repositoryPath, String endCommitHash, TreeMap<Date, ProjectHistory> projectHistories) {
+		float simScore = 0;
 		String filePath1 = originalFilePath(file1);
 		String filePath2 = originalFilePath(file2);
 		
@@ -173,8 +195,16 @@ public class DSmetricMain {
 			//get original source code
 			String fileSource1 = Utils.fetchBlob(repo, endCommitHash, filePath1);
 			String fileSource2 = Utils.fetchBlob(repo, endCommitHash, filePath2);
+			
+			
 			System.out.println(fileSource1);
 			System.out.println(fileSource2);
+			
+			//calculate the tf-idf value
+			ProcessBuilder builder = new ProcessBuilder("/Users/yangsujin/opt/anaconda3/bin/python3","/Users/yangsujin/Documents/git/DPDP/app/semantic.py","hihi","jiji");
+			builder.redirectErrorStream(true);
+			Process process = builder.start();
+			simScore = Integer.parseInt(output(process.getInputStream()));
 			
 			//delete the branch in endCommitTime
 			git.checkout().setName("master").call();
@@ -187,7 +217,7 @@ public class DSmetricMain {
 		}
 		
 		System.exit(0);
-		return 0;
+		return simScore;
 	}
 
 	private static String originalFilePath(String[] file) {
