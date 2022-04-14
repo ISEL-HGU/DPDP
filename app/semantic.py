@@ -34,8 +34,8 @@ if __name__ == "__main__":
     file1 = load_text_data(sys.argv[1])
     file2 = load_text_data(sys.argv[2])
 
-    camel = camel_case_split(file_1)
-    came2 = camel_case_split(file_2)
+    camel = camel_case_split(file1)
+    came2 = camel_case_split(file2)
     merge_code = camel + came2
 
     tfidf_vectorizer = TfidfVectorizer(lowercase = False, analyzer=stemmed_words)

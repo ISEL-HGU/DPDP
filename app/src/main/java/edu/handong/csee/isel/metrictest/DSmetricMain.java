@@ -35,6 +35,8 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.util.Combinations;
 import org.apache.commons.math3.util.CombinatoricsUtils;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.NoHeadException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -57,6 +59,8 @@ public class DSmetricMain {
 		
 		String input = "/Users/yangsujin/Documents/DPDP/ranger-reference/ranger_Label.csv";
 		String repositoryPath = "tmp/ranger_result_Name.txt";
+		Git git = Git.open(new File("/Users/yangsujin/Desktop/reference/repositories/ranger"));
+		ArrayList<String> commitHashs = getCommitHashs(git);
 		String projectName = setProjectName(input);
 		
 		//parsing refactoring commit
@@ -95,11 +99,18 @@ public class DSmetricMain {
 			System.out.println("Time from  "+startCommitTime+"  to  "+endCommitTime);
 
 			for(String authorId : authorID_filePaths.keySet()) {
+				System.out.println("authorId : "+authorId+"------------------------------------------------------------------------------------------------------------");
 				DeveloperScatteringMetric scatteringMetric = new DeveloperScatteringMetric();
+				scatteringMetric.setAuthorId(authorId);
 				TreeSet<String> filePaths = authorID_filePaths.get(authorId);
 				
 				if(filePaths.size() < 2) {//1)-1 if the developer modified one file or less
-					
+					scatteringMetric.setStructuralScattering(0);
+					scatteringMetric.setSemanticScattering(0);
+					System.out.println("!!!!less than one file!!");
+					System.out.println("Skip");
+					System.out.println();
+					System.out.println();
 				}else {//1)-2 more than 2 files developer
 					
 					//1)-3 preprocess file name - split file path according to "/"
@@ -123,7 +134,7 @@ public class DSmetricMain {
 						int file1Index = caseOfCombination[i][0];
 						int file2Index = caseOfCombination[i][1];
 						
-						System.out.println("file index : "+file1Index + " " + file2Index);
+						System.out.println("\nfile index : "+file1Index + " " + file2Index);
 						
 						String[] file1 = splitPaths.get(file1Index);
 						String[] file2 = splitPaths.get(file2Index);
@@ -135,24 +146,36 @@ public class DSmetricMain {
 						
 						//3) calculate the semantic scattering
 						//3)-1 calculate the similarity of two filePath
-						float sim = calSimularityOfTwoFiles(file1,file2,endCommitTime,repositoryPath,endCommitHash,projectHistories);
-						
+						float sim = calSimularityOfTwoFiles(file1,file2,endCommitTime,repositoryPath,endCommitHash,projectHistories,git,commitHashs);
+						sims.add(sim);
 					}
 					
+					//normalize structural
 					int sumDist = sumAllDistInteger(dists);
 					float structural = normalization * sumDist;
-					System.out.println(structural);
 					
-				    System.exit(0);
+					//normalize semantic
+					
+					
+					//save the scattering metric result
+					scatteringMetric.setStructuralScattering(structural);
+//					scatteringMetric.setSemanticScattering(0);
+					System.out.println(structural);
 				}
 				
-				System.out.println(authorId);
-				System.out.println(filePaths.size());
+				developerScatteringMetric.put(authorId, scatteringMetric);
 				System.out.println();
-				System.exit(0);
 			}
-			System.exit(0);
 		});
+	}
+	
+	private static ArrayList<String> getCommitHashs(Git git) throws Exception {
+		ArrayList<String> commitHashs = new ArrayList<>();
+		Iterable<RevCommit> commits = git.log().all().call(); 
+		commits.forEach((commit) -> {
+			commitHashs.add(commit.getId().name());
+		});
+		return commitHashs;
 	}
 	
 	private static String output(InputStream inputStream) throws IOException {
@@ -171,24 +194,20 @@ public class DSmetricMain {
     }
 
 	private static float calSimularityOfTwoFiles(String[] file1, String[] file2, Date endCommitTime,
-			String repositoryPath, String endCommitHash, TreeMap<Date, ProjectHistory> projectHistories) {
+			String repositoryPath, String endCommitHash, TreeMap<Date, ProjectHistory> projectHistories, Git git, ArrayList<String> commitHashs) {
 		float simScore = 0;
 		String filePath1 = originalFilePath(file1);
 		String filePath2 = originalFilePath(file2);
-		
-		System.out.println();
-		System.out.println(endCommitTime);
-		System.out.println(endCommitHash);
+		String tempFile1 = "./1.txt";
+		String tempFile2 = "./2.txt";
+
+		System.out.println("endCommitTime : "+endCommitTime);
+		System.out.println("endCommitHash : "+endCommitHash);
 		System.out.println(filePath1);
 		System.out.println(filePath2);
+		System.out.println("Start calculate similarity");
 		
-		String branchName = "ISEL-SUJIN-DSmetric";
 		try {
-			Git git = Git.open(new File("/Users/yangsujin/Desktop/reference/repositories/ranger"));
-			
-			//make the branch in endCommitTime
-			git.checkout().setCreateBranch(true).setName(branchName).setStartPoint(endCommitHash).call();
-			
 			//get endCommitTime repository
 			Repository repo = git.getRepository();
 			
@@ -196,28 +215,67 @@ public class DSmetricMain {
 			String fileSource1 = Utils.fetchBlob(repo, endCommitHash, filePath1);
 			String fileSource2 = Utils.fetchBlob(repo, endCommitHash, filePath2);
 			
+			if(fileSource1.length() < 1) {
+				String nowCommitHash = getPreviousCommitHash(commitHashs,endCommitHash);
+				while(true) {
+					fileSource1 = Utils.fetchBlob(repo, nowCommitHash, filePath1);
+					if(fileSource1.length() >= 1) {
+						break;
+					}else {
+						nowCommitHash = getPreviousCommitHash(commitHashs,nowCommitHash);
+					}
+				}
+			} 
 			
-			System.out.println(fileSource1);
-			System.out.println(fileSource2);
+			if(fileSource2.length() < 1) {
+				String nowCommitHash = getPreviousCommitHash(commitHashs,endCommitHash);
+				while(true) {
+					fileSource2 = Utils.fetchBlob(repo, nowCommitHash, filePath2);
+					if(fileSource2.length() >= 1) {
+						break;
+					}else {
+						nowCommitHash = getPreviousCommitHash(commitHashs,nowCommitHash);
+					}
+				}
+			}
+			
+			//make temp txt file
+			writeTxtFile(fileSource1,tempFile1);
+			writeTxtFile(fileSource2,tempFile2);
 			
 			//calculate the tf-idf value
-			ProcessBuilder builder = new ProcessBuilder("/Users/yangsujin/opt/anaconda3/bin/python3","/Users/yangsujin/Documents/git/DPDP/app/semantic.py","hihi","jiji");
+			ProcessBuilder builder = new ProcessBuilder("/Users/yangsujin/opt/anaconda3/bin/python3","/Users/yangsujin/Documents/git/DPDP/app/semantic.py",tempFile1,tempFile2);
 			builder.redirectErrorStream(true);
 			Process process = builder.start();
-			simScore = Integer.parseInt(output(process.getInputStream()));
+			simScore = Float.parseFloat(output(process.getInputStream()).trim());
+			System.out.println("Similarity Score : "+simScore);
 			
-			//delete the branch in endCommitTime
-			git.checkout().setName("master").call();
-			git.branchDelete().setBranchNames(branchName).call();
+			//delete temp file
+			new File(tempFile1).delete();
+			new File(tempFile2).delete();
 			
-			System.out.println("remove branch");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		System.exit(0);
 		return simScore;
+	}
+
+	private static String getPreviousCommitHash(ArrayList<String> commitHashs, String endCommitHash) {
+		int indexOfCommit = commitHashs.indexOf(endCommitHash)+1;
+		if(commitHashs.size() <= indexOfCommit) {
+			System.out.println("Error!!! Can't not find Source Path!!!");
+			System.exit(0);
+		}
+		return commitHashs.get(indexOfCommit);
+	}
+
+	private static void writeTxtFile(String fileSource, String string) throws IOException {
+		FileWriter fw = new FileWriter(new File(string));
+		BufferedWriter bw = new BufferedWriter(fw);
+		bw.write(fileSource);
+		bw.close();
+		fw.close();
 	}
 
 	private static String originalFilePath(String[] file) {
