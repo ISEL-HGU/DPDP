@@ -2,9 +2,7 @@ package edu.handong.csee.isel.metrictest;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -15,29 +13,19 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
-import org.apache.commons.exec.CommandLine;
-import org.apache.commons.exec.DefaultExecutor;
-import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.util.Combinations;
-import org.apache.commons.math3.util.CombinatoricsUtils;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.NoHeadException;
-import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.refactoringminer.api.GitHistoryRefactoringMiner;
@@ -53,15 +41,16 @@ import com.google.common.collect.Iterators;
 import edu.handong.csee.isel.Utils;
 
 public class DSmetricMain {
-
-	public static void main(String[] args) throws Exception {
+	String input;
+	String repositoryPath ;
+	
+	public static HashMap<String, DeveloperScatteringMetric> main(String[] args) throws Exception {
 		long beforeTime = System.currentTimeMillis();
 		
-		String input = "/Users/yangsujin/Documents/DPDP/ranger-reference/ranger_Label.csv";
-		String repositoryPath = "tmp/ranger_result_Name.txt";
-		Git git = Git.open(new File("/Users/yangsujin/Desktop/reference/repositories/ranger"));
+		String input = args[0];
+		String repositoryPath = args[1];
+		Git git = Git.open(new File(repositoryPath));
 		ArrayList<String> commitHashs = getCommitHashs(git);
-		String projectName = setProjectName(input);
 		
 		//parsing refactoring commit
 		boolean test = true;
@@ -87,22 +76,24 @@ public class DSmetricMain {
 		
 		//calculate developer scattering metric
 		TreeMap<Date,Date> windows = saveStartAndEndCommittimeOfRefactoring(time_refactoringCommit,projectHistories);
-		ArrayList<HashMap<String,DeveloperScatteringMetric>> developerScatteringMetrics = new ArrayList<>();
+		System.out.println("windows.size() : "+windows.size());
+		HashMap<String,ArrayList<DeveloperScatteringMetric>> developerScatteringMetrics = new HashMap<>();
 		
 //		developerScatteringMetrics 
 		windows.forEach((startCommitTime, endCommitTime) -> {
-			HashMap<String,DeveloperScatteringMetric> developerScatteringMetric = new HashMap<>();
+//			HashMap<String,DeveloperScatteringMetric> developerScatteringMetric = new HashMap<>();
 			String endCommitHash = projectHistories.get(endCommitTime).getHashkeys().get(0); // 같은 commitTime에 중복되는 commitHash가 없는지 확인하기! 일단 첫번째 index의 commitHash만 사용 
 
 			//1) find file names that each developer modified in specified period
 			HashMap<String, TreeSet<String>> authorID_filePaths = saveAuthorIdAndFilePathsInTheCurrentPeriod(startCommitTime,endCommitTime,projectHistories);
 			System.out.println("Time from  "+startCommitTime+"  to  "+endCommitTime);
-
+			
 			for(String authorId : authorID_filePaths.keySet()) {
 				System.out.println("authorId : "+authorId+"------------------------------------------------------------------------------------------------------------");
 				DeveloperScatteringMetric scatteringMetric = new DeveloperScatteringMetric();
 				scatteringMetric.setAuthorId(authorId);
 				TreeSet<String> filePaths = authorID_filePaths.get(authorId);
+				System.out.println(filePaths.size());
 				
 				if(filePaths.size() < 2) {//1)-1 if the developer modified one file or less
 					scatteringMetric.setStructuralScattering(0);
@@ -129,12 +120,11 @@ public class DSmetricMain {
 					//start cal structural&semantic
 					ArrayList<Integer> dists = new ArrayList<>();
 					ArrayList<Float> sims = new ArrayList<>();
+					HashMap<String,TreeSet<String>> nameOfSemanticFiles = new HashMap<>();
 					
 					for(int i = 0; i < combination; i++) {
 						int file1Index = caseOfCombination[i][0];
 						int file2Index = caseOfCombination[i][1];
-						
-						System.out.println("\nfile index : "+file1Index + " " + file2Index);
 						
 						String[] file1 = splitPaths.get(file1Index);
 						String[] file2 = splitPaths.get(file2Index);
@@ -146,29 +136,92 @@ public class DSmetricMain {
 						
 						//3) calculate the semantic scattering
 						//3)-1 calculate the similarity of two filePath
-						float sim = calSimularityOfTwoFiles(file1,file2,endCommitTime,repositoryPath,endCommitHash,projectHistories,git,commitHashs);
-						sims.add(sim);
+						boolean isSamePackage = compareTwoFilePaths(file1,file2,nameOfSemanticFiles);
+						if(isSamePackage) {
+							float sim = calSimularityOfTwoFiles(file1,file2,endCommitTime,repositoryPath,endCommitHash,projectHistories,git,commitHashs);
+							sims.add(sim);
+						}
 					}
 					
 					//normalize structural
-					int sumDist = sumAllDistInteger(dists);
-					float structural = normalization * sumDist;
-					
+					int sumDist = dists.stream().mapToInt(i -> i.intValue()).sum();
+					float structural  = normalization * (float)sumDist;
 					//normalize semantic
+					float simNormalization = calSimCombination(nameOfSemanticFiles);
+					float sumSim = (float)sims.stream().mapToDouble(i -> i.floatValue()).sum();
+					float semantic = simNormalization * (1/sumSim);
 					
+					System.out.println("structural : "+structural);
+					System.out.println("semantic : "+semantic);
 					
 					//save the scattering metric result
 					scatteringMetric.setStructuralScattering(structural);
-//					scatteringMetric.setSemanticScattering(0);
-					System.out.println(structural);
+					scatteringMetric.setSemanticScattering(semantic);
 				}
 				
-				developerScatteringMetric.put(authorId, scatteringMetric);
-				System.out.println();
+				if(developerScatteringMetrics.containsKey(authorId)) {
+					ArrayList<DeveloperScatteringMetric> list = developerScatteringMetrics.get(authorId);
+					list.add(scatteringMetric);
+				}else {
+					ArrayList<DeveloperScatteringMetric> list = new ArrayList<>();
+					list.add(scatteringMetric);
+					developerScatteringMetrics.put(authorId, list);
+				}
 			}
+			
 		});
+		
+		HashMap<String,DeveloperScatteringMetric> sumDeveloperScatteringMetric = new HashMap<>();
+		for(String developer : developerScatteringMetrics.keySet()) {
+			ArrayList<DeveloperScatteringMetric> temp = developerScatteringMetrics.get(developer);
+			float sumStructural = 0;
+			float sumSemantic = 0;
+			for(DeveloperScatteringMetric dev : temp) {
+				sumStructural = sumStructural + dev.getStructuralScattering();
+				sumSemantic = sumSemantic + dev.getSemanticScattering();
+			}
+			DeveloperScatteringMetric dm = new DeveloperScatteringMetric();
+			dm.setStructuralScattering(sumStructural);
+			dm.setSemanticScattering(sumSemantic);
+			sumDeveloperScatteringMetric.put(developer, dm);
+		}
+		
+		return sumDeveloperScatteringMetric;
 	}
-	
+
+	private static float calSimCombination(HashMap<String, TreeSet<String>> nameOfSemanticFiles) {
+		float combination = 0;
+		for(String key : nameOfSemanticFiles.keySet()) {
+			combination = combination + (float)calculateCombination(nameOfSemanticFiles.get(key).size());
+		}
+		return combination;
+	}
+
+	private static boolean compareTwoFilePaths(String[] file1, String[] file2, HashMap<String, TreeSet<String>> nameOfSemanticFiles) {
+		String filePath1 = originalFilePath(file1);
+		String filePath2 = originalFilePath(file2);
+		String filePathPackage1 = filePath1.substring(0, filePath1.lastIndexOf(File.separator));
+		String filePathPackage2 = filePath2.substring(0, filePath2.lastIndexOf(File.separator));
+		
+		boolean isSamePackage = filePathPackage1.equals(filePathPackage2);
+		
+		if(isSamePackage) {
+			TreeSet<String> nameOfSemanticFile = null;
+			if(nameOfSemanticFiles.containsKey(filePathPackage1)) {
+				nameOfSemanticFile = nameOfSemanticFiles.get(filePathPackage1);
+				nameOfSemanticFile.add(filePath1);
+				nameOfSemanticFile.add(filePath2);
+			}else {
+				nameOfSemanticFile = new TreeSet<>();
+				nameOfSemanticFile.add(filePath1);
+				nameOfSemanticFile.add(filePath2);
+				nameOfSemanticFiles.put(filePathPackage1, nameOfSemanticFile);
+			}
+		}
+		
+		return isSamePackage;
+	}
+
 	private static ArrayList<String> getCommitHashs(Git git) throws Exception {
 		ArrayList<String> commitHashs = new ArrayList<>();
 		Iterable<RevCommit> commits = git.log().all().call(); 
@@ -201,11 +254,12 @@ public class DSmetricMain {
 		String tempFile1 = "./1.txt";
 		String tempFile2 = "./2.txt";
 
-		System.out.println("endCommitTime : "+endCommitTime);
-		System.out.println("endCommitHash : "+endCommitHash);
-		System.out.println(filePath1);
-		System.out.println(filePath2);
-		System.out.println("Start calculate similarity");
+//		System.out.println("endCommitTime : "+endCommitTime);
+//		System.out.println("endCommitHash : "+endCommitHash);
+//		System.out.println("Start calculate similarity");
+//		System.out.println(filePath1);
+//		System.out.println(filePath2);
+//		
 		
 		try {
 			//get endCommitTime repository
@@ -224,6 +278,10 @@ public class DSmetricMain {
 					}else {
 						nowCommitHash = getPreviousCommitHash(commitHashs,nowCommitHash);
 					}
+				}
+				
+				if(nowCommitHash == "error") {
+					return 0;
 				}
 			} 
 			
@@ -244,11 +302,11 @@ public class DSmetricMain {
 			writeTxtFile(fileSource2,tempFile2);
 			
 			//calculate the tf-idf value
-			ProcessBuilder builder = new ProcessBuilder("/Users/yangsujin/opt/anaconda3/bin/python3","/Users/yangsujin/Documents/git/DPDP/app/semantic.py",tempFile1,tempFile2);
+			ProcessBuilder builder = new ProcessBuilder("/usr/local/bin/python3","/home/yangsujin/2022DPMINERbashfile/semantic.py",tempFile1,tempFile2);
 			builder.redirectErrorStream(true);
 			Process process = builder.start();
 			simScore = Float.parseFloat(output(process.getInputStream()).trim());
-			System.out.println("Similarity Score : "+simScore);
+//			System.out.println("Similarity Score : "+simScore);
 			
 			//delete temp file
 			new File(tempFile1).delete();
@@ -263,9 +321,10 @@ public class DSmetricMain {
 
 	private static String getPreviousCommitHash(ArrayList<String> commitHashs, String endCommitHash) {
 		int indexOfCommit = commitHashs.indexOf(endCommitHash)+1;
+		
 		if(commitHashs.size() <= indexOfCommit) {
-			System.out.println("Error!!! Can't not find Source Path!!!");
-			System.exit(0);
+//			System.out.println("Error!!! Can't not find Source Path!!!");
+			return "error";
 		}
 		return commitHashs.get(indexOfCommit);
 	}
@@ -284,11 +343,6 @@ public class DSmetricMain {
 			filePath1 = filePath1 + File.separator + file[i];
 		}
 		return filePath1;
-	}
-
-	private static int sumAllDistInteger(ArrayList<Integer> dists) {
-		int sumDist = dists.stream().mapToInt(i -> i.intValue()).sum();
-		return sumDist;
 	}
 
 	private static int calculateDistOfTwoFiles(String[] file1, String[] file2) {
@@ -355,8 +409,10 @@ public class DSmetricMain {
 		HashMap<String, TreeSet<String>> authorID_filePaths = new HashMap<>();
 		
 		for(Date commitTime : projectHistories.keySet()) {
-			if( startCommitTime.after(commitTime) || startCommitTime.equals(commitTime) 
-					||endCommitTime.before(commitTime) || endCommitTime.equals(commitTime)) {
+			if( (startCommitTime.before(commitTime) && endCommitTime.after(commitTime) ) 
+					|| (startCommitTime.equals(commitTime)) 
+					|| (endCommitTime.equals(commitTime))
+				) {
 				ProjectHistory projectHistory = projectHistories.get(commitTime);
 				ArrayList<String> authorIds = projectHistory.getAuthorIds();
 				ArrayList<String> filePaths = projectHistory.getFilePath();
@@ -485,13 +541,13 @@ public class DSmetricMain {
 	private static TreeSet<String> miningRefactoringCommit(String repositoryPath) throws IOException {
 		TreeSet<String> refactoringCommit = new TreeSet<>();
 		
-		FileWriter write = new FileWriter("tmp/ranger_result_Name.txt");
+		FileWriter write = new FileWriter("tmp/result_Name.txt");
 		BufferedWriter buff = new BufferedWriter(write);
 		
 		try {
 			GitService gitService = new GitServiceImpl();
 			GitHistoryRefactoringMiner miner = new GitHistoryRefactoringMinerImpl();
-			Repository repo = gitService.openRepository("/Users/yangsujin/Desktop/reference/repositories/ranger");
+			Repository repo = gitService.openRepository(repositoryPath);
 			
 			miner.detectAll(repo, "master", new RefactoringHandler() {
 				  
@@ -508,7 +564,7 @@ public class DSmetricMain {
 	    					|| ref.getRefactoringType().equals(RefactoringType.MERGE_PACKAGE)) {
 //		    				System.out.println("||	Refactorings at " + commitId+"\n");
 //							System.out.println("	"+ref.toJSON()+"\n");
-							refactoringCommit.add(commitId);
+		    				refactoringCommit.add(commitId);
 				    	}
 				    }
 				  }

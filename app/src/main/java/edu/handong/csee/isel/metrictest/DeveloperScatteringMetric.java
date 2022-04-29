@@ -11,7 +11,7 @@ public class DeveloperScatteringMetric {
 		this.semanticScattering = 0;
 	}
 
-	protected String getAuthorId() {
+	public String getAuthorId() {
 		return authorId;
 	}
 
@@ -19,7 +19,7 @@ public class DeveloperScatteringMetric {
 		this.authorId = authorId;
 	}
 
-	protected float getStructuralScattering() {
+	public float getStructuralScattering() {
 		return structuralScattering;
 	}
 
@@ -27,7 +27,7 @@ public class DeveloperScatteringMetric {
 		this.structuralScattering = structuralScattering;
 	}
 
-	protected float getSemanticScattering() {
+	public float getSemanticScattering() {
 		return semanticScattering;
 	}
 

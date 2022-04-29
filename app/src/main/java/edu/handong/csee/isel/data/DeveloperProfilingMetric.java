@@ -11,6 +11,8 @@ import org.apache.commons.csv.CSVPrinter;
 
 import edu.handong.csee.isel.DPDPMain;
 import edu.handong.csee.isel.Utils;
+import edu.handong.csee.isel.metrictest.DSmetricMain;
+import edu.handong.csee.isel.metrictest.DeveloperScatteringMetric;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -21,6 +23,7 @@ public class DeveloperProfilingMetric {
 	String metadataPath;
 	String outputPath;
 	String projectName;
+	String refer;
 	boolean verbose;
 	boolean help;
 	
@@ -31,9 +34,20 @@ public class DeveloperProfilingMetric {
 	
 	public void run(String[] args) throws Exception {
 		Options options = createOptions();
-
+		
+		String[] dsmetricMainMetrics = new String[2];
+		
+		//make totalDevInstances directory
+		
 		if (parseOptions(options, args)) {
-
+/////
+			DSmetricMain dsmetricMain = new DSmetricMain();
+			
+			dsmetricMainMetrics[0] = metadataPath;
+			dsmetricMainMetrics[1] = refer;
+			
+			HashMap<String, DeveloperScatteringMetric> sumDeveloperScatteringMetric = dsmetricMain.main(dsmetricMainMetrics);
+///	
 			MetaData metaData = Utils.readMetadataCSV(metadataPath); //testPrint(metaData);
 			//Users/yangsujin/Documents/eclipse/derby-reference/derby_Label.csv
 
@@ -80,7 +94,9 @@ public class DeveloperProfilingMetric {
 				int bugCount = 0;
 
 				HashSet<String> commitSet = developerToCommitSetMap.get(developer);
+				DeveloperScatteringMetric deMe = sumDeveloperScatteringMetric.get(developer);
 
+				HashMap<DeveloperInfo.WeekDay, Double> dm = getEmptyWeekMap(); // Mon: 0.1, Two: 0.2, ..., Sat: 0.3 -> total: 1.0
 				HashMap<DeveloperInfo.WeekDay, Double> dayOfWeekToRatioMap = getEmptyWeekMap(); // Mon: 0.1, Two: 0.2, ..., Sat: 0.3 -> total: 1.0
 				HashMap<Integer, Double> hourMap = getEmptyHourMap(); // <hour, count>
 				
@@ -96,6 +112,11 @@ public class DeveloperProfilingMetric {
 				double meanOfNumOfSubsystem;
 				double meanOfNumOfDirectories;
 				double meanOfNumOfFiles;
+				
+				double meanLT = 0;
+				double meanEXP = 0;
+				double meanREXP = 0;
+				double meanSEXP = 0;
 
 				double varianceOfCommit = 0;
 				double varianceOfCommitPath = 0;
@@ -115,6 +136,14 @@ public class DeveloperProfilingMetric {
 				double totalNumOfSubsystem = 0;
 				double totalNumOfDirectories = 0;
 				double totalNumOfFiles = 0;
+				
+				double totalLT = 0;
+				double totalEXP = 0;
+				double totalREXP = 0;
+				double totalSEXP = 0;
+				
+				double structural = deMe.getStructuralScattering();
+				double semantic = deMe.getSemanticScattering();
 
 				for(String commit : commitSet) {
 
@@ -130,6 +159,10 @@ public class DeveloperProfilingMetric {
 						double subsystem = Double.parseDouble(metricToValueMap.get("numOfSubsystems"));
 						double directories = Double.parseDouble(metricToValueMap.get("numOfDirectories"));
 						double files = Double.parseDouble(metricToValueMap.get("numOfFiles"));
+						double LT = Double.parseDouble(metricToValueMap.get("LT"));
+						double EXP = Double.parseDouble(metricToValueMap.get("developerExperience"));
+						double REXP = Double.parseDouble(metricToValueMap.get("REXP"));
+						double SEXP = Double.parseDouble(metricToValueMap.get("SEXP"));
 
 
 						totalEditedLineForEachCommit += editedLine;
@@ -144,6 +177,11 @@ public class DeveloperProfilingMetric {
 						totalNumOfSubsystem += subsystem;
 						totalNumOfDirectories += directories;
 						totalNumOfFiles += files;
+						
+						totalLT += LT;
+						totalEXP += EXP;
+						totalREXP += REXP;
+						totalSEXP += SEXP;
 					}
 				}
 				meanOfEditedLineOfCommit = totalEditedLineForEachCommit / totalCommit;
@@ -158,6 +196,12 @@ public class DeveloperProfilingMetric {
 				meanOfNumOfSubsystem = totalNumOfSubsystem / totalCommit;
 				meanOfNumOfDirectories = totalNumOfDirectories / totalCommit;
 				meanOfNumOfFiles = totalNumOfFiles / totalCommit;
+				
+				meanLT = totalLT / totalCommit;
+				meanEXP = totalEXP / totalCommit;
+				meanREXP = totalREXP / totalCommit;
+				meanSEXP = totalSEXP / totalCommit;
+				
 
 				for(String commit : commitSet) {
 
@@ -215,7 +259,14 @@ public class DeveloperProfilingMetric {
 						meanOfDistributionModifiedLineOfCommitPath,
 						meanOfNumOfSubsystem,
 						meanOfNumOfDirectories,
-						meanOfNumOfFiles,dayOfWeekToRatioMap,hourMap);
+						meanOfNumOfFiles,
+						meanLT,
+						meanEXP,
+						meanREXP,
+						meanSEXP,
+						structural,
+						semantic,
+						dayOfWeekToRatioMap,hourMap);
 				developerInfoMap.put(developer,developerInfo);
 			}
 
@@ -259,6 +310,12 @@ public class DeveloperProfilingMetric {
 						metricList.add(String.valueOf(developerInfo.meanOfNumOfSubsystem));
 						metricList.add(String.valueOf(developerInfo.meanOfNumOfDirectories));
 						metricList.add(String.valueOf(developerInfo.meanOfNumOfFiles));
+						metricList.add(String.valueOf(developerInfo.meanLT));
+						metricList.add(String.valueOf(developerInfo.meanEXP));
+						metricList.add(String.valueOf(developerInfo.meanREXP));
+						metricList.add(String.valueOf(developerInfo.meanSEXP));
+						metricList.add(String.valueOf(developerInfo.structural));
+						metricList.add(String.valueOf(developerInfo.semantic));
 
 						metricList.add(String.valueOf(developerInfo.weekRatioMap.get(DeveloperInfo.WeekDay.Sun)));
 						metricList.add(String.valueOf(developerInfo.weekRatioMap.get(DeveloperInfo.WeekDay.Mon)));
@@ -408,6 +465,7 @@ public class DeveloperProfilingMetric {
 			if(outputPath.endsWith(File.separator)) {
 				outputPath = outputPath.substring(0, outputPath.lastIndexOf(File.separator));
 			}
+			refer = cmd.getOptionValue("r");
 			metadataPath = cmd.getOptionValue("m");
 			projectName = cmd.getOptionValue("p");
 			help = cmd.hasOption("h");
@@ -435,6 +493,13 @@ public class DeveloperProfilingMetric {
 				.build());
 		
 		options.addOption(Option.builder("o").longOpt("output")
+				.desc("output path. Don't use double quotation marks")
+				.hasArg()
+				.argName("path")
+				.required()
+				.build());
+		
+		options.addOption(Option.builder("r").longOpt("re")
 				.desc("output path. Don't use double quotation marks")
 				.hasArg()
 				.argName("path")

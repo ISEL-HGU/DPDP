@@ -36,17 +36,23 @@ public class DataFileMaker {
 
 		//make totalDevInstances directory
 		String totalDeveloperInstanceCSV = getDirPathToSaveCSVfiles(projectInformation);
-
+System.out.println(projectInformation.getDeveloperDataCSVPath());
+System.out.println(totalDeveloperInstanceCSV);
+System.out.println(projectInformation.getProjectName());
+System.out.println(projectInformation.getLocationOfClusterModels());
 		developerProfilingMetrics[0] = "-m";
 		developerProfilingMetrics[1] = projectInformation.getDeveloperDataCSVPath();
 		developerProfilingMetrics[2] = "-o";
 		developerProfilingMetrics[3] = totalDeveloperInstanceCSV;
 		developerProfilingMetrics[4] = "-p";
 		developerProfilingMetrics[5] = projectInformation.getProjectName();
+		developerProfilingMetrics[4] = "-r";
+		developerProfilingMetrics[5] = projectInformation.getLocationOfClusterModels();
+		
 
 		DeveloperProfilingMetric developerProfilingMetric = new DeveloperProfilingMetric();
 		developerProfilingMetric.run(developerProfilingMetrics);
-	
+	System.exit(0);
 	}
 
 	public void makeDeveloperArff() throws Exception {
@@ -122,9 +128,6 @@ public class DataFileMaker {
 		}else {
 			preprocessedArffPath = projectInformation.getInputPath();
 		}
-
-		//BIC 값 하나씩 낮추기 (0이상 값만) 임시!! DPMiner에수정하기 
-		reduceBICValue(preprocessedArffPath);
 
 		//re-arrange attribute according to define in order of DefectAttribute.attribute
 		preprocessedArffPath = rearrangeAttributeOrder(preprocessedArffPath);
