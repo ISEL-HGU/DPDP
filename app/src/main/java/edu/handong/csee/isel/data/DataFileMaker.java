@@ -32,7 +32,7 @@ public class DataFileMaker {
 
 	public void makeDeveloperProfilingCSV() throws Exception {
 		//read CSV
-		String[] developerProfilingMetrics = new String[6];
+		String[] developerProfilingMetrics = new String[8];
 
 		//make totalDevInstances directory
 		String totalDeveloperInstanceCSV = getDirPathToSaveCSVfiles(projectInformation);
@@ -46,8 +46,8 @@ System.out.println(projectInformation.getLocationOfClusterModels());
 		developerProfilingMetrics[3] = totalDeveloperInstanceCSV;
 		developerProfilingMetrics[4] = "-p";
 		developerProfilingMetrics[5] = projectInformation.getProjectName();
-		developerProfilingMetrics[4] = "-r";
-		developerProfilingMetrics[5] = projectInformation.getLocationOfClusterModels();
+		developerProfilingMetrics[6] = "-r";
+		developerProfilingMetrics[7] = projectInformation.getLocationOfClusterModels();
 		
 
 		DeveloperProfilingMetric developerProfilingMetric = new DeveloperProfilingMetric();
