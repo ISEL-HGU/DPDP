@@ -33,6 +33,7 @@ public class DeveloperProfilingMetric {
 	
 	public void run(String[] args) throws Exception {
 		Options options = createOptions();
+		
 		String[] dsmetricMainMetrics = new String[3];
 		
 		//make totalDevInstances directory

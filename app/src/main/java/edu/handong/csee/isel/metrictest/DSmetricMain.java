@@ -309,7 +309,11 @@ public class DSmetricMain {
 			writeTxtFile(fileSource2,tempFile2);
 			
 			//calculate the tf-idf value
+				//local
 			ProcessBuilder builder = new ProcessBuilder("/Users/yangsujin/opt/anaconda3/bin/python3","./semantic.py",tempFile1,tempFile2);
+				//server
+//			ProcessBuilder builder = new ProcessBuilder("/usr/bin/python3","/home/yangsujin/2022DPMINERbashfile/semantic.py",tempFile1,tempFile2);
+
 			builder.redirectErrorStream(true);
 			Process process = builder.start();
 			simScore = Float.parseFloat(output(process.getInputStream()).trim());
@@ -548,7 +552,7 @@ public class DSmetricMain {
 	private static TreeSet<String> miningRefactoringCommit(String repositoryPath) throws IOException {
 		TreeSet<String> refactoringCommit = new TreeSet<>();
 		
-		FileWriter write = new FileWriter("tmp/result_Name.txt");
+		FileWriter write = new FileWriter("./"+projectName+"_result_Name.txt");
 		BufferedWriter buff = new BufferedWriter(write);
 		
 		try {
