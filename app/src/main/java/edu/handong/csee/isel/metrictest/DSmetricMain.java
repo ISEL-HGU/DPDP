@@ -41,19 +41,26 @@ import com.google.common.collect.Iterators;
 import edu.handong.csee.isel.Utils;
 
 public class DSmetricMain {
-	String input;
-	String repositoryPath ;
+	static String input;
+	static String repositoryPath;
+	static String projectName;
 	
 	public static HashMap<String, DeveloperScatteringMetric> main(String[] args) throws Exception {
 		long beforeTime = System.currentTimeMillis();
 		
-		String input = args[0];
-		String repositoryPath = args[1];
+		input = args[0];
+		repositoryPath = args[1];
+		projectName = args [2];
+		
+		System.out.println(input);
+		System.out.println(repositoryPath);
+		System.out.println(projectName);
+		
 		Git git = Git.open(new File(repositoryPath));
 		ArrayList<String> commitHashs = getCommitHashs(git);
 		
 		//parsing refactoring commit
-		boolean test = true;
+		boolean test = false;
 		TreeSet<String> refactoringCommit = null;
 		
 		if(test == true) {
@@ -302,7 +309,7 @@ public class DSmetricMain {
 			writeTxtFile(fileSource2,tempFile2);
 			
 			//calculate the tf-idf value
-			ProcessBuilder builder = new ProcessBuilder("/usr/local/bin/python3","/home/yangsujin/2022DPMINERbashfile/semantic.py",tempFile1,tempFile2);
+			ProcessBuilder builder = new ProcessBuilder("/Users/yangsujin/opt/anaconda3/bin/python3","./semantic.py",tempFile1,tempFile2);
 			builder.redirectErrorStream(true);
 			Process process = builder.start();
 			simScore = Float.parseFloat(output(process.getInputStream()).trim());

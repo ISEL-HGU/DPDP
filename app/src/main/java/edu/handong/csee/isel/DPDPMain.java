@@ -6,6 +6,8 @@ import java.io.FileReader;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -29,12 +31,17 @@ import edu.handong.csee.isel.test.PredictionResult;
 public class DPDPMain {
 	ProjectInformation projectInformation;
 //	static public ArrayList<String> excludedDeveloper = new ArrayList<>();
+	boolean train;
+	boolean test;
+	
+	boolean dataMaker;
+	int dataMakerMode;
+	
 	String weka;
 	String aWeka;
 	boolean clusterM;
 	boolean defectM;
 	
-	boolean test;
 	boolean testMode_fileMaker;
 	boolean testMode_clusterFinder;
 	boolean testMode_prediction;
@@ -67,22 +74,61 @@ public class DPDPMain {
 			System.out.println("####################This project is "+ projectInformation.projectName+"####################");
 			System.out.println();
 			//make deverloper proriling instances
-			DataFileMaker dataFileMaker = new DataFileMaker(projectInformation);
 			ModelMaker modelMaker = new ModelMaker(projectInformation);
 			
-			if(!clusterM && !defectM && !test &&!evaluation && !baseline) {
-				File isExist = new File(projectInformation.getInputPath());
-				
-				if(!isExist.exists()) {
-					System.out.println("The data file is not exist");
-					System.out.println();
-					System.out.println();
-					System.exit(0);
+			//Data Maker mode
+			if(train) {
+				if(dataMaker) {
+					DataFileMaker dataFileMaker = new DataFileMaker(projectInformation);
+					
+					//check is input file exist 
+					File isExist = new File(projectInformation.getInputPath());
+					
+					if(!isExist.exists()) {
+						System.out.println("The data file is not exist");
+						System.out.println();
+						System.out.println();
+						System.exit(0);
+					}
+					
+					switch(dataMakerMode) {
+					case 1: 
+						/*
+						 * Software metric
+						 * use options : input(i), output(o)
+						*/
+						dataFileMaker.makeDeveloperArff();
+						break;
+						
+					case 2: 
+						/*
+						 * Developer profiling metric
+						 * use options : input(i), output(o), repository path (repo)
+						*/
+						dataFileMaker.makeDeveloperProfilingCSV();
+						break;
+						
+					case 3:
+						dataFileMaker.makeDeveloperArff();
+						dataFileMaker.makeDeveloperProfilingCSV();	
+						break;
+					}
 				}
-				
-				dataFileMaker.makeDeveloperArff();
-				dataFileMaker.makeDeveloperProfilingCSV();	
 			}
+			
+//			if(!clusterM && !defectM && !test &&!evaluation && !baseline) {
+//				File isExist = new File(projectInformation.getInputPath());
+//				
+//				if(!isExist.exists()) {
+//					System.out.println("The data file is not exist");
+//					System.out.println();
+//					System.out.println();
+//					System.exit(0);
+//				}
+//				
+//				dataFileMaker.makeDeveloperArff();
+//				dataFileMaker.makeDeveloperProfilingCSV();	
+//			}
 			
 			if(clusterM) {
 				modelMaker.makeDeveloperProfilingClusterModel();
@@ -99,6 +145,7 @@ public class DPDPMain {
 					clusterArffPaths.add(aWeka);
 					modelMaker.makeClusterDefectModel(clusterArffPaths);
 				}else if((weka == null) && (aWeka == null)){
+					DataFileMaker dataFileMaker = new DataFileMaker(projectInformation);
 					clusterArffPaths = dataFileMaker.makeClusterArffForTraining();
 					modelMaker.makeClusterDefectModel(clusterArffPaths);
 				}
@@ -115,6 +162,7 @@ public class DPDPMain {
 				}
 				
 				if(testMode_fileMaker) {
+					DataFileMaker dataFileMaker = new DataFileMaker(projectInformation);
 					System.out.println("Test mode : fileMaker");
 					
 					//mk test data directory
@@ -258,18 +306,58 @@ public class DPDPMain {
 
 		try {
 			CommandLine cmd = parser.parse(options, args);
-			projectInformation.setInputPath(cmd.getOptionValue("i"));
-			projectInformation.setOutputPath(cmd.getOptionValue("o"));
-			
-			clusterM = cmd.hasOption("clusterM");
-			defectM = cmd.hasOption("defectM");
+			train = cmd.hasOption("train");
 			test = cmd.hasOption("test");
 			evaluation = cmd.hasOption("eval");
+			
+			projectInformation.setInputPath(cmd.getOptionValue("i"));
+			projectInformation.setOutputPath(cmd.getOptionValue("o"));
+
 			
 //			if((clusterM&&defectM&&test)||(clusterM&&defectM)||(defectM&&test)||(clusterM&&test)) {
 //				System.out.println("Wrong input!");
 //				System.exit(0);
 //			}
+			
+			if(train == true) {
+				dataMaker = cmd.hasOption("dataMaker");
+				clusterM = cmd.hasOption("clusterM");
+				defectM = cmd.hasOption("defectM");
+				
+				if(!(dataMaker && !clusterM && !defectM)||
+						(!dataMaker && clusterM && !defectM)||
+						(!dataMaker && !clusterM && defectM)) {
+					System.out.println("Wrong input!!!");
+					System.exit(0);
+				}else if(dataMaker) {
+					if(cmd.hasOption("SwMetric")) {
+						dataMakerMode = 1;
+						//projectName-data.arff file path
+						projectInformation.setAInputPath(cmd.getOptionValue("i"));
+						projectInformation.setOutputPath(cmd.getOptionValue("o"));
+						projectInformation.setProjectName(parsingArffProjectName(projectInformation.getInputPath()));
+					}else if (cmd.hasOption("PfMetric")) {
+						dataMakerMode = 2;
+						//Label.csv file path
+						projectInformation.setAInputPath(cmd.getOptionValue("i"));
+						//repository path
+						projectInformation.setRepositoryPath(cmd.getOptionValue("repo"));
+						projectInformation.setOutputPath(cmd.getOptionValue("o"));
+						projectInformation.setProjectName(parsingCSVProjectName(projectInformation.getInputPath()));
+						
+					}else if(cmd.hasOption("all")) {
+						dataMakerMode = 3;
+						projectInformation.setInputPath(cmd.getOptionValue("i"));
+						projectInformation.setRepositoryPath(cmd.getOptionValue("repo"));
+						projectInformation.setOutputPath(cmd.getOptionValue("o"));
+					}
+				}else if(clusterM){
+					
+				}else if(defectM) {
+					
+				}
+			}
+			
 			
 			if(test == true) {
 				testMode_fileMaker = cmd.hasOption("file");
@@ -351,12 +439,52 @@ public class DPDPMain {
 		return true;
 	}
 
+	private String parsingCSVProjectName(String csv) {
+		String projectName = null;
+		
+		Pattern pattern = Pattern.compile("(.+)/(.+)_Label.csv");
+		Matcher matcher = pattern.matcher(csv);
+
+		while(matcher.find()) {
+			projectName = matcher.group(2);
+		}
+		if(projectName == null) {
+			Pattern pattern2 = Pattern.compile("(.+)/(.+)_Label");
+			Matcher matcher2 = pattern2.matcher(csv);
+			while(matcher2.find()) {
+				projectName = matcher2.group(2);
+			}
+		}
+		
+		return projectName;
+	}
+
+	private String parsingArffProjectName(String arff) {
+		String projectName = null;
+		
+		Pattern pattern = Pattern.compile("(.+)/(.+)-data.arff");
+		Matcher matcher = pattern.matcher(arff);
+
+		while(matcher.find()) {
+			projectName = matcher.group(2);
+		}
+		if(projectName == null) {
+			Pattern pattern2 = Pattern.compile("(.+)/(.+)-data");
+			Matcher matcher2 = pattern2.matcher(arff);
+			while(matcher2.find()) {
+				projectName = matcher2.group(2);
+			}
+		}
+		
+		return projectName;
+	}
+
 	private Options createOptions() {
 		Options options = new Options();
 
 		//common option
-		options.addOption(Option.builder("i").longOpt("metadata.arff")
-				.desc("Address of meta data arff file. Don't use double quotation marks")
+		options.addOption(Option.builder("i").longOpt("input")
+				.desc("")
 				.hasArg()
 				.argName("URI")
 				.required()// 필수
@@ -368,10 +496,53 @@ public class DPDPMain {
 				.argName("path")
 				.build());
 		
-		options.addOption(Option.builder("bow").longOpt("NoBagOfWords")
-				.desc("Remove the metric of Bag Of Words")
-				.argName("NoBagOfWords")
+		
+		options.addOption(Option.builder("all").longOpt("excute all options")
+				.desc("")
+				.argName("do all step")
 				.build());
+		
+		options.addOption(Option.builder("train").longOpt("train Mode")
+				.desc("")
+				.argName("trainMode")
+				.build());
+		
+		options.addOption(Option.builder("test").longOpt("test Mode")
+				.desc("")
+				.argName("testMode")
+				.build());
+		
+		//data option
+		options.addOption(Option.builder("dataMaker").longOpt("data Maker")
+				.desc("Collect the software metric or developer metric")
+				.argName("dataMaker")
+				.build());
+		
+			//data sub option -SwMetric-
+			options.addOption(Option.builder("SwMetric").longOpt("Software Metric")
+					.desc("collect software metric for defect prediction")
+					.argName("SoftwareMetric")
+					.build());
+		
+				//data subsub option -SwMetric- no bow
+				options.addOption(Option.builder("bow").longOpt("NoBagOfWords")
+						.desc("Remove the metric of Bag Of Words")
+						.argName("NoBagOfWords")
+						.build());
+		
+			//data sub option -PfMetric-
+			options.addOption(Option.builder("PfMetric").longOpt("Profiling Metric")
+					.desc("collect developer metric for defect prediction")
+					.argName("ProfilingMetric")
+					.build());
+		
+				//data subsub option -PfMetric- repository path
+				options.addOption(Option.builder("repo").longOpt("repository")
+						.desc("Remove the metric of Bag Of Words")
+						.hasArg()
+						.argName("NoBagOfWords")
+						.build());
+		
 		
 		//not use
 		options.addOption(Option.builder("imb").longOpt("applySMOTE")

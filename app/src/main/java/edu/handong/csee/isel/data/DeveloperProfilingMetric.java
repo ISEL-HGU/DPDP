@@ -9,7 +9,6 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 
-import edu.handong.csee.isel.DPDPMain;
 import edu.handong.csee.isel.Utils;
 import edu.handong.csee.isel.metrictest.DSmetricMain;
 import edu.handong.csee.isel.metrictest.DeveloperScatteringMetric;
@@ -34,8 +33,7 @@ public class DeveloperProfilingMetric {
 	
 	public void run(String[] args) throws Exception {
 		Options options = createOptions();
-		
-		String[] dsmetricMainMetrics = new String[2];
+		String[] dsmetricMainMetrics = new String[3];
 		
 		//make totalDevInstances directory
 		
@@ -45,6 +43,7 @@ public class DeveloperProfilingMetric {
 			
 			dsmetricMainMetrics[0] = metadataPath;
 			dsmetricMainMetrics[1] = refer;
+			dsmetricMainMetrics[2] = projectName;
 			
 			HashMap<String, DeveloperScatteringMetric> sumDeveloperScatteringMetric = dsmetricMain.main(dsmetricMainMetrics);
 ///	
@@ -468,6 +467,7 @@ public class DeveloperProfilingMetric {
 			refer = cmd.getOptionValue("r");
 			metadataPath = cmd.getOptionValue("m");
 			projectName = cmd.getOptionValue("p");
+			
 			help = cmd.hasOption("h");
 			
 //		System.out.println(metadataPath);

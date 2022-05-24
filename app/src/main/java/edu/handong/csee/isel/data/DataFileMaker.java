@@ -29,30 +29,35 @@ public class DataFileMaker {
 	public DataFileMaker(ProjectInformation projectInformation) {
 		this.projectInformation = projectInformation;
 	}
-
+	
 	public void makeDeveloperProfilingCSV() throws Exception {
-		//read CSV
-		String[] developerProfilingMetrics = new String[6];
-
-		//make totalDevInstances directory
-		String totalDeveloperInstanceCSV = getDirPathToSaveCSVfiles(projectInformation);
-System.out.println(projectInformation.getDeveloperDataCSVPath());
-System.out.println(totalDeveloperInstanceCSV);
-System.out.println(projectInformation.getProjectName());
-System.out.println(projectInformation.getLocationOfClusterModels());
-		developerProfilingMetrics[0] = "-m";
-		developerProfilingMetrics[1] = projectInformation.getDeveloperDataCSVPath();
-		developerProfilingMetrics[2] = "-o";
-		developerProfilingMetrics[3] = totalDeveloperInstanceCSV;
-		developerProfilingMetrics[4] = "-p";
-		developerProfilingMetrics[5] = projectInformation.getProjectName();
-		developerProfilingMetrics[4] = "-r";
-		developerProfilingMetrics[5] = projectInformation.getLocationOfClusterModels();
+		String labelCSV = projectInformation.getInputPath();
+		String output = projectInformation.getOutputPath();
+		String repoPath = projectInformation.getRepositoryPath();
+		String projectName = projectInformation.getProjectName();
 		
+		//the argument of developer Profiling Metrics
+		String[] developerProfilingMetrics = new String[8];
 
+		//make the directory and file to save the result
+		String developerProfilingInstancePath = getDirPathToSaveCSVfiles(projectInformation);
+
+System.out.println(labelCSV);
+System.out.println(developerProfilingInstancePath);
+System.out.println(projectName);
+System.out.println(repoPath);
+		
+		developerProfilingMetrics[0] = "-m";
+		developerProfilingMetrics[1] = labelCSV;
+		developerProfilingMetrics[2] = "-o";
+		developerProfilingMetrics[3] = developerProfilingInstancePath;
+		developerProfilingMetrics[4] = "-p";
+		developerProfilingMetrics[5] = projectName;
+		developerProfilingMetrics[6] = "-r";
+		developerProfilingMetrics[7] = repoPath;
+		
 		DeveloperProfilingMetric developerProfilingMetric = new DeveloperProfilingMetric();
 		developerProfilingMetric.run(developerProfilingMetrics);
-	System.exit(0);
 	}
 
 	public void makeDeveloperArff() throws Exception {

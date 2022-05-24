@@ -8,6 +8,9 @@ public class ProjectInformation {
 	String inputPath;
 	String outputPath;
 	String projectName;
+	String repositoryPath;
+	
+	
 	String referenceFolderPath;
 	String developerDataCSVPath;
 	String testDeveloperProfilingInstanceCSV;
@@ -28,6 +31,9 @@ public class ProjectInformation {
 		this.inputPath = null;
 		this.outputPath = null;
 		this.projectName = null;
+		this.repositoryPath = null;
+		
+		
 		this.referenceFolderPath = null;
 		this.developerDataCSVPath = null;
 		this.testDeveloperProfilingInstanceCSV = null;
@@ -47,6 +53,10 @@ public class ProjectInformation {
 
 	public String getInputPath() {
 		return inputPath;
+	}
+	
+	protected void setAInputPath(String inputPath) {
+		this.inputPath = inputPath;
 	}
 
 	protected void setInputPath(String defectInstancePath) {
@@ -88,6 +98,14 @@ public class ProjectInformation {
 		this.outputPath = outputPath;
 	}
 
+	public String getRepositoryPath() {
+		return repositoryPath;
+	}
+
+	protected void setRepositoryPath(String repositoryPath) {
+		this.repositoryPath = repositoryPath;
+	}
+	
 	public String getProjectName() {
 		return projectName;
 	}
