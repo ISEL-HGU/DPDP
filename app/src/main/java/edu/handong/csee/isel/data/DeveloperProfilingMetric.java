@@ -22,7 +22,7 @@ public class DeveloperProfilingMetric {
 	String metadataPath;
 	String outputPath;
 	String projectName;
-	String refer;
+	String repo;
 	boolean verbose;
 	boolean help;
 	
@@ -34,20 +34,19 @@ public class DeveloperProfilingMetric {
 	public void run(String[] args) throws Exception {
 		Options options = createOptions();
 		
-		String[] dsmetricMainMetrics = new String[3];
-		
 		//make totalDevInstances directory
 		
 		if (parseOptions(options, args)) {
-/////
-			DSmetricMain dsmetricMain = new DSmetricMain();
 			
+			DSmetricMain dsmetricMain = new DSmetricMain();
+			String[] dsmetricMainMetrics = new String[4];
 			dsmetricMainMetrics[0] = metadataPath;
-			dsmetricMainMetrics[1] = refer;
+			dsmetricMainMetrics[1] = repo;
 			dsmetricMainMetrics[2] = projectName;
+			dsmetricMainMetrics[3] = outputPath;
 			
 			HashMap<String, DeveloperScatteringMetric> sumDeveloperScatteringMetric = dsmetricMain.main(dsmetricMainMetrics);
-///	
+
 			MetaData metaData = Utils.readMetadataCSV(metadataPath); //testPrint(metaData);
 			//Users/yangsujin/Documents/eclipse/derby-reference/derby_Label.csv
 
@@ -465,7 +464,7 @@ public class DeveloperProfilingMetric {
 			if(outputPath.endsWith(File.separator)) {
 				outputPath = outputPath.substring(0, outputPath.lastIndexOf(File.separator));
 			}
-			refer = cmd.getOptionValue("r");
+			repo = cmd.getOptionValue("r");
 			metadataPath = cmd.getOptionValue("m");
 			projectName = cmd.getOptionValue("p");
 			
@@ -501,7 +500,7 @@ public class DeveloperProfilingMetric {
 				.build());
 		
 		options.addOption(Option.builder("r").longOpt("re")
-				.desc("output path. Don't use double quotation marks")
+				.desc("the path of repository")
 				.hasArg()
 				.argName("path")
 				.required()
