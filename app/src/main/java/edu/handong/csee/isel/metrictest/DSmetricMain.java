@@ -126,13 +126,13 @@ public class DSmetricMain {
 					float normalization = (float)((float)theNumberOfFiles/(float)combination);
 					int[][] caseOfCombination = saveCombinationSet(theNumberOfFiles,combination);
 
+					ExecutorService executor = Executors.newFixedThreadPool(20);
+
 					//start cal structural&semantic
 					ArrayList<Integer> dists = new ArrayList<>();
 					ArrayList<Float> sims = new ArrayList<>();
 					HashMap<String,TreeSet<String>> nameOfSemanticFiles = new HashMap<>();
-					
-					ExecutorService executor = Executors.newFixedThreadPool(10);
-					
+										
 					for(int i = 0; i < combination; i++) {
 						int file1Index = caseOfCombination[i][0];
 						int file2Index = caseOfCombination[i][1];
@@ -143,23 +143,23 @@ public class DSmetricMain {
 						Runnable metrics = new DSmetricCalculator(file1,file2,dists,sims,nameOfSemanticFiles,endCommitHash,endCommitTime,repositoryPath,projectHistories,git,commitHashs);
 						executor.execute(metrics);
 					}
-					
-					
 					executor.shutdown();
+				
 		    		while (!executor.isTerminated()) {
-		    		}	
-					
-					if(sims.size() == 0) {
-						sims.add((float)0);
-					}
+		    		}
 					
 					//normalize structural
 					int sumDist = dists.stream().mapToInt(i -> i.intValue()).sum();
 					float structural  = normalization * (float)sumDist;
 					//normalize semantic
-					float simNormalization = calSimCombination(nameOfSemanticFiles);
-					float sumSim = (float)sims.stream().mapToDouble(i -> i.floatValue()).sum();
-					float semantic = simNormalization * (1/sumSim);
+					float semantic = 0;
+					if((sims.size() == 0) || nameOfSemanticFiles.isEmpty()) {
+						semantic = 0;
+					}else {
+						float simNormalization = calSimCombination(nameOfSemanticFiles);
+						float sumSim = (float)sims.stream().mapToDouble(i -> i.floatValue()).sum();
+						semantic = simNormalization * (1/sumSim);
+					}
 					  
 					System.out.println("structural : "+structural);
 					System.out.println("semantic : "+semantic);

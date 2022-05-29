@@ -72,15 +72,9 @@ protected DSmetricCalculator(String[] file1, String[] file2, ArrayList<Integer> 
 		float simScore = 0;
 		String filePath1 = originalFilePath(file1);
 		String filePath2 = originalFilePath(file2);
-		String tempFile1 = "./"+threadId+"1.txt";
-		String tempFile2 = "./"+threadId+"2.txt";
+		String tempFile1 = "./"+threadId+"_1.txt";
+		String tempFile2 = "./"+threadId+"_2.txt";
 
-//		System.out.println("endCommitTime : "+endCommitTime);
-//		System.out.println("endCommitHash : "+endCommitHash);
-//		System.out.println("Start calculate similarity");
-//		System.out.println(filePath1);
-//		System.out.println(filePath2);
-//		
 		try {
 			//get endCommitTime repository
 			Repository repo = git.getRepository();
