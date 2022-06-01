@@ -61,7 +61,7 @@ public class DSmetricMain {
 		ArrayList<String> commitHashs = getCommitHashs(git);
 		
 		//parsing refactoring commit
-		boolean test = true;
+		boolean test = false;
 		TreeSet<String> refactoringCommit = null;
 		
 		if(test == true) {

@@ -117,9 +117,9 @@ protected DSmetricCalculator(String[] file1, String[] file2, ArrayList<Integer> 
 			
 			//calculate the tf-idf value
 				//local
-			ProcessBuilder builder = new ProcessBuilder("/Users/yangsujin/opt/anaconda3/bin/python3","./semantic.py",tempFile1,tempFile2);
+//			ProcessBuilder builder = new ProcessBuilder("/Users/yangsujin/opt/anaconda3/bin/python3","./semantic.py",tempFile1,tempFile2);
 				//server
-//			ProcessBuilder builder = new ProcessBuilder("/usr/bin/python3","/home/yangsujin/2022DPMINERbashfile/semantic.py",tempFile1,tempFile2);
+			ProcessBuilder builder = new ProcessBuilder("/usr/bin/python3","/home/yangsujin/2022DPMINERbashfile/semantic.py",tempFile1,tempFile2);
 
 			builder.redirectErrorStream(true);
 			Process process = builder.start();

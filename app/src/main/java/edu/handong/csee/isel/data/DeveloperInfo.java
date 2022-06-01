@@ -3,7 +3,7 @@ package edu.handong.csee.isel.data;
 import java.util.Map;
 
 public class DeveloperInfo {
-    public static String[] CSVHeader = {"ID","totalCommit","totalCommitPath", "meanEditedLineInCommit", "meanEditedLineInCommitPath", "varianceOfCommit", "varianceOfCommitPath", "meanOfAddedLineOfCommit","meanOfAddedLineOfCommitPath","meanOfDeletedLineOfCommit","meanOfDeletedLineOfCommitPath","meanOfDistributionModifiedLineOfCommit","meanOfDistributionModifiedLineOfCommitPath","meanOfNumOfSubsystem","meanOfNumOfDirectories","meanOfNumOfFiles","meanOfLT","meanOfEXP","meanOfREXP","meanOfSEXP","structural","semantic","Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat","0h","1h","2h","3h","4h","5h","6h","7h","8h","9h","10h","11h","12h","13h","14h","15h","16h","17h","18h","19h","20h","21h","22h","23h"};
+    public static String[] CSVHeader = {"ID","totalCommit","totalCommitPath", "meanEditedLineInCommit", "meanEditedLineInCommitPath", "varianceOfCommit", "varianceOfCommitPath", "meanOfAddedLineOfCommit","meanOfAddedLineOfCommitPath","meanOfDeletedLineOfCommit","meanOfDeletedLineOfCommitPath","meanOfDistributionModifiedLineOfCommit","meanOfDistributionModifiedLineOfCommitPath","meanOfNumOfSubsystem","meanOfNumOfDirectories","meanOfNumOfFiles","meanOfLT","meanOfEXP","meanOfREXP","meanOfSEXP","proportionBFC","structural","semantic","Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat","0h","1h","2h","3h","4h","5h","6h","7h","8h","9h","10h","11h","12h","13h","14h","15h","16h","17h","18h","19h","20h","21h","22h","23h"};
 
     public DeveloperInfo(String id
     		, double totalCommit
@@ -22,10 +22,10 @@ public class DeveloperInfo {
             , double meanOfNumOfDirectories
             , double meanOfNumOfFiles
             , double meanLT
-//            , double ratioBFC
             , double meanEXP
             , double meanREXP
             , double meanSEXP
+            , double proportionBFC
             , double structural
             , double semantic
             , Map<WeekDay,Double> weekRatioMap, Map<Integer,Double> hourMap) {
@@ -53,6 +53,7 @@ public class DeveloperInfo {
         this.meanEXP = meanEXP;
         this.meanREXP = meanREXP;
         this.meanSEXP = meanSEXP;
+        this.proportionBFC = proportionBFC;
         this.structural = structural;
         this.semantic = semantic;
     }
@@ -83,6 +84,7 @@ public class DeveloperInfo {
     public final double meanEXP;
     public final double meanREXP;
     public final double meanSEXP;
+    public final double proportionBFC;
     public final double structural;
     public final double semantic;
 

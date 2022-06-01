@@ -116,6 +116,7 @@ public class DeveloperProfilingMetric {
 				double meanEXP = 0;
 				double meanREXP = 0;
 				double meanSEXP = 0;
+				double proportionBFC = 0;
 
 				double varianceOfCommit = 0;
 				double varianceOfCommitPath = 0;
@@ -140,6 +141,7 @@ public class DeveloperProfilingMetric {
 				double totalEXP = 0;
 				double totalREXP = 0;
 				double totalSEXP = 0;
+				double totalBFC = 0;
 				
 				double structural = deMe.getStructuralScattering();
 				double semantic = deMe.getSemanticScattering();
@@ -162,7 +164,8 @@ public class DeveloperProfilingMetric {
 						double EXP = Double.parseDouble(metricToValueMap.get("developerExperience"));
 						double REXP = Double.parseDouble(metricToValueMap.get("REXP"));
 						double SEXP = Double.parseDouble(metricToValueMap.get("SEXP"));
-
+						double FIX = Double.parseDouble(metricToValueMap.get("FIX"));
+						
 
 						totalEditedLineForEachCommit += editedLine;
 						totalEditedLineForEachCommitPath += editedLine;
@@ -181,6 +184,7 @@ public class DeveloperProfilingMetric {
 						totalEXP += EXP;
 						totalREXP += REXP;
 						totalSEXP += SEXP;
+						totalBFC += FIX;
 					}
 				}
 				meanOfEditedLineOfCommit = totalEditedLineForEachCommit / totalCommit;
@@ -200,6 +204,7 @@ public class DeveloperProfilingMetric {
 				meanEXP = totalEXP / totalCommit;
 				meanREXP = totalREXP / totalCommit;
 				meanSEXP = totalSEXP / totalCommit;
+				proportionBFC = (totalBFC / totalCommit) * 100;
 				
 
 				for(String commit : commitSet) {
@@ -265,6 +270,7 @@ public class DeveloperProfilingMetric {
 						meanSEXP,
 						structural,
 						semantic,
+						proportionBFC,
 						dayOfWeekToRatioMap,hourMap);
 				developerInfoMap.put(developer,developerInfo);
 			}
@@ -313,6 +319,7 @@ public class DeveloperProfilingMetric {
 						metricList.add(String.valueOf(developerInfo.meanEXP));
 						metricList.add(String.valueOf(developerInfo.meanREXP));
 						metricList.add(String.valueOf(developerInfo.meanSEXP));
+						metricList.add(String.valueOf(developerInfo.proportionBFC));
 						metricList.add(String.valueOf(developerInfo.structural));
 						metricList.add(String.valueOf(developerInfo.semantic));
 
