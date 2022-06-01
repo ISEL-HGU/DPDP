@@ -126,7 +126,7 @@ public class DSmetricMain {
 					float normalization = (float)((float)theNumberOfFiles/(float)combination);
 					int[][] caseOfCombination = saveCombinationSet(theNumberOfFiles,combination);
 
-					ExecutorService executor = Executors.newFixedThreadPool(20);
+					ExecutorService executor = Executors.newFixedThreadPool(15);
 
 					//start cal structural&semantic
 					ArrayList<Integer> dists = new ArrayList<>();
@@ -169,6 +169,7 @@ public class DSmetricMain {
 					scatteringMetric.setSemanticScattering(semantic);
 				}
 				
+				//save all DS metric from a dev in all window 
 				if(developerScatteringMetrics.containsKey(authorId)) {
 					ArrayList<DeveloperScatteringMetric> list = developerScatteringMetrics.get(authorId);
 					list.add(scatteringMetric);
@@ -183,6 +184,7 @@ public class DSmetricMain {
 			
 		});
 		
+		//sum all DS metric from a dev in all window 
 		HashMap<String,DeveloperScatteringMetric> sumDeveloperScatteringMetric = new HashMap<>();
 		for(String developer : developerScatteringMetrics.keySet()) {
 			ArrayList<DeveloperScatteringMetric> temp = developerScatteringMetrics.get(developer);
@@ -191,12 +193,20 @@ public class DSmetricMain {
 			for(DeveloperScatteringMetric dev : temp) {
 				sumStructural = sumStructural + dev.getStructuralScattering();
 				sumSemantic = sumSemantic + dev.getSemanticScattering();
+
 			}
 			DeveloperScatteringMetric dm = new DeveloperScatteringMetric();
 			dm.setStructuralScattering(sumStructural);
 			dm.setSemanticScattering(sumSemantic);
 			sumDeveloperScatteringMetric.put(developer, dm);
 		}
+		
+		//for debugging
+//		for(String dev : sumDeveloperScatteringMetric.keySet()) {
+//			System.out.println("dev name : "+dev);
+//			System.out.println("sumStructural : "+sumDeveloperScatteringMetric.get(dev).getStructuralScattering());
+//			System.out.println("sumSemantic : "+sumDeveloperScatteringMetric.get(dev).getSemanticScattering());
+//		}
 		
 		return sumDeveloperScatteringMetric;
 	}
