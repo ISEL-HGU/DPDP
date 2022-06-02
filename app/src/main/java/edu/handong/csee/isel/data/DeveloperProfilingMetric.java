@@ -88,20 +88,10 @@ public class DeveloperProfilingMetric {
 				}
 			}
 
-			System.out.println("name of saved in Demo : ");
-			for(String hi : sumDeveloperScatteringMetric.keySet()) {
-				System.out.println(hi);
-			}
-			
-			System.out.println("endendendendendend");
-
 			for(String developer : developerNameSet) {
-				System.out.println("name of dev in LABEL : "+developer);
 				int bugCount = 0;
 
 				HashSet<String> commitSet = developerToCommitSetMap.get(developer);
-				DeveloperScatteringMetric deMe = sumDeveloperScatteringMetric.get(developer);
-
 				HashMap<DeveloperInfo.WeekDay, Double> dm = getEmptyWeekMap(); // Mon: 0.1, Two: 0.2, ..., Sat: 0.3 -> total: 1.0
 				HashMap<DeveloperInfo.WeekDay, Double> dayOfWeekToRatioMap = getEmptyWeekMap(); // Mon: 0.1, Two: 0.2, ..., Sat: 0.3 -> total: 1.0
 				HashMap<Integer, Double> hourMap = getEmptyHourMap(); // <hour, count>
@@ -150,8 +140,17 @@ public class DeveloperProfilingMetric {
 				double totalSEXP = 0;
 				double totalBFC = 0;
 				
-				double structural = deMe.getStructuralScattering();
-				double semantic = deMe.getSemanticScattering();
+				double structural = 0;
+				double semantic = 0;
+				
+				if(sumDeveloperScatteringMetric.containsKey(developer)) {
+					DeveloperScatteringMetric deMe = sumDeveloperScatteringMetric.get(developer);
+					structural = deMe.getStructuralScattering();
+					semantic = deMe.getSemanticScattering();
+				}else {
+					structural = 0;
+					semantic = 0;
+				}
 
 				for(String commit : commitSet) {
 
@@ -163,15 +162,15 @@ public class DeveloperProfilingMetric {
 						double editedLine = Double.parseDouble(metricToValueMap.get("Modify Lines"));
 						double addedLine = Double.parseDouble(metricToValueMap.get("Add Lines"));
 						double deletedLine = Double.parseDouble(metricToValueMap.get("Delete Lines"));
-						double distributionLine = Double.parseDouble(metricToValueMap.get("Distribution modified Lines"));
-						double subsystem = Double.parseDouble(metricToValueMap.get("numOfSubsystems"));
-						double directories = Double.parseDouble(metricToValueMap.get("numOfDirectories"));
-						double files = Double.parseDouble(metricToValueMap.get("numOfFiles"));
+						double distributionLine = Double.parseDouble(metricToValueMap.get("Distribution modified Lines"));//
+						double subsystem = Double.parseDouble(metricToValueMap.get("numOfSubsystems"));//
+						double directories = Double.parseDouble(metricToValueMap.get("numOfDirectories"));//
+						double files = Double.parseDouble(metricToValueMap.get("numOfFiles"));//
 						double LT = Double.parseDouble(metricToValueMap.get("LT"));
-						double EXP = Double.parseDouble(metricToValueMap.get("developerExperience"));
-						double REXP = Double.parseDouble(metricToValueMap.get("REXP"));
-						double SEXP = Double.parseDouble(metricToValueMap.get("SEXP"));
-						double FIX = Double.parseDouble(metricToValueMap.get("FIX"));
+						double EXP = Double.parseDouble(metricToValueMap.get("developerExperience"));//
+						double REXP = Double.parseDouble(metricToValueMap.get("REXP"));//
+						double SEXP = Double.parseDouble(metricToValueMap.get("SEXP"));//
+						double FIX = Double.parseDouble(metricToValueMap.get("FIX"));//
 						
 
 						totalEditedLineForEachCommit += editedLine;
@@ -200,9 +199,9 @@ public class DeveloperProfilingMetric {
 				meanOfAddedLineOfCommitPath = totalAddedLineOfCommitPath / totalCommitPath;
 				meanOfDeletedLineOfCommit = totalDeletedLineOfCommit / totalCommit;
 				meanOfDeletedLineOfCommitPath = totalDeletedLineOfCommitPath / totalCommitPath;
+				
 				meanOfDistributionModifiedLineOfCommit = totalDistributionModifiedLineOfCommit / totalCommit;
 				meanOfDistributionModifiedLineOfCommitPath = totalDistributionModifiedLineOfCommitPath / totalCommitPath;
-
 				meanOfNumOfSubsystem = totalNumOfSubsystem / totalCommit;
 				meanOfNumOfDirectories = totalNumOfDirectories / totalCommit;
 				meanOfNumOfFiles = totalNumOfFiles / totalCommit;
@@ -211,7 +210,7 @@ public class DeveloperProfilingMetric {
 				meanEXP = totalEXP / totalCommit;
 				meanREXP = totalREXP / totalCommit;
 				meanSEXP = totalSEXP / totalCommit;
-				proportionBFC = (totalBFC / totalCommit) * 100;
+				proportionBFC = (totalBFC / totalCommitPath) * 100;
 				
 
 				for(String commit : commitSet) {
@@ -326,9 +325,9 @@ public class DeveloperProfilingMetric {
 						metricList.add(String.valueOf(developerInfo.meanEXP));
 						metricList.add(String.valueOf(developerInfo.meanREXP));
 						metricList.add(String.valueOf(developerInfo.meanSEXP));
-						metricList.add(String.valueOf(developerInfo.proportionBFC));
 						metricList.add(String.valueOf(developerInfo.structural));
 						metricList.add(String.valueOf(developerInfo.semantic));
+						metricList.add(String.valueOf(developerInfo.proportionBFC));
 
 						metricList.add(String.valueOf(developerInfo.weekRatioMap.get(DeveloperInfo.WeekDay.Sun)));
 						metricList.add(String.valueOf(developerInfo.weekRatioMap.get(DeveloperInfo.WeekDay.Mon)));

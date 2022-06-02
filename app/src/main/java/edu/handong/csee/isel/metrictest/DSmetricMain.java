@@ -127,8 +127,12 @@ public class DSmetricMain {
 					float normalization = (float)((float)theNumberOfFiles/(float)combination);
 					int[][] caseOfCombination = saveCombinationSet(theNumberOfFiles,combination);
 
-					int maxCount = 10;
-			        CountDownLatch countDownLatch = new CountDownLatch(maxCount);
+					int maxCount = 0;
+					if(combination > 10) {
+						maxCount = 10;
+					}else {
+						maxCount = combination;
+					}
 					ExecutorService executor = Executors.newFixedThreadPool(maxCount);
 
 					//start cal structural&semantic
@@ -143,16 +147,10 @@ public class DSmetricMain {
 						String[] file1 = splitPaths.get(file1Index);
 						String[] file2 = splitPaths.get(file2Index);
 						
-						Runnable metrics = new DSmetricCalculator(file1,file2,dists,sims,nameOfSemanticFiles,endCommitHash,endCommitTime,repositoryPath,projectHistories,git,commitHashs,countDownLatch);
+						Runnable metrics = new DSmetricCalculator(file1,file2,dists,sims,nameOfSemanticFiles,endCommitHash,endCommitTime,repositoryPath,projectHistories,git,commitHashs);
 						executor.execute(metrics);
 					}
 					executor.shutdown();
-					try {
-						countDownLatch.await();
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
 					
 		    		while (!executor.isTerminated()) {
 		    		}
