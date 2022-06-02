@@ -88,8 +88,15 @@ public class DeveloperProfilingMetric {
 				}
 			}
 
-			for(String developer : developerNameSet) {
+			System.out.println("name of saved in Demo : ");
+			for(String hi : sumDeveloperScatteringMetric.keySet()) {
+				System.out.println(hi);
+			}
+			
+			System.out.println("endendendendendend");
 
+			for(String developer : developerNameSet) {
+				System.out.println("name of dev in LABEL : "+developer);
 				int bugCount = 0;
 
 				HashSet<String> commitSet = developerToCommitSetMap.get(developer);

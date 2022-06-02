@@ -19,6 +19,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -126,7 +127,9 @@ public class DSmetricMain {
 					float normalization = (float)((float)theNumberOfFiles/(float)combination);
 					int[][] caseOfCombination = saveCombinationSet(theNumberOfFiles,combination);
 
-					ExecutorService executor = Executors.newFixedThreadPool(15);
+					int maxCount = 10;
+			        CountDownLatch countDownLatch = new CountDownLatch(maxCount);
+					ExecutorService executor = Executors.newFixedThreadPool(maxCount);
 
 					//start cal structural&semantic
 					ArrayList<Integer> dists = new ArrayList<>();
@@ -140,11 +143,17 @@ public class DSmetricMain {
 						String[] file1 = splitPaths.get(file1Index);
 						String[] file2 = splitPaths.get(file2Index);
 						
-						Runnable metrics = new DSmetricCalculator(file1,file2,dists,sims,nameOfSemanticFiles,endCommitHash,endCommitTime,repositoryPath,projectHistories,git,commitHashs);
+						Runnable metrics = new DSmetricCalculator(file1,file2,dists,sims,nameOfSemanticFiles,endCommitHash,endCommitTime,repositoryPath,projectHistories,git,commitHashs,countDownLatch);
 						executor.execute(metrics);
 					}
 					executor.shutdown();
-				
+					try {
+						countDownLatch.await();
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
 		    		while (!executor.isTerminated()) {
 		    		}
 					

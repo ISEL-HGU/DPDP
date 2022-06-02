@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.CountDownLatch;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.jgit.api.Git;
@@ -31,11 +32,12 @@ class DSmetricCalculator implements Runnable{
 	TreeMap<Date, ProjectHistory> projectHistories;
 	Git git;
 	ArrayList<String> commitHashs;
+	CountDownLatch countDownLatch;
 	
 protected DSmetricCalculator(String[] file1, String[] file2, ArrayList<Integer> dists, ArrayList<Float> sims,
 			HashMap<String, TreeSet<String>> nameOfSemanticFiles, String endCommitHash, Date endCommitTime,
 			String repositoryPath, TreeMap<Date, ProjectHistory> projectHistories, Git git,
-			ArrayList<String> commitHashs) {
+			ArrayList<String> commitHashs, CountDownLatch countDownLatch) {
 		this.file1 = file1;
 		this.file2 = file2;
 		this.dists = dists;
@@ -47,6 +49,7 @@ protected DSmetricCalculator(String[] file1, String[] file2, ArrayList<Integer> 
 		this.projectHistories = projectHistories;
 		this.git = git;
 		this.commitHashs = commitHashs;
+		this.countDownLatch = countDownLatch;
 	}
 
 	@Override
@@ -63,6 +66,7 @@ protected DSmetricCalculator(String[] file1, String[] file2, ArrayList<Integer> 
 			float sim = calSimularityOfTwoFiles(file1,file2,endCommitTime,repositoryPath,endCommitHash,projectHistories,git,commitHashs);
 			sims.add(sim);
 		}
+		countDownLatch.countDown();
 	}
 	
 	private static float calSimularityOfTwoFiles(String[] file1, String[] file2, Date endCommitTime,
