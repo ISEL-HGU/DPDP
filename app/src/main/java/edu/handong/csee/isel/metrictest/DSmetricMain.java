@@ -128,8 +128,8 @@ public class DSmetricMain {
 					int[][] caseOfCombination = saveCombinationSet(theNumberOfFiles,combination);
 
 					int maxCount = 0;
-					if(combination > 10) {
-						maxCount = 10;
+					if(combination > 5) {
+						maxCount = 5;
 					}else {
 						maxCount = combination;
 					}
