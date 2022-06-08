@@ -57,10 +57,10 @@ public class DSmetricMain {
 		ArrayList<String> commitHashs = getCommitHashs(git);
 		
 		//parsing refactoring commit
-		boolean test = false;
+		File isExist = new File("."+File.separator+projectName+"_refactoring_commit.txt");
+
 		TreeSet<String> refactoringCommit = null;
-		
-		if(test == true) {
+		if(isExist.exists()) {
 			refactoringCommit = readTxtFileForTest(repositoryPath);
 		}else {
 			refactoringCommit = miningRefactoringCommit(repositoryPath,output);
