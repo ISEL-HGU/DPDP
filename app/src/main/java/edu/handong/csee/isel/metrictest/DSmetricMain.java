@@ -51,13 +51,13 @@ public class DSmetricMain {
 		input = args[0];
 		repositoryPath = args[1];
 		projectName = args [2];
-		output = args[3];
+		output = args[3].substring(0, args[3].lastIndexOf(File.separator));
 		
 		Git git = Git.open(new File(repositoryPath));
 		ArrayList<String> commitHashs = getCommitHashs(git);
 		
 		//parsing refactoring commit
-		File isExist = new File("."+File.separator+projectName+"_refactoring_commit.txt");
+		File isExist = new File(output+File.separator+projectName+"_refactoring_commit.txt");
 
 		TreeSet<String> refactoringCommit = null;
 		if(isExist.exists()) {
@@ -400,7 +400,7 @@ public class DSmetricMain {
 
 	private static TreeSet<String> miningRefactoringCommit(String repositoryPath, String output) throws IOException {
 		TreeSet<String> refactoringCommit = new TreeSet<>();
-		FileWriter write = new FileWriter("."+File.separator+projectName+"_refactoring_commit.txt");
+		FileWriter write = new FileWriter(output+File.separator+projectName+"_refactoring_commit.txt");
 		BufferedWriter buff = new BufferedWriter(write);
 		
 		try {
