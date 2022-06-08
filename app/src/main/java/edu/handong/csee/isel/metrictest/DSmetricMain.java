@@ -1,13 +1,10 @@
 package edu.handong.csee.isel.metrictest;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -19,14 +16,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.util.Combinations;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.Repository;
@@ -156,7 +151,7 @@ public class DSmetricMain {
 		    		}
 					
 					//normalize structural
-					int sumDist = dists.stream().mapToInt(i -> i.intValue()).sum();
+					int sumDist = sumAllDist(dists);
 					float structural  = normalization * (float)sumDist;
 					//normalize semantic
 					float semantic = 0;
@@ -164,7 +159,7 @@ public class DSmetricMain {
 						semantic = 0;
 					}else {
 						float simNormalization = calSimCombination(nameOfSemanticFiles);
-						float sumSim = (float)sims.stream().mapToDouble(i -> i.floatValue()).sum();
+						float sumSim = sumAllSims(sims);
 						semantic = simNormalization * (1/sumSim);
 					}
 					  
@@ -216,6 +211,22 @@ public class DSmetricMain {
 //		}
 		
 		return sumDeveloperScatteringMetric;
+	}
+
+	private static float sumAllSims(ArrayList<Float> sims) {
+		float sum = 0;
+		for(int i = 0; i < sims.size(); i++) {
+			sum = sum + sims.get(i);
+		}
+		return sum;
+	}
+
+	private static int sumAllDist(ArrayList<Integer> contents) {
+		int sum = 0;
+		for(int i = 0; i < contents.size(); i++) {
+			sum = sum + contents.get(i);
+		}
+		return sum;
 	}
 
 	private static float calSimCombination(HashMap<String, TreeSet<String>> nameOfSemanticFiles) {
