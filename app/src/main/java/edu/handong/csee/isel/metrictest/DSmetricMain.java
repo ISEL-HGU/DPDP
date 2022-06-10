@@ -123,8 +123,8 @@ public class DSmetricMain {
 					int[][] caseOfCombination = saveCombinationSet(theNumberOfFiles,combination);
 
 					int maxCount = 0;
-					if(combination > 5) {
-						maxCount = 5;
+					if(combination > 20) {
+						maxCount = 20;
 					}else {
 						maxCount = combination;
 					}
@@ -133,7 +133,7 @@ public class DSmetricMain {
 					//start cal structural&semantic
 					ArrayList<Integer> dists = new ArrayList<>();
 					ArrayList<Float> sims = new ArrayList<>();
-					HashMap<String,TreeSet<String>> nameOfSemanticFiles = new HashMap<>();
+					HashMap<String,ArrayList<String>> nameOfSemanticFiles = new HashMap<>();
 										
 					for(int i = 0; i < combination; i++) {
 						int file1Index = caseOfCombination[i][0];
@@ -229,7 +229,7 @@ public class DSmetricMain {
 		return sum;
 	}
 
-	private static float calSimCombination(HashMap<String, TreeSet<String>> nameOfSemanticFiles) {
+	private static float calSimCombination(HashMap<String, ArrayList<String>> nameOfSemanticFiles) {
 		float combination = 0;
 		for(String key : nameOfSemanticFiles.keySet()) {
 			combination = combination + (float)calculateCombination(nameOfSemanticFiles.get(key).size());

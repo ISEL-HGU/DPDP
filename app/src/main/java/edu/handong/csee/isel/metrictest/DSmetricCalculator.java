@@ -25,7 +25,7 @@ class DSmetricCalculator implements Runnable{
 	String[] file2;
 	ArrayList<Integer> dists;
 	ArrayList<Float> sims;
-	HashMap<String,TreeSet<String>> nameOfSemanticFiles;
+	HashMap<String,ArrayList<String>> nameOfSemanticFiles;
 	String endCommitHash;
 	Date endCommitTime;
 	String repositoryPath;
@@ -34,7 +34,7 @@ class DSmetricCalculator implements Runnable{
 	ArrayList<String> commitHashs;
 	
 protected DSmetricCalculator(String[] file1, String[] file2, ArrayList<Integer> dists, ArrayList<Float> sims,
-			HashMap<String, TreeSet<String>> nameOfSemanticFiles, String endCommitHash, Date endCommitTime,
+			HashMap<String, ArrayList<String>> nameOfSemanticFiles, String endCommitHash, Date endCommitTime,
 			String repositoryPath, TreeMap<Date, ProjectHistory> projectHistories, Git git,
 			ArrayList<String> commitHashs) {
 		this.file1 = file1;
@@ -59,20 +59,21 @@ protected DSmetricCalculator(String[] file1, String[] file2, ArrayList<Integer> 
 		
 		//3) calculate the semantic scattering
 		//3)-1 calculate the similarity of two filePath
-		boolean isSamePackage = compareTwoFilePaths(file1,file2,nameOfSemanticFiles);
+		String filePath1 = originalFilePath(file1);
+		String filePath2 = originalFilePath(file2);
+		
+		boolean isSamePackage = compareTwoFilePaths(filePath1,filePath2,nameOfSemanticFiles);
 		if(isSamePackage) {
-			float sim = calSimularityOfTwoFiles(file1,file2,endCommitTime,repositoryPath,endCommitHash,projectHistories,git,commitHashs);
+			float sim = calSimularityOfTwoFiles(filePath1,filePath2,endCommitTime,repositoryPath,endCommitHash,projectHistories,git,commitHashs);
 			sims.add(sim);
 		}
 	}
 	
-	private float calSimularityOfTwoFiles(String[] file1, String[] file2, Date endCommitTime,
+	private float calSimularityOfTwoFiles(String filePath1, String filePath2, Date endCommitTime,
 			String repositoryPath, String endCommitHash, TreeMap<Date, ProjectHistory> projectHistories, Git git, ArrayList<String> commitHashs) {
 		long threadId = Thread.currentThread().getId();
 		
 		float simScore = 0;
-		String filePath1 = originalFilePath(file1);
-		String filePath2 = originalFilePath(file2);
 		String tempFile1 = "./"+threadId+"_1.txt";
 		String tempFile2 = "./"+threadId+"_2.txt";
 
@@ -126,13 +127,15 @@ protected DSmetricCalculator(String[] file1, String[] file2, ArrayList<Integer> 
 			Process process = builder.start();
 			simScore = Float.parseFloat(output(process.getInputStream()).trim());
 //			System.out.println("Similarity Score : "+simScore);
-			
+
 			//delete temp file
 			new File(tempFile1).delete();
 			new File(tempFile2).delete();
+			process.destroy();
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
+			System.out.println("Error!! in python process");
 			e.printStackTrace();
 		}
 		return simScore;
@@ -179,22 +182,22 @@ protected DSmetricCalculator(String[] file1, String[] file2, ArrayList<Integer> 
 		return filePath1;
 	}
 	
-	private boolean compareTwoFilePaths(String[] file1, String[] file2, HashMap<String, TreeSet<String>> nameOfSemanticFiles) {
-		String filePath1 = originalFilePath(file1);
-		String filePath2 = originalFilePath(file2);
+	private boolean compareTwoFilePaths(String filePath1, String filePath2, HashMap<String, ArrayList<String>> nameOfSemanticFiles) {
 		String filePathPackage1 = filePath1.substring(0, filePath1.lastIndexOf(File.separator));
 		String filePathPackage2 = filePath2.substring(0, filePath2.lastIndexOf(File.separator));
-		
+
 		boolean isSamePackage = filePathPackage1.equals(filePathPackage2);
 
 		if(isSamePackage) {
-			TreeSet<String> nameOfSemanticFile = null;
+			ArrayList<String> nameOfSemanticFile = null;
 			if(nameOfSemanticFiles.containsKey(filePathPackage1)) {
 				nameOfSemanticFile = nameOfSemanticFiles.get(filePathPackage1);
-				nameOfSemanticFile.add(filePath1);
-				nameOfSemanticFile.add(filePath2);
+				if(!nameOfSemanticFile.contains(filePath1))
+					nameOfSemanticFile.add(filePath1);
+				if(!nameOfSemanticFile.contains(filePath2))
+					nameOfSemanticFile.add(filePath2);
 			}else {
-				nameOfSemanticFile = new TreeSet<>();
+				nameOfSemanticFile = new ArrayList<>();
 				nameOfSemanticFile.add(filePath1);
 				nameOfSemanticFile.add(filePath2);
 				nameOfSemanticFiles.put(filePathPackage1, nameOfSemanticFile);
