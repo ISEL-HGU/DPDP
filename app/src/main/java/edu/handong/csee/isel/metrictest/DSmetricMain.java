@@ -58,7 +58,7 @@ public class DSmetricMain {
 		
 		//parsing refactoring commit
 		File isExist = new File(output+File.separator+projectName+"_refactoring_commit.txt");
-
+		System.out.println("Refactoring file Path : "+output+File.separator+projectName+"_refactoring_commit.txt");
 		TreeSet<String> refactoringCommit = null;
 		if(isExist.exists()) {
 			refactoringCommit = readTxtFileForTest(repositoryPath);
@@ -115,7 +115,6 @@ public class DSmetricMain {
 				scatteringMetric.setAuthorId(authorId);
 				TreeSet<String> filePaths = authorID_filePaths.get(authorId);
 				System.out.println(filePaths.size());
-				
 				if(filePaths.size() < 2) {//1)-1 if the developer modified one file or less
 					scatteringMetric.setStructuralScattering(0);
 					scatteringMetric.setSemanticScattering(0);
@@ -139,8 +138,8 @@ public class DSmetricMain {
 					int[][] caseOfCombination = saveCombinationSet(theNumberOfFiles,combination);
 
 					int maxCount = 0;
-					if(combination > 20) {
-						maxCount = 20;
+					if(combination > 10) {
+						maxCount = 10;
 					}else {
 						maxCount = combination;
 					}
@@ -158,7 +157,10 @@ public class DSmetricMain {
 						String[] file1 = splitPaths.get(file1Index);
 						String[] file2 = splitPaths.get(file2Index);
 						
-						Runnable metrics = new DSmetricCalculator(file1,file2,dists,sims,nameOfSemanticFiles,endCommitHash,endCommitTime,repositoryPath,projectHistories,git,commitHashs);
+						String filePath1 = originalFilePath(file1);
+						String filePath2 = originalFilePath(file2);
+
+						Runnable metrics = new DSmetricCalculator(file1,file2, filePath1, filePath2, dists,sims,nameOfSemanticFiles,endCommitHash,endCommitTime,repositoryPath,projectHistories,git,commitHashs);
 						executor.execute(metrics);
 					}
 					executor.shutdown();
@@ -229,6 +231,14 @@ public class DSmetricMain {
 		return sumDeveloperScatteringMetric;
 	}
 
+	private static String originalFilePath(String[] file) {
+		String filePath = file[0];
+		for(int i = 1; i < file.length; i++) {
+			filePath = filePath + File.separator + file[i];
+		}
+		return filePath;
+	}
+
 	private static float sumAllSims(ArrayList<Float> sims) {
 		float sum = 0;
 		for(int i = 0; i < sims.size(); i++) {
@@ -296,7 +306,7 @@ public class DSmetricMain {
 				for(int i = 0; i < authorIds.size(); i++) {
 					String authorId = authorIds.get(i);
 					String filePath = filePaths.get(i);
-					
+
 					if(authorID_filePaths.containsKey(authorId)) {
 						TreeSet<String> files = authorID_filePaths.get(authorId);
 						files.add(filePath);
@@ -401,7 +411,7 @@ public class DSmetricMain {
 		TreeSet<String> refactoringCommit = new TreeSet<>();
 		
 		try {
-			String content = FileUtils.readFileToString(new File("."+File.separator+projectName+"_refactoring_commit.txt"), "UTF-8");
+			String content = FileUtils.readFileToString(new File(output+File.separator+projectName+"_refactoring_commit.txt"), "UTF-8");
 			String[] lines = content.split("\n");
 			
 			for(int i = 0; i<lines.length; i++) {
@@ -422,7 +432,6 @@ public class DSmetricMain {
 		try {
 			GitService gitService = new GitServiceImpl();
 			GitHistoryRefactoringMiner miner = new GitHistoryRefactoringMinerImpl();
-			System.out.println(repositoryPath);
 			Repository repo = gitService.openRepository(repositoryPath);
 			
 			miner.detectAll(repo, "master", new RefactoringHandler() {

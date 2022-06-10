@@ -23,6 +23,8 @@ import edu.handong.csee.isel.Utils;
 class DSmetricCalculator implements Runnable{
 	String[] file1;
 	String[] file2;
+	String filePath1;
+	String filePath2;
 	ArrayList<Integer> dists;
 	ArrayList<Float> sims;
 	HashMap<String,ArrayList<String>> nameOfSemanticFiles;
@@ -33,12 +35,14 @@ class DSmetricCalculator implements Runnable{
 	Git git;
 	ArrayList<String> commitHashs;
 	
-protected DSmetricCalculator(String[] file1, String[] file2, ArrayList<Integer> dists, ArrayList<Float> sims,
+protected DSmetricCalculator(String[] file1, String[] file2, String filePath1, String filePath2,ArrayList<Integer> dists, ArrayList<Float> sims,
 			HashMap<String, ArrayList<String>> nameOfSemanticFiles, String endCommitHash, Date endCommitTime,
 			String repositoryPath, TreeMap<Date, ProjectHistory> projectHistories, Git git,
 			ArrayList<String> commitHashs) {
 		this.file1 = file1;
 		this.file2 = file2;
+		this.filePath1 = filePath1;
+		this.filePath2 = filePath2;
 		this.dists = dists;
 		this.sims = sims;
 		this.nameOfSemanticFiles = nameOfSemanticFiles;
@@ -59,9 +63,6 @@ protected DSmetricCalculator(String[] file1, String[] file2, ArrayList<Integer> 
 		
 		//3) calculate the semantic scattering
 		//3)-1 calculate the similarity of two filePath
-		String filePath1 = originalFilePath(file1);
-		String filePath2 = originalFilePath(file2);
-		
 		boolean isSamePackage = compareTwoFilePaths(filePath1,filePath2,nameOfSemanticFiles);
 		if(isSamePackage) {
 			float sim = calSimularityOfTwoFiles(filePath1,filePath2,endCommitTime,repositoryPath,endCommitHash,projectHistories,git,commitHashs);
@@ -172,14 +173,6 @@ protected DSmetricCalculator(String[] file1, String[] file2, ArrayList<Integer> 
 			return "error";
 		}
 		return commitHashs.get(indexOfCommit);
-	}
-	
-	private String originalFilePath(String[] file) {
-		String filePath1 = file[0];
-		for(int i = 1; i < file.length; i++) {
-			filePath1 = filePath1 + File.separator + file[i];
-		}
-		return filePath1;
 	}
 	
 	private boolean compareTwoFilePaths(String filePath1, String filePath2, HashMap<String, ArrayList<String>> nameOfSemanticFiles) {
