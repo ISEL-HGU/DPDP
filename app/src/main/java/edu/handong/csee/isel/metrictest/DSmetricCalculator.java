@@ -66,7 +66,7 @@ protected DSmetricCalculator(String[] file1, String[] file2, ArrayList<Integer> 
 		}
 	}
 	
-	private static float calSimularityOfTwoFiles(String[] file1, String[] file2, Date endCommitTime,
+	private float calSimularityOfTwoFiles(String[] file1, String[] file2, Date endCommitTime,
 			String repositoryPath, String endCommitHash, TreeMap<Date, ProjectHistory> projectHistories, Git git, ArrayList<String> commitHashs) {
 		long threadId = Thread.currentThread().getId();
 		
@@ -138,7 +138,7 @@ protected DSmetricCalculator(String[] file1, String[] file2, ArrayList<Integer> 
 		return simScore;
 	}
 	
-	private static String output(InputStream inputStream) throws IOException {
+	private String output(InputStream inputStream) throws IOException {
         StringBuilder sb = new StringBuilder();
         BufferedReader br = null;
         try {
@@ -153,7 +153,7 @@ protected DSmetricCalculator(String[] file1, String[] file2, ArrayList<Integer> 
         return sb.toString();
     }
 	
-	private static void writeTxtFile(String fileSource, String string) throws IOException {
+	private void writeTxtFile(String fileSource, String string) throws IOException {
 		FileWriter fw = new FileWriter(new File(string));
 		BufferedWriter bw = new BufferedWriter(fw);
 		bw.write(fileSource);
@@ -161,7 +161,7 @@ protected DSmetricCalculator(String[] file1, String[] file2, ArrayList<Integer> 
 		fw.close();
 	}
 	
-	private static String getPreviousCommitHash(ArrayList<String> commitHashs, String endCommitHash) {
+	private String getPreviousCommitHash(ArrayList<String> commitHashs, String endCommitHash) {
 		int indexOfCommit = commitHashs.indexOf(endCommitHash)+1;
 		
 		if(commitHashs.size() <= indexOfCommit) {
@@ -171,7 +171,7 @@ protected DSmetricCalculator(String[] file1, String[] file2, ArrayList<Integer> 
 		return commitHashs.get(indexOfCommit);
 	}
 	
-	private static String originalFilePath(String[] file) {
+	private String originalFilePath(String[] file) {
 		String filePath1 = file[0];
 		for(int i = 1; i < file.length; i++) {
 			filePath1 = filePath1 + File.separator + file[i];
@@ -186,7 +186,7 @@ protected DSmetricCalculator(String[] file1, String[] file2, ArrayList<Integer> 
 		String filePathPackage2 = filePath2.substring(0, filePath2.lastIndexOf(File.separator));
 		
 		boolean isSamePackage = filePathPackage1.equals(filePathPackage2);
-		
+
 		if(isSamePackage) {
 			TreeSet<String> nameOfSemanticFile = null;
 			if(nameOfSemanticFiles.containsKey(filePathPackage1)) {
