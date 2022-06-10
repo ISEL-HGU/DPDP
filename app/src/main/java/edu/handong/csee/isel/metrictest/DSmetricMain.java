@@ -81,6 +81,22 @@ public class DSmetricMain {
 		//calculate developer scattering metric
 		TreeMap<Date,Date> windows = saveStartAndEndCommittimeOfRefactoring(time_refactoringCommit,projectHistories);
 		System.out.println("windows.size() : "+windows.size());
+		
+		if(windows.size() == 1) {
+			File window1fileExist = new File("."+File.separator+"window_1_fileList.txt");
+			FileWriter write;
+			if(window1fileExist.exists()) {
+				write = new FileWriter("."+File.separator+"window_1_fileList.txt",true);
+			}else {
+				write = new FileWriter("."+File.separator+"window_1_fileList.txt");
+			}
+			BufferedWriter buff = new BufferedWriter(write);
+			buff.append(projectName+"\n");
+			buff.close();
+			write.close();
+			System.out.println("Stop since the window size is 1");
+			System.exit(0);
+		}
 		HashMap<String,ArrayList<DeveloperScatteringMetric>> developerScatteringMetrics = new HashMap<>();
 		
 //		developerScatteringMetrics 
