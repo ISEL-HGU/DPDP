@@ -342,11 +342,22 @@ public class DPDPMain {
 						projectInformation.setAInputPath(cmd.getOptionValue("i"));
 						//repository path
 						projectInformation.setRepositoryPath(cmd.getOptionValue("repo"));
+						//number of Thread Pool
+						if(cmd.hasOption("pool")) {
+							projectInformation.setNumberOfThreadPool(cmd.getOptionValue("pool"));
+						}else {
+							projectInformation.setNumberOfThreadPool("1");
+						}
 						projectInformation.setOutputPath(cmd.getOptionValue("o"));
 						projectInformation.setProjectName(parsingCSVProjectName(projectInformation.getInputPath()));
 						
 					}else if(cmd.hasOption("all")) {
 						dataMakerMode = 3;
+						if(cmd.hasOption("pool")) {
+							projectInformation.setNumberOfThreadPool(cmd.getOptionValue("pool"));
+						}else {
+							projectInformation.setNumberOfThreadPool("1");
+						}
 						projectInformation.setInputPath(cmd.getOptionValue("i"));
 						projectInformation.setRepositoryPath(cmd.getOptionValue("repo"));
 						projectInformation.setOutputPath(cmd.getOptionValue("o"));
@@ -541,6 +552,12 @@ public class DPDPMain {
 						.desc("Remove the metric of Bag Of Words")
 						.hasArg()
 						.argName("NoBagOfWords")
+						.build());
+				
+				options.addOption(Option.builder("pool").longOpt("ThreadPool")
+						.desc("number of Thread Pool")
+						.hasArg()
+						.argName("NumOfThreadPool")
 						.build());
 		
 		

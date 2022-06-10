@@ -23,6 +23,7 @@ public class DeveloperProfilingMetric {
 	String outputPath;
 	String projectName;
 	String repo;
+	String numberOfTreahPool;
 	boolean verbose;
 	boolean help;
 	
@@ -39,11 +40,12 @@ public class DeveloperProfilingMetric {
 		if (parseOptions(options, args)) {
 			
 			DSmetricMain dsmetricMain = new DSmetricMain();
-			String[] dsmetricMainMetrics = new String[4];
+			String[] dsmetricMainMetrics = new String[5];
 			dsmetricMainMetrics[0] = metadataPath;
 			dsmetricMainMetrics[1] = repo;
 			dsmetricMainMetrics[2] = projectName;
 			dsmetricMainMetrics[3] = outputPath;
+			dsmetricMainMetrics[4] = numberOfTreahPool;
 			
 			HashMap<String, DeveloperScatteringMetric> sumDeveloperScatteringMetric = dsmetricMain.main(dsmetricMainMetrics);
 
@@ -480,7 +482,7 @@ public class DeveloperProfilingMetric {
 			repo = cmd.getOptionValue("r");
 			metadataPath = cmd.getOptionValue("m");
 			projectName = cmd.getOptionValue("p");
-			
+			numberOfTreahPool = cmd.getOptionValue("t");
 			help = cmd.hasOption("h");
 			
 //		System.out.println(metadataPath);
@@ -520,9 +522,15 @@ public class DeveloperProfilingMetric {
 				.build());
 		
 		options.addOption(Option.builder("p").longOpt("projectName")
-				.desc("")
+				.desc("the project name")
 				.hasArg()
 				.argName("path")
+				.build());
+		
+		options.addOption(Option.builder("t").longOpt("numberOfThreadPool")
+				.desc("the number of Thread Pool")
+				.hasArg()
+				.argName("numberOfTreahPool")
 				.build());
 		
 		options.addOption(Option.builder("h").longOpt("help")

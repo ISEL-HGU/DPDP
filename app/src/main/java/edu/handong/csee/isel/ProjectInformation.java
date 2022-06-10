@@ -20,6 +20,7 @@ public class ProjectInformation {
 	String testFolderPath;
 	String modelInformationCSV;
 	String evaluation_algorithm;
+	String numberOfThreadPool;
 	int numOfCluster;
 	int hierarchy;
 	int atLeastOfCommit;
@@ -49,6 +50,7 @@ public class ProjectInformation {
 		this.hierarchy = 0;
 		this.modelInformationCSV = null;
 		this.evaluation_algorithm = null;
+		this.numberOfThreadPool = null;
 	}
 
 	public String getInputPath() {
@@ -233,4 +235,14 @@ public class ProjectInformation {
 	public void setEvaluation_algorithm(String evaluation_algorithm) {
 		this.evaluation_algorithm = evaluation_algorithm;
 	}
+
+	public String getNumberOfThreadPool() {
+		return numberOfThreadPool;
+	}
+
+	public void setNumberOfThreadPool(String numberOfThreadPool) {
+		this.numberOfThreadPool = numberOfThreadPool;
+	}
+	
+	
 }

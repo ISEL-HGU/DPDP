@@ -36,6 +36,7 @@ import org.refactoringminer.util.GitServiceImpl;
 
 import com.google.common.collect.Iterators;
 
+import edu.handong.csee.isel.ProjectInformation;
 import edu.handong.csee.isel.Utils;
 
 public class DSmetricMain {
@@ -43,6 +44,7 @@ public class DSmetricMain {
 	static String repositoryPath;
 	static String projectName;
 	static String output;
+	static int numberOfTreahPool;
 	
 	public static HashMap<String, DeveloperScatteringMetric> main(String[] args) throws Exception {
 		long beforeTime = System.currentTimeMillis();
@@ -52,6 +54,7 @@ public class DSmetricMain {
 		repositoryPath = args[1];
 		projectName = args [2];
 		output = args[3].substring(0, args[3].lastIndexOf(File.separator));
+		numberOfTreahPool = Integer.parseInt(args[4]);
 		
 		Git git = Git.open(new File(repositoryPath));
 		ArrayList<String> commitHashs = getCommitHashs(git);
@@ -138,8 +141,8 @@ public class DSmetricMain {
 					int[][] caseOfCombination = saveCombinationSet(theNumberOfFiles,combination);
 
 					int maxCount = 0;
-					if(combination > 10) {
-						maxCount = 10;
+					if(combination > numberOfTreahPool) {
+						maxCount = numberOfTreahPool;
 					}else {
 						maxCount = combination;
 					}

@@ -36,9 +36,10 @@ public class DataFileMaker {
 		String output = projectInformation.getOutputPath();
 		String repoPath = projectInformation.getRepositoryPath();
 		String projectName = projectInformation.getProjectName();
+		String numberOfThreadPool = projectInformation.getNumberOfThreadPool();
 		
 		//the argument of developer Profiling Metrics
-		String[] developerProfilingMetrics = new String[8];
+		String[] developerProfilingMetrics = new String[10];
 
 		//make the directory and file to save the result
 		String developerProfilingInstancePath = getDirPathToSaveCSVfiles(projectInformation);
@@ -47,6 +48,7 @@ System.out.println(labelCSV);
 System.out.println(developerProfilingInstancePath);
 System.out.println(projectName);
 System.out.println(repoPath);
+System.out.println(numberOfThreadPool);
 		
 		developerProfilingMetrics[0] = "-m";
 		developerProfilingMetrics[1] = labelCSV;
@@ -56,6 +58,9 @@ System.out.println(repoPath);
 		developerProfilingMetrics[5] = projectName;
 		developerProfilingMetrics[6] = "-r";
 		developerProfilingMetrics[7] = repoPath;
+		developerProfilingMetrics[8] = "-t";
+		developerProfilingMetrics[9] = numberOfThreadPool;
+		
 		
 		DeveloperProfilingMetric developerProfilingMetric = new DeveloperProfilingMetric();
 		developerProfilingMetric.run(developerProfilingMetrics);
