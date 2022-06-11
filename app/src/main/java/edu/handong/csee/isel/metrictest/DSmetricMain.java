@@ -10,8 +10,10 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
@@ -149,9 +151,9 @@ public class DSmetricMain {
 					ExecutorService executor = Executors.newFixedThreadPool(maxCount);
 
 					//start cal structural&semantic
-					ArrayList<Integer> dists = new ArrayList<>();
-					ArrayList<Float> sims = new ArrayList<>();
-					HashMap<String,ArrayList<String>> nameOfSemanticFiles = new HashMap<>();
+					List<Integer> dists = Collections.synchronizedList(new ArrayList<>());
+					List<Float> sims = Collections.synchronizedList(new ArrayList<>());
+					Hashtable<String,ArrayList<String>> nameOfSemanticFiles = new Hashtable<>();
 										
 					for(int i = 0; i < combination; i++) {
 						int file1Index = caseOfCombination[i][0];
@@ -242,7 +244,7 @@ public class DSmetricMain {
 		return filePath;
 	}
 
-	private static float sumAllSims(ArrayList<Float> sims) {
+	private static float sumAllSims(List<Float> sims) {
 		float sum = 0;
 		for(int i = 0; i < sims.size(); i++) {
 			sum = sum + sims.get(i);
@@ -250,7 +252,7 @@ public class DSmetricMain {
 		return sum;
 	}
 
-	private static int sumAllDist(ArrayList<Integer> contents) {
+	private static int sumAllDist(List<Integer> contents) {
 		int sum = 0;
 		for(int i = 0; i < contents.size(); i++) {
 			sum = sum + contents.get(i);
@@ -258,7 +260,7 @@ public class DSmetricMain {
 		return sum;
 	}
 
-	private static float calSimCombination(HashMap<String, ArrayList<String>> nameOfSemanticFiles) {
+	private static float calSimCombination(Hashtable<String, ArrayList<String>> nameOfSemanticFiles) {
 		float combination = 0;
 		for(String key : nameOfSemanticFiles.keySet()) {
 			combination = combination + (float)calculateCombination(nameOfSemanticFiles.get(key).size());

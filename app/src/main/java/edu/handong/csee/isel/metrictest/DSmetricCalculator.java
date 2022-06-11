@@ -10,6 +10,8 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.List;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
@@ -25,9 +27,9 @@ class DSmetricCalculator implements Runnable{
 	String[] file2;
 	String filePath1;
 	String filePath2;
-	ArrayList<Integer> dists;
-	ArrayList<Float> sims;
-	HashMap<String,ArrayList<String>> nameOfSemanticFiles;
+	List<Integer> dists;
+	List<Float> sims;
+	Hashtable<String,ArrayList<String>> nameOfSemanticFiles;
 	String endCommitHash;
 	Date endCommitTime;
 	String repositoryPath;
@@ -35,8 +37,8 @@ class DSmetricCalculator implements Runnable{
 	Git git;
 	ArrayList<String> commitHashs;
 	
-protected DSmetricCalculator(String[] file1, String[] file2, String filePath1, String filePath2,ArrayList<Integer> dists, ArrayList<Float> sims,
-			HashMap<String, ArrayList<String>> nameOfSemanticFiles, String endCommitHash, Date endCommitTime,
+protected DSmetricCalculator(String[] file1, String[] file2, String filePath1, String filePath2,List<Integer> dists, List<Float> sims,
+			Hashtable<String, ArrayList<String>> nameOfSemanticFiles, String endCommitHash, Date endCommitTime,
 			String repositoryPath, TreeMap<Date, ProjectHistory> projectHistories, Git git,
 			ArrayList<String> commitHashs) {
 		this.file1 = file1;
@@ -175,7 +177,7 @@ protected DSmetricCalculator(String[] file1, String[] file2, String filePath1, S
 		return commitHashs.get(indexOfCommit);
 	}
 	
-	private boolean compareTwoFilePaths(String filePath1, String filePath2, HashMap<String, ArrayList<String>> nameOfSemanticFiles) {
+	private boolean compareTwoFilePaths(String filePath1, String filePath2, Hashtable<String, ArrayList<String>> nameOfSemanticFiles) {
 		String filePathPackage1 = filePath1.substring(0, filePath1.lastIndexOf(File.separator));
 		String filePathPackage2 = filePath2.substring(0, filePath2.lastIndexOf(File.separator));
 
