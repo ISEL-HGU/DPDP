@@ -144,7 +144,7 @@ protected DSmetricCalculator(String[] file1, String[] file2, String filePath1, S
 		return simScore;
 	}
 	
-	private String output(InputStream inputStream) throws IOException {
+	private String output(InputStream inputStream){
         StringBuilder sb = new StringBuilder();
         BufferedReader br = null;
         try {
@@ -153,18 +153,26 @@ protected DSmetricCalculator(String[] file1, String[] file2, String filePath1, S
             while ((line = br.readLine()) != null) {
                 sb.append(line + System.getProperty("line.separator"));
             }
-        } finally {
             br.close();
+        } catch(IOException io) {
+			System.out.println("Error!! when reading python result");
+			io.printStackTrace();
         }
         return sb.toString();
     }
 	
-	private void writeTxtFile(String fileSource, String string) throws IOException {
-		FileWriter fw = new FileWriter(new File(string));
-		BufferedWriter bw = new BufferedWriter(fw);
-		bw.write(fileSource);
-		bw.close();
-		fw.close();
+	private void writeTxtFile(String fileSource, String string){
+		FileWriter fw;
+		try {
+			fw = new FileWriter(new File(string));
+			BufferedWriter bw = new BufferedWriter(fw);
+			bw.write(fileSource);
+			bw.close();
+			fw.close();
+		} catch (IOException e) {
+			System.out.println("Error!! when write Txt File");
+			e.printStackTrace();
+		}
 	}
 	
 	private String getPreviousCommitHash(ArrayList<String> commitHashs, String endCommitHash) {

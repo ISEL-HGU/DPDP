@@ -38,9 +38,6 @@ import org.refactoringminer.util.GitServiceImpl;
 
 import com.google.common.collect.Iterators;
 
-import edu.handong.csee.isel.ProjectInformation;
-import edu.handong.csee.isel.Utils;
-
 public class DSmetricMain {
 	static String input;
 	static String repositoryPath;
