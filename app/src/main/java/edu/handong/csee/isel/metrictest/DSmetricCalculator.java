@@ -36,11 +36,12 @@ class DSmetricCalculator implements Runnable{
 	TreeMap<Date, ProjectHistory> projectHistories;
 	Git git;
 	ArrayList<String> commitHashs;
+	String projectName;
 	
 protected DSmetricCalculator(String[] file1, String[] file2, String filePath1, String filePath2,List<Integer> dists, List<Float> sims,
 			Hashtable<String, ArrayList<String>> nameOfSemanticFiles, String endCommitHash, Date endCommitTime,
 			String repositoryPath, TreeMap<Date, ProjectHistory> projectHistories, Git git,
-			ArrayList<String> commitHashs) {
+			ArrayList<String> commitHashs,String projectName) {
 		this.file1 = file1;
 		this.file2 = file2;
 		this.filePath1 = filePath1;
@@ -54,6 +55,7 @@ protected DSmetricCalculator(String[] file1, String[] file2, String filePath1, S
 		this.projectHistories = projectHistories;
 		this.git = git;
 		this.commitHashs = commitHashs;
+		this.projectName = projectName;
 	}
 
 	@Override
@@ -77,8 +79,8 @@ protected DSmetricCalculator(String[] file1, String[] file2, String filePath1, S
 		long threadId = Thread.currentThread().getId();
 		
 		float simScore = 0;
-		String tempFile1 = "./"+threadId+"_1.txt";
-		String tempFile2 = "./"+threadId+"_2.txt";
+		String tempFile1 = "./"+projectName+threadId+"_1.txt";
+		String tempFile2 = "./"+projectName+threadId+"_2.txt";
 
 		try {
 			//get endCommitTime repository

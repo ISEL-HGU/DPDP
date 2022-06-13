@@ -117,6 +117,7 @@ public class DSmetricMain {
 				scatteringMetric.setAuthorId(authorId);
 				TreeSet<String> filePaths = authorID_filePaths.get(authorId);
 				System.out.println(filePaths.size());
+				
 				if(filePaths.size() < 2) {//1)-1 if the developer modified one file or less
 					scatteringMetric.setStructuralScattering(0);
 					scatteringMetric.setSemanticScattering(0);
@@ -162,7 +163,7 @@ public class DSmetricMain {
 						String filePath1 = originalFilePath(file1);
 						String filePath2 = originalFilePath(file2);
 
-						Runnable metrics = new DSmetricCalculator(file1,file2, filePath1, filePath2, dists,sims,nameOfSemanticFiles,endCommitHash,endCommitTime,repositoryPath,projectHistories,git,commitHashs);
+						Runnable metrics = new DSmetricCalculator(file1,file2, filePath1, filePath2, dists,sims,nameOfSemanticFiles,endCommitHash,endCommitTime,repositoryPath,projectHistories,git,commitHashs,projectName);
 						executor.execute(metrics);
 					}
 					executor.shutdown();
