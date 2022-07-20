@@ -206,7 +206,7 @@ public class DeveloperProfilingMetric {
 				meanOfNumOfDirectories = totalNumOfDirectories / totalCommit;
 				meanOfNumOfFiles = totalNumOfFiles / totalCommit;
 				
-				meanLT = totalLT / totalCommit;
+				meanLT = totalLT / totalCommitPath;
 				meanEXP = totalEXP / totalCommit;
 				meanREXP = totalREXP / totalCommit;
 				meanSEXP = totalSEXP / totalCommit;
