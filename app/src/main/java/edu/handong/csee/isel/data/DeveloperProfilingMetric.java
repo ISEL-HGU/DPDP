@@ -104,16 +104,16 @@ public class DeveloperProfilingMetric {
 				double meanOfAddedLineOfCommitPath = 0;
 				double meanOfDeletedLineOfCommit;
 				double meanOfDeletedLineOfCommitPath = 0;
+				
 				double meanOfDistributionModifiedLineOfCommit;
-
 				double meanOfNumOfSubsystem;
 				double meanOfNumOfDirectories;
 				double meanOfNumOfFiles;
-				
-				double meanLT = 0;
 				double meanEXP = 0;
 				double meanREXP = 0;
 				double meanSEXP = 0;
+				
+				double meanLT = 0;
 				double proportionBFC = 0;
 
 				double varianceOfCommit = 0;
@@ -128,17 +128,16 @@ public class DeveloperProfilingMetric {
 				double totalAddedLineOfCommitPath = 0;
 				double totalDeletedLineOfCommit = 0;
 				double totalDeletedLineOfCommitPath = 0;
+				
 				double totalDistributionModifiedLineOfCommit = 0;
-				double totalDistributionModifiedLineOfCommitPath = 0;
-
 				double totalNumOfSubsystem = 0;
 				double totalNumOfDirectories = 0;
 				double totalNumOfFiles = 0;
-				
-				double totalLT = 0;
 				double totalEXP = 0;
 				double totalREXP = 0;
 				double totalSEXP = 0;
+				
+				double totalLT = 0;
 				double totalBFC = 0;
 				
 				double structural = 0;
@@ -157,20 +156,23 @@ public class DeveloperProfilingMetric {
 
 					List<HashMap<String,String>> metricToValueMapList = commitToMetricToValueMapListMap.get(commit);
 					totalCommitPath += metricToValueMapList.size();
+					
+					double distributionLine = 0;
+					double subsystem = 0;
+					double directories = 0;
+					double files = 0;
+					double EXP = 0;
+					double REXP = 0;
+					double SEXP = 0;
+					
+					boolean isFirstIterator = false;
 
 					for(HashMap<String,String> metricToValueMap : metricToValueMapList) {
 
 						double editedLine = Double.parseDouble(metricToValueMap.get("Modify Lines"));
 						double addedLine = Double.parseDouble(metricToValueMap.get("Add Lines"));
 						double deletedLine = Double.parseDouble(metricToValueMap.get("Delete Lines"));
-						double distributionLine = Double.parseDouble(metricToValueMap.get("Distribution modified Lines"));//
-						double subsystem = Double.parseDouble(metricToValueMap.get("numOfSubsystems"));//
-						double directories = Double.parseDouble(metricToValueMap.get("numOfDirectories"));//
-						double files = Double.parseDouble(metricToValueMap.get("numOfFiles"));//
 						double LT = Double.parseDouble(metricToValueMap.get("LT"));
-						double EXP = Double.parseDouble(metricToValueMap.get("developerExperience"));//
-						double REXP = Double.parseDouble(metricToValueMap.get("REXP"));//
-						double SEXP = Double.parseDouble(metricToValueMap.get("SEXP"));//
 						double FIX = Double.parseDouble(metricToValueMap.get("FIX"));//
 						
 
@@ -180,19 +182,30 @@ public class DeveloperProfilingMetric {
 						totalAddedLineOfCommitPath += addedLine;
 						totalDeletedLineOfCommit += deletedLine;
 						totalDeletedLineOfCommitPath += deletedLine;
-						totalDistributionModifiedLineOfCommit += distributionLine;
-						totalDistributionModifiedLineOfCommitPath += distributionLine;
-
-						totalNumOfSubsystem += subsystem;
-						totalNumOfDirectories += directories;
-						totalNumOfFiles += files;
-						
 						totalLT += LT;
-						totalEXP += EXP;
-						totalREXP += REXP;
-						totalSEXP += SEXP;
 						totalBFC += FIX;
+						
+						if(isFirstIterator == false) {
+							distributionLine = Double.parseDouble(metricToValueMap.get("Distribution modified Lines"));//
+							subsystem = Double.parseDouble(metricToValueMap.get("numOfSubsystems"));//
+							directories = Double.parseDouble(metricToValueMap.get("numOfDirectories"));//
+							files = Double.parseDouble(metricToValueMap.get("numOfFiles"));//
+							EXP = Double.parseDouble(metricToValueMap.get("developerExperience"));//
+							REXP = Double.parseDouble(metricToValueMap.get("REXP"));//
+							SEXP = Double.parseDouble(metricToValueMap.get("SEXP"));//
+							
+							isFirstIterator = true;
+						}
 					}
+					
+					totalDistributionModifiedLineOfCommit += distributionLine;
+					totalNumOfSubsystem += subsystem;
+					totalNumOfDirectories += directories;
+					totalNumOfFiles += files;
+					totalEXP += EXP;
+					totalREXP += REXP;
+					totalSEXP += SEXP;
+					
 				}
 				meanOfEditedLineOfCommit = totalEditedLineForEachCommit / totalCommit;
 				meanOfEditedLineOfCommitPath = totalEditedLineForEachCommitPath / totalCommitPath;
@@ -205,11 +218,11 @@ public class DeveloperProfilingMetric {
 				meanOfNumOfSubsystem = totalNumOfSubsystem / totalCommit;
 				meanOfNumOfDirectories = totalNumOfDirectories / totalCommit;
 				meanOfNumOfFiles = totalNumOfFiles / totalCommit;
-				
-				meanLT = totalLT / totalCommitPath;
 				meanEXP = totalEXP / totalCommit;
 				meanREXP = totalREXP / totalCommit;
 				meanSEXP = totalSEXP / totalCommit;
+				
+				meanLT = totalLT / totalCommitPath;
 				proportionBFC = (totalBFC / totalCommitPath) * 100;
 				
 
