@@ -105,7 +105,6 @@ public class DeveloperProfilingMetric {
 				double meanOfDeletedLineOfCommit;
 				double meanOfDeletedLineOfCommitPath = 0;
 				double meanOfDistributionModifiedLineOfCommit;
-				double meanOfDistributionModifiedLineOfCommitPath = 0;
 
 				double meanOfNumOfSubsystem;
 				double meanOfNumOfDirectories;
@@ -203,7 +202,6 @@ public class DeveloperProfilingMetric {
 				meanOfDeletedLineOfCommitPath = totalDeletedLineOfCommitPath / totalCommitPath;
 				
 				meanOfDistributionModifiedLineOfCommit = totalDistributionModifiedLineOfCommit / totalCommit;
-				meanOfDistributionModifiedLineOfCommitPath = totalDistributionModifiedLineOfCommitPath / totalCommitPath;
 				meanOfNumOfSubsystem = totalNumOfSubsystem / totalCommit;
 				meanOfNumOfDirectories = totalNumOfDirectories / totalCommit;
 				meanOfNumOfFiles = totalNumOfFiles / totalCommit;
@@ -268,7 +266,6 @@ public class DeveloperProfilingMetric {
 						meanOfDeletedLineOfCommit,
 						meanOfDeletedLineOfCommitPath,
 						meanOfDistributionModifiedLineOfCommit,
-						meanOfDistributionModifiedLineOfCommitPath,
 						meanOfNumOfSubsystem,
 						meanOfNumOfDirectories,
 						meanOfNumOfFiles,
@@ -319,7 +316,6 @@ public class DeveloperProfilingMetric {
 						metricList.add(String.valueOf(developerInfo.meanOfDeletedLineOfCommit));
 						metricList.add(String.valueOf(developerInfo.meanOfDeletedLineOfCommitPath));
 						metricList.add(String.valueOf(developerInfo.meanOfDistributionModifiedLineOfCommit));
-						metricList.add(String.valueOf(developerInfo.meanOfDistributionModifiedLineOfCommitPath));
 						metricList.add(String.valueOf(developerInfo.meanOfNumOfSubsystem));
 						metricList.add(String.valueOf(developerInfo.meanOfNumOfDirectories));
 						metricList.add(String.valueOf(developerInfo.meanOfNumOfFiles));

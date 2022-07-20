@@ -17,7 +17,6 @@ public class DeveloperInfo {
             , double meanOfDeletedLineOfCommit
             , double meanOfDeletedLineOfCommitPath
             , double meanOfDistributionModifiedLineOfCommit
-            , double meanOfDistributionModifiedLineOfCommitPath
             , double meanOfNumOfSubsystem
             , double meanOfNumOfDirectories
             , double meanOfNumOfFiles
@@ -44,7 +43,6 @@ public class DeveloperInfo {
         this.meanOfDeletedLineOfCommit = meanOfDeletedLineOfCommit;
         this.meanOfDeletedLineOfCommitPath = meanOfDeletedLineOfCommitPath;
         this.meanOfDistributionModifiedLineOfCommit = meanOfDistributionModifiedLineOfCommit;
-        this.meanOfDistributionModifiedLineOfCommitPath = meanOfDistributionModifiedLineOfCommitPath;
         this.meanOfNumOfSubsystem = meanOfNumOfSubsystem;
         this.meanOfNumOfDirectories = meanOfNumOfDirectories;
         this.meanOfNumOfFiles = meanOfNumOfFiles;
@@ -76,7 +74,6 @@ public class DeveloperInfo {
     public final double meanOfDeletedLineOfCommit;
     public final double meanOfDeletedLineOfCommitPath;
     public final double meanOfDistributionModifiedLineOfCommit;
-    public final double meanOfDistributionModifiedLineOfCommitPath;
     public final double meanOfNumOfSubsystem;
     public final double meanOfNumOfDirectories;
     public final double meanOfNumOfFiles;
