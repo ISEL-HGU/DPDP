@@ -20,8 +20,11 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.time.temporal.ChronoUnit;
 
 import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.math3.util.Combinations;
@@ -37,6 +40,8 @@ import org.refactoringminer.rm1.GitHistoryRefactoringMinerImpl;
 import org.refactoringminer.util.GitServiceImpl;
 
 import com.google.common.collect.Iterators;
+
+import edu.handong.csee.isel.data.DeveloperInfo;
 
 public class DSmetricMain {
 	static String input;
@@ -74,6 +79,19 @@ public class DSmetricMain {
 		long secDiffTime = (afterTime - beforeTime)/1000;
 		System.out.println("Mining refactoring commit 실행시(m) : "+secDiffTime/60);
 		
+		//print the progress of experiment
+		String outputPath = "."+File.separator+"Experiment_Information.csv";
+		File tempForCheck = new File(outputPath);
+		boolean isFile = tempForCheck.isFile();
+		
+		FileWriter out = new FileWriter(outputPath, true); 
+		CSVPrinter printer;
+		if(isFile) {
+			printer = new CSVPrinter(out, CSVFormat.DEFAULT);
+		}else {
+			printer = new CSVPrinter(out, CSVFormat.DEFAULT.withHeader(DSmetricInformation.csvHeader));
+		}
+		
 		//read and save project commit history metric
 		Reader in = new FileReader(input);
 		Iterable<CSVRecord> records = CSVFormat.RFC4180.withHeader().parse(in);
@@ -83,7 +101,7 @@ public class DSmetricMain {
 		//calculate developer scattering metric
 		TreeMap<Date,Date> windows = saveStartAndEndCommittimeOfRefactoring(time_refactoringCommit,projectHistories);
 		System.out.println("windows.size() : "+windows.size());
-		
+
 		if(windows.size() == 1) {
 			File window1fileExist = new File("."+File.separator+"window_1_fileList.txt");
 			FileWriter write;
@@ -100,12 +118,13 @@ public class DSmetricMain {
 			System.exit(0);
 		}
 		HashMap<String,ArrayList<DeveloperScatteringMetric>> developerScatteringMetrics = new HashMap<>();
-		
+
 //		developerScatteringMetrics 
 		windows.forEach((startCommitTime, endCommitTime) -> {
-//			HashMap<String,DeveloperScatteringMetric> developerScatteringMetric = new HashMap<>();
 			String endCommitHash = projectHistories.get(endCommitTime).getHashkeys().get(0); // 같은 commitTime에 중복되는 commitHash가 없는지 확인하기! 일단 첫번째 index의 commitHash만 사용 
-
+			
+			Hashtable<String,Float> file1nfile2_semantic = new Hashtable<>();
+			
 			//1) find file names that each developer modified in specified period
 			HashMap<String, TreeSet<String>> authorID_filePaths = saveAuthorIdAndFilePathsInTheCurrentPeriod(startCommitTime,endCommitTime,projectHistories);
 			System.out.println("Time from  "+startCommitTime+"  to  "+endCommitTime);
@@ -152,7 +171,11 @@ public class DSmetricMain {
 					List<Integer> dists = Collections.synchronizedList(new ArrayList<>());
 					List<Float> sims = Collections.synchronizedList(new ArrayList<>());
 					Hashtable<String,ArrayList<String>> nameOfSemanticFiles = new Hashtable<>();
-										
+					List<Long> experimentTime = Collections.synchronizedList(new ArrayList<>());
+					experimentTime.add(0, (long) 0);
+					experimentTime.add(1, (long) 0);
+					experimentTime.add(2, (long) 0);
+					
 					for(int i = 0; i < combination; i++) {
 						int file1Index = caseOfCombination[i][0];
 						int file2Index = caseOfCombination[i][1];
@@ -162,8 +185,8 @@ public class DSmetricMain {
 						
 						String filePath1 = originalFilePath(file1);
 						String filePath2 = originalFilePath(file2);
-
-						Runnable metrics = new DSmetricCalculator(file1,file2, filePath1, filePath2, dists,sims,nameOfSemanticFiles,endCommitHash,endCommitTime,repositoryPath,projectHistories,git,commitHashs,projectName);
+						
+						Runnable metrics = new DSmetricCalculator(file1,file2, filePath1, filePath2, dists,sims,nameOfSemanticFiles,endCommitHash,endCommitTime,repositoryPath,projectHistories,git,commitHashs,projectName,file1nfile2_semantic,experimentTime);
 						executor.execute(metrics);
 					}
 					executor.shutdown();
@@ -190,6 +213,24 @@ public class DSmetricMain {
 					//save the scattering metric result
 					scatteringMetric.setStructuralScattering(structural);
 					scatteringMetric.setSemanticScattering(semantic);
+					
+					try {
+						long diff = endCommitTime.getTime() - startCommitTime.getTime();
+						printer.printRecord(projectName,
+								startCommitTime.toString(),
+								endCommitTime.toString(),
+								Long.toString(TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS)),
+								authorId,
+								Integer.toString(sims.size()),
+								Long.toString(experimentTime.get(0)),
+								Long.toString(experimentTime.get(1)),
+								Long.toString(experimentTime.get(2))
+								);
+						experimentTime.clear();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 				
 				//save all DS metric from a dev in all window 
@@ -202,7 +243,8 @@ public class DSmetricMain {
 					developerScatteringMetrics.put(authorId, list);
 				} 
 			}
-			    		
+			
+			file1nfile2_semantic.clear();
     		System.out.println("Finished all threads");	
 			
 		});
@@ -231,6 +273,8 @@ public class DSmetricMain {
 //			System.out.println("sumSemantic : "+sumDeveloperScatteringMetric.get(dev).getSemanticScattering());
 //		}
 		
+		printer.close();
+		out.close();
 		return sumDeveloperScatteringMetric;
 	}
 

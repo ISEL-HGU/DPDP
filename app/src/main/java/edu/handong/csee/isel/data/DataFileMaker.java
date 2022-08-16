@@ -303,26 +303,6 @@ System.out.println(numberOfThreadPool);
 		return dir.getAbsolutePath();
 	}
 
-	private void reduceBICValue(String defectDataArffPath) throws Exception {
-		DataSource source = new DataSource(defectDataArffPath);
-		Instances data = source.getDataSet();
-		data.setClassIndex(0);
-
-		Attribute numOfBIC = data.attribute("meta_data-numOfBIC");
-
-		for(Instance instance : data) {
-			if(instance.value(numOfBIC) > 0) {
-				instance.setValue(numOfBIC, instance.value(numOfBIC)-1);
-			}
-		}
-
-		ArffSaver saver = new ArffSaver();
-		saver.setInstances(data);
-		saver.setFile(new File(defectDataArffPath));
-		saver.writeBatch();
-
-	}
-
 	private String removeAuthorIDinInstance(String line, int index) {
 		if((line.contains(","+index+" "))) { //{index c-vector,index meta} 
 			String front = line.substring(0,line.lastIndexOf(","+index));

@@ -37,11 +37,14 @@ class DSmetricCalculator implements Runnable{
 	Git git;
 	ArrayList<String> commitHashs;
 	String projectName;
+	String file1nfile2;
+	Hashtable<String,Float> file1nfile2_semantic;
+	List<Long> experimentTime;
 	
 protected DSmetricCalculator(String[] file1, String[] file2, String filePath1, String filePath2,List<Integer> dists, List<Float> sims,
 			Hashtable<String, ArrayList<String>> nameOfSemanticFiles, String endCommitHash, Date endCommitTime,
 			String repositoryPath, TreeMap<Date, ProjectHistory> projectHistories, Git git,
-			ArrayList<String> commitHashs,String projectName) {
+			ArrayList<String> commitHashs,String projectName, Hashtable<String,Float> file1nfile2_semantic, List<Long> experimentTime) {
 		this.file1 = file1;
 		this.file2 = file2;
 		this.filePath1 = filePath1;
@@ -56,6 +59,9 @@ protected DSmetricCalculator(String[] file1, String[] file2, String filePath1, S
 		this.git = git;
 		this.commitHashs = commitHashs;
 		this.projectName = projectName;
+		this.file1nfile2_semantic = file1nfile2_semantic;
+		this.file1nfile2 = makeSemanticKey(filePath1,filePath2);
+		this.experimentTime = experimentTime;
 	}
 
 	@Override
@@ -69,8 +75,25 @@ protected DSmetricCalculator(String[] file1, String[] file2, String filePath1, S
 		//3)-1 calculate the similarity of two filePath
 		boolean isSamePackage = compareTwoFilePaths(filePath1,filePath2,nameOfSemanticFiles);
 		if(isSamePackage) {
-			float sim = calSimularityOfTwoFiles(filePath1,filePath2,endCommitTime,repositoryPath,endCommitHash,projectHistories,git,commitHashs);
-			sims.add(sim);
+			if(!file1nfile2_semantic.containsKey(file1nfile2)) {
+				long beforeTime = System.currentTimeMillis();
+				float sim = calSimularityOfTwoFiles(filePath1,filePath2,endCommitTime,repositoryPath,endCommitHash,projectHistories,git,commitHashs);
+				long afterTime = System.currentTimeMillis(); 
+				long secDiffTime = (afterTime - beforeTime)/1000;
+
+				if(experimentTime.get(1) < secDiffTime) {
+					experimentTime.add(1, secDiffTime);
+				}
+				if(experimentTime.get(2) > secDiffTime) {
+					experimentTime.add(2, secDiffTime);
+				}
+				sims.add(sim);
+				file1nfile2_semantic.put(file1nfile2, sim);
+			}else {
+				Long numDup = experimentTime.get(0) + 1;
+				experimentTime.add(0, numDup);
+				sims.add(file1nfile2_semantic.get(file1nfile2));
+			}
 		}
 	}
 	
@@ -251,5 +274,13 @@ protected DSmetricCalculator(String[] file1, String[] file2, String filePath1, S
 //		System.out.println("dist" + dist);
 //		System.out.println();
 		return dist.size();
+	}
+	
+	private static String makeSemanticKey(String filePath1, String filePath2) {
+		if(filePath1.compareTo(filePath2) > 0) {
+			return filePath1+"_"+filePath2;
+		}else {
+			return filePath2+"_"+filePath1;
+		}
 	}
 }
