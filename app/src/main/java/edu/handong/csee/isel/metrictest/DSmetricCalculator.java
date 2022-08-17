@@ -82,16 +82,18 @@ protected DSmetricCalculator(String[] file1, String[] file2, String filePath1, S
 				long secDiffTime = (afterTime - beforeTime)/1000;
 
 				if(experimentTime.get(1) < secDiffTime) {
-					experimentTime.add(1, secDiffTime);
+					experimentTime.set(1, secDiffTime);
 				}
+				
 				if(experimentTime.get(2) > secDiffTime) {
-					experimentTime.add(2, secDiffTime);
+					experimentTime.set(2, secDiffTime);
 				}
+
 				sims.add(sim);
 				file1nfile2_semantic.put(file1nfile2, sim);
 			}else {
 				Long numDup = experimentTime.get(0) + 1;
-				experimentTime.add(0, numDup);
+				experimentTime.set(0, numDup);
 				sims.add(file1nfile2_semantic.get(file1nfile2));
 			}
 		}
